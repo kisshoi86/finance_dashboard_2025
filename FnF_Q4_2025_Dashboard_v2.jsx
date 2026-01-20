@@ -601,31 +601,134 @@ export default function FnFQ4Dashboard() {
       '중국': '#F59E0B',
       '홍콩': '#8B5CF6',
       '기타': '#6B7280',
+      '연결조정': '#9CA3AF',
+    };
+
+    // ============================================
+    // 법인별 분석 데이터 정합성 보정
+    // - 현재 entityData는 "연결조정 전 합산" 기준이며, 일부 기간(4Q/연간)이 동일 값으로 들어가 있음
+    // - UI 표(연결) 합계와 맞추기 위해, 선택 과목/기간의 연결 금액을 기준으로
+    //   1) 기준 분해(연간 분해값)를 스케일링하고
+    //   2) 반올림 오차/연결조정 차이는 '연결조정' 라인으로 보정
+    // ============================================
+    const getConsolidatedTotal = (accountKey, period) => {
+      const v = incomeStatementData?.[period]?.[accountKey];
+      return typeof v === 'number' ? v : 0;
+    };
+
+    const getBaseEntityBreakdown = (accountKey, period) => {
+      // 우선 해당 period 값이 있으면 사용, 없으면 같은 연도의 Year 값을 기준(특히 4Q)으로 사용
+      const direct = entityData?.[accountKey]?.[period];
+      if (direct && Object.keys(direct).length > 0) return direct;
+
+      const fallbackPeriod = period.endsWith('_4Q') ? period.replace('_4Q', '_Year') : period;
+      return entityData?.[accountKey]?.[fallbackPeriod] || {};
+    };
+
+    const getAlignedEntityBreakdown = (accountKey, period) => {
+      const consolidatedTotal = getConsolidatedTotal(accountKey, period);
+      const base = getBaseEntityBreakdown(accountKey, period);
+
+      const baseKeys = Object.keys(base);
+      if (baseKeys.length === 0) {
+        return { '연결조정': consolidatedTotal };
+      }
+
+      const baseSum = baseKeys.reduce((sum, k) => sum + (base[k] || 0), 0);
+      if (baseSum === 0) {
+        return { ...base, '연결조정': consolidatedTotal };
+      }
+
+      const scale = consolidatedTotal / baseSum;
+      const scaled = {};
+      for (const k of baseKeys) {
+        // 반올림으로 발생하는 차이는 연결조정으로 흡수
+        scaled[k] = Math.round((base[k] || 0) * scale);
+      }
+
+      const scaledSum = Object.values(scaled).reduce((sum, v) => sum + (v || 0), 0);
+      const adjustment = consolidatedTotal - scaledSum;
+      return { ...scaled, '연결조정': adjustment };
+    };
+
+    // 표시용 그룹핑: 비중이 작은 법인 + 연결조정을 '기타(연결조정)'로 합산
+    const MINOR_ENTITY_RATIO_THRESHOLD = 0.03; // 3% 미만은 기타로 합산
+    const MERGED_ENTITY_LABEL = '기타(연결조정)';
+    const MAJOR_ENTITIES = ['OC(국내)', '중국'];
+
+    const getGroupedEntityBreakdown = (accountKey, period) => {
+      const total = getConsolidatedTotal(accountKey, period);
+      const aligned = getAlignedEntityBreakdown(accountKey, period);
+
+      const merged = {};
+      let mergedSum = 0;
+
+      for (const [name, value] of Object.entries(aligned)) {
+        const ratio = total !== 0 ? Math.abs(value) / Math.abs(total) : 0;
+        const isAdjustmentOrOther = name === '연결조정' || name === '기타';
+        const isMinor = !MAJOR_ENTITIES.includes(name) && ratio < MINOR_ENTITY_RATIO_THRESHOLD;
+
+        if (isAdjustmentOrOther || isMinor) {
+          mergedSum += value || 0;
+        } else {
+          merged[name] = value || 0;
+        }
+      }
+
+      // 항상 합계가 연결 금액과 일치하도록(반올림/스케일링 오차 포함) 기타(연결조정)로 흡수
+      const keptSum = Object.values(merged).reduce((s, v) => s + (v || 0), 0);
+      const finalMerged = total - keptSum;
+      merged[MERGED_ENTITY_LABEL] = finalMerged;
+
+      return merged;
     };
 
     // 도넛 차트용 데이터 변환 (양수 값만 표시)
     const getDonutData = (period) => {
-      const data = entityData[selectedAccount]?.[period] || {};
+      const data = getGroupedEntityBreakdown(selectedAccount, period);
       return Object.entries(data)
-        .filter(([name, value]) => value > 0)  // 양수만 필터링
+        .filter(([_, value]) => value > 0) // 양수만 필터링 (도넛은 음수 표현이 어려움)
         .map(([name, value]) => ({
           name,
           value: value || 0,
-          color: entityColors[name],
+          color:
+            name === MERGED_ENTITY_LABEL
+              ? '#6B7280'
+              : (entityColors[name] || '#9CA3AF'),
         }));
     };
 
     // 법인별 테이블 데이터 - 현재 모드에 따라 연동
     const getEntityTableData = () => {
-      const prev = entityData[selectedAccount]?.[prevPeriod] || {};
-      const curr = entityData[selectedAccount]?.[currPeriod] || {};
-      const totalCurr = Object.values(curr).reduce((a, b) => a + b, 0);
+      const prev = getGroupedEntityBreakdown(selectedAccount, prevPeriod);
+      const curr = getGroupedEntityBreakdown(selectedAccount, currPeriod);
+      const totalCurr = getConsolidatedTotal(selectedAccount, currPeriod);
       
-      return Object.keys(entityColors).map(entity => {
+      // 표 표시 순서:
+      // - OC/중국은 항상 상단
+      // - 그 외(예: 홍콩)가 임계치 이상이면 개별로 남을 수 있으므로 동적으로 포함
+      // - 기타(연결조정)는 항상 마지막
+      const keyUnion = Array.from(
+        new Set([...Object.keys(prev), ...Object.keys(curr)])
+      );
+
+      const dynamicEntities = keyUnion
+        .filter((k) => k !== MERGED_ENTITY_LABEL && !MAJOR_ENTITIES.includes(k))
+        .sort(
+          (a, b) =>
+            Math.max(Math.abs(curr[b] || 0), Math.abs(prev[b] || 0)) -
+            Math.max(Math.abs(curr[a] || 0), Math.abs(prev[a] || 0))
+        );
+
+      const entityOrder = [...MAJOR_ENTITIES, ...dynamicEntities, MERGED_ENTITY_LABEL].filter(
+        (v, i, arr) => arr.indexOf(v) === i
+      );
+
+      return entityOrder.map(entity => {
         const prevVal = prev[entity] || 0;
         const currVal = curr[entity] || 0;
         const ratio = totalCurr > 0 ? ((currVal / totalCurr) * 100).toFixed(1) : '0.0';
-        const change = prevVal > 0 ? (((currVal - prevVal) / prevVal) * 100).toFixed(1) : '-';
+        const change = prevVal !== 0 ? (((currVal - prevVal) / Math.abs(prevVal)) * 100).toFixed(1) : '-';
         return { entity, prevVal, currVal, ratio, change };
       });
     };
@@ -1323,6 +1426,8 @@ export default function FnFQ4Dashboard() {
       중국: '#F59E0B',
       홍콩: '#8B5CF6',
       ST미국: '#10B981',
+      연결조정: '#9CA3AF',
+      '기타(연결조정)': '#6B7280',
     };
 
     // 추이 그래프용 색상
@@ -1332,20 +1437,92 @@ export default function FnFQ4Dashboard() {
       기타: '#8B5CF6',
     };
 
+    // ============================================
+    // 재무상태표 법인별 분석 데이터 정합성 보정
+    // - entityBSData는 연결조정 전 법인별 합산이라 연결(BS) 합계와 불일치 가능
+    // - 선택 계정/기간의 연결 금액(balanceSheetData)을 기준으로
+    //   1) base(법인별 합산) 스케일링
+    //   2) 차이는 '연결조정' 항목으로 보정
+    // ============================================
+    const getBSConsolidatedTotal = (accountKey, period) => {
+      const v = balanceSheetData?.[period]?.[accountKey];
+      return typeof v === 'number' ? v : 0;
+    };
+
+    const getBaseBSBreakdown = (accountKey, period) => {
+      const p = entityBSData?.[period];
+      if (!p) return {};
+      return p[accountKey] || p['자산총계'] || {};
+    };
+
+    const getAlignedBSBreakdown = (accountKey, period) => {
+      const consolidatedTotal = getBSConsolidatedTotal(accountKey, period);
+      const base = getBaseBSBreakdown(accountKey, period);
+      const baseKeys = Object.keys(base);
+
+      if (baseKeys.length === 0) {
+        return { 연결조정: consolidatedTotal };
+      }
+
+      const baseSum = baseKeys.reduce((sum, k) => sum + (base[k] || 0), 0);
+      if (baseSum === 0) {
+        return { ...base, 연결조정: consolidatedTotal };
+      }
+
+      const scale = consolidatedTotal / baseSum;
+      const scaled = {};
+      for (const k of baseKeys) {
+        scaled[k] = Math.round((base[k] || 0) * scale);
+      }
+
+      const scaledSum = Object.values(scaled).reduce((sum, v) => sum + (v || 0), 0);
+      const adjustment = consolidatedTotal - scaledSum;
+      return { ...scaled, 연결조정: adjustment };
+    };
+
+    // 표시용 그룹핑: 비중이 작은 법인 + 연결조정을 '기타(연결조정)'로 합산
+    const BS_MINOR_ENTITY_RATIO_THRESHOLD = 0.03; // 3% 미만은 기타로 합산
+    const BS_MERGED_ENTITY_LABEL = '기타(연결조정)';
+    const BS_MAJOR_ENTITIES = ['OC(국내)', '중국'];
+
+    const getGroupedBSBreakdown = (accountKey, period) => {
+      const total = getBSConsolidatedTotal(accountKey, period);
+      const aligned = getAlignedBSBreakdown(accountKey, period);
+
+      const grouped = {};
+      for (const [name, value] of Object.entries(aligned)) {
+        const ratio = total !== 0 ? Math.abs(value) / Math.abs(total) : 0;
+        const isAdjustmentOrOther = name === '연결조정' || name === '기타';
+        const isMinor = !BS_MAJOR_ENTITIES.includes(name) && ratio < BS_MINOR_ENTITY_RATIO_THRESHOLD;
+
+        if (isAdjustmentOrOther || isMinor) continue;
+        grouped[name] = value || 0;
+      }
+
+      // 나머지는 전부 기타(연결조정)로 흡수해 합계 정합성 보장
+      const keptSum = Object.values(grouped).reduce((s, v) => s + (v || 0), 0);
+      grouped[BS_MERGED_ENTITY_LABEL] = total - keptSum;
+      return grouped;
+    };
+
     // 도넛 차트 데이터 생성 함수
     const getBSDonutData = (period) => {
-      const accountData = entityBSData[period][selectedBSAccount] || entityBSData[period]['자산총계'];
-      if (!accountData) return [];
-      
-      const total = Object.values(accountData).reduce((sum, val) => sum + Math.abs(val), 0);
-      if (total === 0) return [];
-      
-      return Object.entries(accountData).map(([name, value]) => ({
-        name,
-        value: Math.abs(value),
-        ratio: ((Math.abs(value) / total) * 100).toFixed(1),
-        color: entityColors[name],
-      })).filter(item => item.value > 0);
+      const accountData = getGroupedBSBreakdown(selectedBSAccount, period);
+      const total = getBSConsolidatedTotal(selectedBSAccount, period);
+      if (!accountData || total === 0) return [];
+
+      return Object.entries(accountData)
+        .map(([name, value]) => ({
+          name,
+          value: Math.abs(value),      // 차트 표시용(절대값)
+          valueRaw: value || 0,        // 테이블 표시용(원값)
+          ratio: total !== 0 ? ((Math.abs(value) / Math.abs(total)) * 100).toFixed(1) : '0.0',
+          color:
+            name === BS_MERGED_ENTITY_LABEL
+              ? '#6B7280'
+              : (entityColors[name] || '#9CA3AF'),
+        }))
+        .filter((item) => item.value > 0);
     };
 
     // 도넛 차트 데이터 미리 계산
@@ -1633,8 +1810,8 @@ export default function FnFQ4Dashboard() {
                 </thead>
                 <tbody>
                   {donutData2025.map((entity, idx) => {
-                    const prev = donutData2024.find(e => e.name === entity.name)?.value || 0;
-                    const curr = entity.value;
+                    const prev = donutData2024.find(e => e.name === entity.name)?.valueRaw ?? donutData2024.find(e => e.name === entity.name)?.value ?? 0;
+                    const curr = entity.valueRaw ?? entity.value;
                     const yoy = prev !== 0 ? ((curr - prev) / prev * 100).toFixed(1) : '-';
                     const isPositive = parseFloat(yoy) >= 0;
                     
@@ -1653,6 +1830,25 @@ export default function FnFQ4Dashboard() {
                       </tr>
                     );
                   })}
+                  {/* 합계 행 */}
+                  {(() => {
+                    const totalPrev = getBSConsolidatedTotal(selectedBSAccount, '2024_4Q');
+                    const totalCurr = getBSConsolidatedTotal(selectedBSAccount, '2025_4Q');
+                    const totalYoy = totalPrev !== 0 ? ((totalCurr - totalPrev) / totalPrev * 100).toFixed(1) : '-';
+                    const isPositive = parseFloat(totalYoy) >= 0;
+
+                    return (
+                      <tr className="bg-zinc-50 font-medium">
+                        <td className="px-3 py-2 text-zinc-900 whitespace-nowrap">합계</td>
+                        <td className="text-right px-2 py-2 text-zinc-700 tabular-nums">{formatNumber(totalPrev)}</td>
+                        <td className="text-right px-2 py-2 text-zinc-900 tabular-nums">{formatNumber(totalCurr)}</td>
+                        <td className="text-right px-2 py-2 text-zinc-700 tabular-nums">100%</td>
+                        <td className={`text-right px-3 py-2 tabular-nums whitespace-nowrap ${totalYoy === '-' ? 'text-zinc-400' : isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {totalYoy !== '-' ? `${isPositive ? '+' : ''}${totalYoy}%` : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })()}
                 </tbody>
               </table>
             </div>
@@ -1664,8 +1860,8 @@ export default function FnFQ4Dashboard() {
               </h3>
               <div className="space-y-2 text-xs">
                 {(() => {
-                  const curr2025 = entityBSData['2025_4Q'][selectedBSAccount] || entityBSData['2025_4Q']['자산총계'];
-                  const curr2024 = entityBSData['2024_4Q'][selectedBSAccount] || entityBSData['2024_4Q']['자산총계'];
+                  const curr2025 = getAlignedBSBreakdown(selectedBSAccount, '2025_4Q');
+                  const curr2024 = getAlignedBSBreakdown(selectedBSAccount, '2024_4Q');
                   
                   // 법인별 증감 계산
                   const changes = Object.keys(curr2025).map(entity => ({
@@ -1674,8 +1870,8 @@ export default function FnFQ4Dashboard() {
                     rate: curr2024[entity] !== 0 ? ((curr2025[entity] - curr2024[entity]) / Math.abs(curr2024[entity]) * 100).toFixed(1) : 0
                   })).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
                   
-                  const total2025 = Object.values(curr2025).reduce((s, v) => s + v, 0);
-                  const total2024 = Object.values(curr2024).reduce((s, v) => s + v, 0);
+                  const total2025 = getBSConsolidatedTotal(selectedBSAccount, '2025_4Q');
+                  const total2024 = getBSConsolidatedTotal(selectedBSAccount, '2024_4Q');
                   const totalDiff = total2025 - total2024;
                   
                   return (
