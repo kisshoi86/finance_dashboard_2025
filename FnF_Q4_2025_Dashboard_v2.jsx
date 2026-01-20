@@ -15,15 +15,15 @@ const CustomPieTooltip = ({ active, payload, formatter }) => {
     const value = formatter ? formatter(data.value) : data.value;
     
     return (
-      <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg shadow-lg px-3 py-2 min-w-[100px]">
+      <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg shadow-lg px-3 py-2 min-w-[160px]">
         <div className="flex items-center gap-2 mb-1">
           <span 
             className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
             style={{ backgroundColor: color }}
           />
-          <span className="text-xs font-medium text-zinc-700">{name}</span>
+          <span className="text-xs font-medium text-zinc-700 whitespace-nowrap">{name}</span>
         </div>
-        <div className="text-sm font-semibold text-zinc-900 pl-4">{value}</div>
+        <div className="text-sm font-semibold text-zinc-900 pl-4 whitespace-nowrap">{value}</div>
       </div>
     );
   }
@@ -35,7 +35,7 @@ const CustomChartTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg shadow-lg px-3 py-2.5 min-w-[140px]">
-        <p className="text-xs font-medium text-zinc-500 mb-1.5 pb-1.5 border-b border-zinc-100">{label}</p>
+        <p className="text-xs font-medium text-zinc-500 mb-1.5 pb-1.5 border-b border-zinc-100 whitespace-nowrap">{label}</p>
         <div className="space-y-1">
           {payload.map((entry, index) => (
             <div key={index} className="flex items-center justify-between gap-3">
@@ -44,9 +44,9 @@ const CustomChartTooltip = ({ active, payload, label }) => {
                   className="w-2 h-2 rounded-full flex-shrink-0" 
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-xs text-zinc-600">{entry.name || entry.dataKey}</span>
+                <span className="text-xs text-zinc-600 whitespace-nowrap">{entry.name || entry.dataKey}</span>
               </div>
-              <span className="text-xs font-semibold text-zinc-900">{entry.value?.toLocaleString()}</span>
+              <span className="text-xs font-semibold text-zinc-900 whitespace-nowrap">{entry.value?.toLocaleString()}</span>
             </div>
           ))}
         </div>
@@ -793,7 +793,7 @@ export default function FnFQ4Dashboard() {
         </div>
 
         {/* 손익계산서 테이블 & 법인별 분석 */}
-        <div className="flex gap-4">
+        <div className="flex flex-col xl:flex-row gap-4">
         {/* 좌측: 손익계산서 테이블 */}
         <div className="flex-1 min-w-0">
           <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
@@ -831,11 +831,11 @@ export default function FnFQ4Dashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-zinc-50 border-b border-zinc-200">
-                    <th className="text-left px-3 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[180px]">과목</th>
-                    <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[100px]">
+                    <th className="text-left px-3 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[175px]">과목</th>
+                    <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">
                       {incomeViewMode === 'quarter' ? '2024.4Q' : '2024년'}
                     </th>
-                    <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[100px]">
+                    <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">
                       {incomeViewMode === 'quarter' ? '2025.4Q' : '2025년'}
                     </th>
                     <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
@@ -920,7 +920,7 @@ export default function FnFQ4Dashboard() {
         </div>
 
         {/* 우측: 법인별 분석 */}
-        <div className="w-[320px] flex-shrink-0 space-y-3">
+        <div className="w-full xl:w-[360px] flex-shrink-0 space-y-3">
           {/* 법인별 분석 헤더 */}
           <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
             <h3 className="text-sm font-semibold text-zinc-900 mb-0.5">
@@ -1006,21 +1006,21 @@ export default function FnFQ4Dashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-zinc-50 border-b border-zinc-200">
-                  <th className="text-left px-3 py-2 font-semibold text-zinc-600">법인</th>
-                  <th className="text-right px-2 py-2 font-semibold text-zinc-600">
+                  <th className="text-left px-3 py-2 font-semibold text-zinc-600 min-w-[80px] whitespace-nowrap">법인</th>
+                  <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[85px]">
                     {incomeViewMode === 'quarter' ? '24.4Q' : '2024'}
                   </th>
-                  <th className="text-right px-2 py-2 font-semibold text-zinc-600">
+                  <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[85px]">
                     {incomeViewMode === 'quarter' ? '25.4Q' : '2025'}
                   </th>
-                  <th className="text-right px-2 py-2 font-semibold text-zinc-600">비중</th>
-                  <th className="text-right px-2 py-2 font-semibold text-zinc-600">YoY</th>
+                  <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[55px]">비중</th>
+                  <th className="text-right px-3 py-2 font-semibold text-zinc-600 min-w-[70px] whitespace-nowrap">YoY</th>
                 </tr>
               </thead>
               <tbody>
                 {getEntityTableData().map((row, idx) => (
                   <tr key={idx} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
-                    <td className="px-3 py-2 text-zinc-700">
+                    <td className="px-3 py-2 text-zinc-700 whitespace-nowrap">
                       <span 
                         className="inline-block w-2 h-2 rounded-full mr-1.5" 
                         style={{ backgroundColor: entityColors[row.entity] }}
@@ -1030,14 +1030,14 @@ export default function FnFQ4Dashboard() {
                     <td className="text-right px-2 py-2 text-zinc-500 tabular-nums">{formatNumber(row.prevVal)}</td>
                     <td className="text-right px-2 py-2 text-zinc-900 font-medium tabular-nums">{formatNumber(row.currVal)}</td>
                     <td className="text-right px-2 py-2 text-zinc-500 tabular-nums">{row.ratio}%</td>
-                    <td className={`text-right px-2 py-2 font-medium tabular-nums ${parseFloat(row.change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <td className={`text-right px-3 py-2 font-medium tabular-nums whitespace-nowrap ${parseFloat(row.change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {row.change !== '-' ? `${parseFloat(row.change) >= 0 ? '+' : ''}${row.change}%` : '-'}
                     </td>
                   </tr>
                 ))}
                 {/* 합계 행 */}
                 <tr className="bg-zinc-50 font-medium">
-                  <td className="px-3 py-2 text-zinc-900">합계</td>
+                  <td className="px-3 py-2 text-zinc-900 whitespace-nowrap">합계</td>
                   <td className="text-right px-2 py-2 text-zinc-700 tabular-nums">
                     {formatNumber(getEntityTableData().reduce((sum, r) => sum + r.prevVal, 0))}
                   </td>
@@ -1045,7 +1045,7 @@ export default function FnFQ4Dashboard() {
                     {formatNumber(getEntityTableData().reduce((sum, r) => sum + r.currVal, 0))}
                   </td>
                   <td className="text-right px-2 py-2 text-zinc-700 tabular-nums">100%</td>
-                  <td className="text-right px-2 py-2 text-zinc-400">-</td>
+                  <td className="text-right px-3 py-2 text-zinc-400 whitespace-nowrap">-</td>
                 </tr>
               </tbody>
             </table>
@@ -1398,7 +1398,7 @@ export default function FnFQ4Dashboard() {
         </div>
 
         {/* 재무상태표 테이블 & 법인별 분석 */}
-        <div className="flex gap-4">
+        <div className="flex flex-col xl:flex-row gap-4">
           {/* 좌측: 재무상태표 테이블 */}
           <div className="flex-1 min-w-0">
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
@@ -1409,9 +1409,9 @@ export default function FnFQ4Dashboard() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-zinc-50 border-b border-zinc-200">
-                      <th className="text-left px-3 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[180px]">과목</th>
-                      <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[100px]">2024.4Q</th>
-                      <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[100px]">2025.4Q</th>
+                      <th className="text-left px-3 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[175px]">과목</th>
+                      <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">2024.4Q</th>
+                      <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">2025.4Q</th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
                     </tr>
@@ -1544,7 +1544,7 @@ export default function FnFQ4Dashboard() {
           </div>
 
           {/* 우측: 법인별 분석 */}
-          <div className="w-[320px] flex-shrink-0 space-y-3">
+          <div className="w-full xl:w-[360px] flex-shrink-0 space-y-3">
             {/* 법인별 분석 헤더 */}
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
               <h3 className="text-sm font-semibold text-zinc-900 mb-0.5">
@@ -1624,11 +1624,11 @@ export default function FnFQ4Dashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-zinc-50 border-b border-zinc-200">
-                    <th className="text-left px-3 py-2 font-semibold text-zinc-600">법인</th>
-                    <th className="text-right px-2 py-2 font-semibold text-zinc-600">2024</th>
-                    <th className="text-right px-2 py-2 font-semibold text-zinc-600">2025</th>
-                    <th className="text-right px-2 py-2 font-semibold text-zinc-600">비중</th>
-                    <th className="text-right px-2 py-2 font-semibold text-zinc-600">YoY</th>
+                    <th className="text-left px-3 py-2 font-semibold text-zinc-600 min-w-[80px] whitespace-nowrap">법인</th>
+                    <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[85px]">2024</th>
+                    <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[85px]">2025</th>
+                    <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[55px]">비중</th>
+                    <th className="text-right px-3 py-2 font-semibold text-zinc-600 min-w-[70px] whitespace-nowrap">YoY</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1640,14 +1640,14 @@ export default function FnFQ4Dashboard() {
                     
                     return (
                       <tr key={idx} className="border-b border-zinc-100">
-                        <td className="px-3 py-2 text-zinc-700">
+                        <td className="px-3 py-2 text-zinc-700 whitespace-nowrap">
                           <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: entity.color }}></span>
                           {entity.name}
                         </td>
                         <td className="text-right px-2 py-2 text-zinc-500 tabular-nums">{formatNumber(prev)}</td>
                         <td className="text-right px-2 py-2 font-medium text-zinc-900 tabular-nums">{formatNumber(curr)}</td>
                         <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">{entity.ratio}%</td>
-                        <td className={`text-right px-2 py-2 font-medium tabular-nums ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        <td className={`text-right px-3 py-2 font-medium tabular-nums whitespace-nowrap ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {yoy !== '-' ? `${isPositive ? '+' : ''}${yoy}%` : '-'}
                         </td>
                       </tr>
