@@ -33,3 +33,11 @@ lerna-debug.log*
 
 # OS
 Thumbs.db
+
+# Excel files (not needed for deployment)
+*.xlsx
+*.xls
+
+# Documentation (optional - can be excluded from deployment)
+# DEPLOYMENT.md
+# README.md

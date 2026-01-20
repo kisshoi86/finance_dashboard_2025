@@ -80,6 +80,175 @@ const NATURE_REVERSE_MAPPING = {
   '기타': ['기타유동부채', '기타비유동부채'],
 };
 
+// 계정과목명 매핑: 다양한 입력 형식을 표준 형식으로 변환
+const ACCOUNT_NAME_MAPPING = {
+  // 현금 관련
+  '현금': '현금및현금성자산',
+  '현금 및 현금성자산': '현금및현금성자산',
+  '현금및현금성자산': '현금및현금성자산',
+  '현금성자산': '현금및현금성자산',
+  '현금 및 현금성 자산': '현금및현금성자산',
+  
+  // 매출채권 관련
+  '매출채권': '매출채권',
+  '매출채권 및 기타채권': '매출채권',
+  '외상매출금': '매출채권',
+  
+  // 재고자산
+  '재고자산': '재고자산',
+  '재고': '재고자산',
+  '상품': '재고자산',
+  
+  // 기타유동자산
+  '기타유동자산': '기타유동자산',
+  '기타 유동자산': '기타유동자산',
+  
+  // 유형자산
+  '유형자산': '유형자산',
+  '유형 자산': '유형자산',
+  '유형고정자산': '유형자산',
+  '유형 고정자산': '유형자산',
+  
+  // 무형자산
+  '무형자산': '무형자산',
+  '무형 자산': '무형자산',
+  '무형고정자산': '무형자산',
+  '무형 고정자산': '무형자산',
+  
+  // 사용권자산
+  '사용권자산': '사용권자산',
+  '사용권 자산': '사용권자산',
+  '리스자산': '사용권자산',
+  
+  // 투자부동산
+  '투자부동산': '투자부동산',
+  '투자 부동산': '투자부동산',
+  
+  // 기타비유동자산
+  '기타비유동자산': '기타비유동자산',
+  '기타 비유동자산': '기타비유동자산',
+  
+  // 관계기업
+  '관계기업': '관계기업',
+  '관계 기업': '관계기업',
+  '관계기업투자': '관계기업',
+  
+  // 금융상품
+  '금융상품': '금융상품',
+  '금융 상품': '금융상품',
+  
+  // 대여금
+  '대여금': '대여금',
+  '대여 금': '대여금',
+  
+  // 매입채무
+  '매입채무': '매입채무',
+  '매입 채무': '매입채무',
+  '외상매입금': '매입채무',
+  '외상 매입금': '매입채무',
+  
+  // 미지급금
+  '미지급금': '미지급금',
+  '미지급 금': '미지급금',
+  
+  // 리스부채
+  '리스부채': '리스부채',
+  '리스 부채': '리스부채',
+  '리스 의무': '리스부채',
+  
+  // 보증금
+  '보증금': '보증금',
+  '보증 금': '보증금',
+  
+  // 단기차입금
+  '단기차입금': '단기차입금',
+  '단기 차입금': '단기차입금',
+  '단기 차입 금': '단기차입금',
+  '단기차입': '단기차입금',
+  
+  // 장기차입금
+  '장기차입금': '장기차입금',
+  '장기 차입금': '장기차입금',
+  '장기 차입 금': '장기차입금',
+  '장기차입': '장기차입금',
+  
+  // 기타유동부채
+  '기타유동부채': '기타유동부채',
+  '기타 유동부채': '기타유동부채',
+  
+  // 기타비유동부채
+  '기타비유동부채': '기타비유동부채',
+  '기타 비유동부채': '기타비유동부채',
+  
+  // 자본금
+  '자본금': '자본금',
+  '자본 금': '자본금',
+  
+  // 자본잉여금
+  '자본잉여금': '자본잉여금',
+  '자본 잉여금': '자본잉여금',
+  
+  // 이익잉여금
+  '이익잉여금': '이익잉여금',
+  '이익 잉여금': '이익잉여금',
+  '이익잉여금(결손금)': '이익잉여금',
+  
+  // 기타자본
+  '기타자본': '기타자본',
+  '기타 자본': '기타자본',
+};
+
+// 계정과목명 정규화 함수 (공백 제거, 대소문자 통일 등)
+const normalizeAccountName = (accountName) => {
+  if (!accountName || typeof accountName !== 'string') return null;
+  
+  // 앞뒤 공백 및 특수 공백 문자 제거 (\xa0 등)
+  let cleaned = accountName.replace(/[\xa0\u00A0\u2000-\u200B\uFEFF]/g, ' ').trim();
+  
+  // 대분류 행 무시 (I., II., III. 등으로 시작하는 행)
+  if (/^[IVX]+\.\s|^[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+\.\s|^[일이삼사오육칠팔구십]+\.\s|^[一二三四五六七八九十]+\.\s/.test(cleaned)) {
+    return null;
+  }
+  
+  // 합계 행 무시 ("총계", "합계" 등이 포함된 행)
+  if (/총\s*계|합\s*계|총\s*합|자\s*산\s*총\s*계|부\s*채\s*총\s*계|자\s*본\s*총\s*계/.test(cleaned)) {
+    return null;
+  }
+  
+  // 들여쓰기 제거 (앞쪽 공백 제거)
+  cleaned = cleaned.replace(/^\s+/, '');
+  
+  // 공백 정규화 (연속된 공백을 하나로)
+  let normalized = cleaned.replace(/\s+/g, '');
+  
+  // 1. 정확한 매칭 (공백 제거 후)
+  if (ACCOUNT_NAME_MAPPING[normalized]) {
+    return ACCOUNT_NAME_MAPPING[normalized];
+  }
+  
+  // 2. 원본 이름 확인 (공백 포함)
+  if (ACCOUNT_NAME_MAPPING[cleaned]) {
+    return ACCOUNT_NAME_MAPPING[cleaned];
+  }
+  
+  // 3. 정확한 부분 매칭 (계정과목명이 키에 포함되거나, 키가 계정과목명에 포함되는 경우)
+  // 우선순위: 더 긴 키부터 매칭
+  const sortedKeys = Object.keys(ACCOUNT_NAME_MAPPING).sort((a, b) => b.length - a.length);
+  for (const key of sortedKeys) {
+    const keyNormalized = key.replace(/\s+/g, '');
+    // 정확한 매칭이거나, 계정과목명이 키로 시작하는 경우만 매칭
+    if (normalized === keyNormalized || normalized.startsWith(keyNormalized) || keyNormalized.startsWith(normalized)) {
+      // 너무 짧은 부분 매칭은 제외 (예: "현금"만으로는 매칭하지 않음)
+      if (keyNormalized.length >= 3 && normalized.length >= 3) {
+        return ACCOUNT_NAME_MAPPING[key];
+      }
+    }
+  }
+  
+  // 매칭 실패 시 원본 반환 (기존 로직과의 호환성 유지)
+  return normalized;
+};
+
 const createEmptyBalanceSheet = () => ({
   // 업로드용 과목 (A열)
   현금및현금성자산: 0,
@@ -170,7 +339,8 @@ export default function FnFQ4Dashboard() {
   // 유틸리티 함수
   // ============================================
   const formatNumber = (num) => {
-    if (num === 0 || num === undefined || num === null) return '-';
+    if (num === undefined || num === null || isNaN(num)) return '-';
+    if (num === 0) return '0';
     return new Intl.NumberFormat('ko-KR').format(num);
   };
 
@@ -315,38 +485,49 @@ export default function FnFQ4Dashboard() {
         balanceJson.slice(dataStartRow).forEach((row) => {
           const account = row[0];
           if (account && typeof account === 'string' && account.trim() !== '') {
-            periods.forEach((period, idx) => {
-              if (period !== undefined && period !== null && period !== '') {
-                // period가 '2024_Year', '2025_Year' 형식이 아니면 변환 시도
-                let periodKey = period;
-                if (typeof period === 'string') {
-                  // '2024년 기말', '2025년 기말', '2024_Year', '2025_Year' 등의 형식 처리
-                  if (period.includes('2024')) {
-                    periodKey = '2024_Year';
-                  } else if (period.includes('2025')) {
-                    periodKey = '2025_Year';
-                  } else if (period === '2024_Year' || period === '2025_Year') {
-                    periodKey = period;
+            // 계정과목명 정규화 (들여쓰기, 대분류, 합계 행 필터링 포함)
+            const normalizedAccount = normalizeAccountName(account);
+            
+            // 정규화된 계정과목명이 있고, 시스템에 정의된 계정인 경우에만 처리
+            if (normalizedAccount) {
+              const emptyBalanceSheet = createEmptyBalanceSheet();
+              if (emptyBalanceSheet.hasOwnProperty(normalizedAccount)) {
+                periods.forEach((period, idx) => {
+                  if (period !== undefined && period !== null && period !== '') {
+                    // period가 '2024_Year', '2025_Year' 형식이 아니면 변환 시도
+                    let periodKey = period;
+                    if (typeof period === 'string') {
+                      // '2024년 기말', '2025년 기말', '2024_Year', '2025_Year' 등의 형식 처리
+                      if (period.includes('2024')) {
+                        periodKey = '2024_Year';
+                      } else if (period.includes('2025')) {
+                        periodKey = '2025_Year';
+                      } else if (period === '2024_Year' || period === '2025_Year') {
+                        periodKey = period;
+                      }
+                    } else if (typeof period === 'number') {
+                      // 숫자로 된 경우 (예: 2024, 2025)
+                      if (period === 2024) {
+                        periodKey = '2024_Year';
+                      } else if (period === 2025) {
+                        periodKey = '2025_Year';
+                      }
+                    }
+                    
+                    if (newBalanceData[periodKey]) {
+                      const value = row[idx + 1];
+                      const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
+                      
+                      newBalanceData[periodKey] = {
+                        ...newBalanceData[periodKey],
+                        [normalizedAccount]: numValue
+                      };
+                    }
                   }
-                } else if (typeof period === 'number') {
-                  // 숫자로 된 경우 (예: 2024, 2025)
-                  if (period === 2024) {
-                    periodKey = '2024_Year';
-                  } else if (period === 2025) {
-                    periodKey = '2025_Year';
-                  }
-                }
-                
-                if (newBalanceData[periodKey]) {
-                  const value = row[idx + 1];
-                  const numValue = typeof value === 'number' ? value : (parseFloat(value) || 0);
-                  newBalanceData[periodKey] = {
-                    ...newBalanceData[periodKey],
-                    [account]: numValue
-                  };
-                }
+                });
               }
-            });
+            }
+            // normalizedAccount가 null인 경우 (대분류, 합계 행 등)는 무시
           }
         });
         setBalanceSheetData(newBalanceData);
@@ -400,6 +581,35 @@ export default function FnFQ4Dashboard() {
   // 전체요약 탭 렌더링
   // ============================================
   const renderSummaryTab = () => {
+    // 성격별 분류 값 계산 함수 (전체요약 탭용)
+    const calculateNatureValue = (natureKey, period) => {
+      const data = balanceSheetData[period] || {};
+      const sourceKeys = NATURE_REVERSE_MAPPING[natureKey] || [];
+      return sourceKeys.reduce((sum, key) => sum + (data[key] || 0), 0);
+    };
+
+    // 자산총계 계산
+    const calculateTotalAssets = (period) => {
+      const assetNatures = ['현금성자산', '매출채권', '재고자산', '유무형자산', '관계기업', 
+                           '사용권자산', '금융상품', '대여금', '기타(차감항목)'];
+      return assetNatures.reduce((sum, key) => sum + calculateNatureValue(key, period), 0);
+    };
+
+    // 부채총계 계산
+    const calculateTotalLiabilities = (period) => {
+      const liabilityNatures = ['외상매입금', '미지급금', '리스부채', '보증금', '차입금', '기타'];
+      return liabilityNatures.reduce((sum, key) => sum + calculateNatureValue(key, period), 0);
+    };
+
+    // 자본총계 계산
+    const calculateTotalEquity = (period) => {
+      const data = balanceSheetData[period] || {};
+      return (data.자본금 || 0) + 
+             (data.자본잉여금 || 0) + 
+             (data.이익잉여금 || 0) + 
+             (data.기타자본 || 0);
+    };
+
     // 손익 요약 카드 데이터
     const incomeCards = [
       { title: '매출액', value: incomeStatementData['2025_4Q']?.매출액 || 0, prevValue: incomeStatementData['2024_4Q']?.매출액 || 0, iconColor: 'bg-blue-500' },
@@ -407,60 +617,13 @@ export default function FnFQ4Dashboard() {
       { title: '당기순이익', value: incomeStatementData['2025_4Q']?.당기순이익 || 0, prevValue: incomeStatementData['2024_4Q']?.당기순이익 || 0, iconColor: 'bg-violet-500' },
     ];
 
-    // 재무상태 요약 카드 데이터
+    // 재무상태 요약 카드 데이터 (계산된 값 사용)
     const balanceCards = [
-      { title: '자산총계', value: balanceSheetData['2025_Year']?.자산총계 || 0, prevValue: balanceSheetData['2024_Year']?.자산총계 || 0, iconColor: 'bg-amber-500' },
-      { title: '부채총계', value: balanceSheetData['2025_Year']?.부채총계 || 0, prevValue: balanceSheetData['2024_Year']?.부채총계 || 0, iconColor: 'bg-rose-500' },
-      { title: '자본총계', value: balanceSheetData['2025_Year']?.자본총계 || 0, prevValue: balanceSheetData['2024_Year']?.자본총계 || 0, iconColor: 'bg-cyan-500' },
+      { title: '자산총계', value: calculateTotalAssets('2025_Year'), prevValue: calculateTotalAssets('2024_Year'), iconColor: 'bg-amber-500' },
+      { title: '부채총계', value: calculateTotalLiabilities('2025_Year'), prevValue: calculateTotalLiabilities('2024_Year'), iconColor: 'bg-rose-500' },
+      { title: '자본총계', value: calculateTotalEquity('2025_Year'), prevValue: calculateTotalEquity('2024_Year'), iconColor: 'bg-cyan-500' },
     ];
 
-    // 경쟁사 비교 데이터 - 데이터 업데이트 예정
-    const competitorData = [
-      { 
-        company: 'F&F', 
-        isBase: true,
-        매출액: 0, 
-        yoy: 0, 
-        영업이익률: 0, 
-        ROE: 0, 
-        부채비율: 0, 
-        유동비율: 0,
-        color: '#3B82F6'
-      },
-      { 
-        company: '휠라(미스토홀딩스)', 
-        isBase: false,
-        매출액: 0, 
-        yoy: 0, 
-        영업이익률: 0, 
-        ROE: 0, 
-        부채비율: 0, 
-        유동비율: 0,
-        color: '#EF4444'
-      },
-      { 
-        company: '신세계INT', 
-        isBase: false,
-        매출액: 0, 
-        yoy: 0, 
-        영업이익률: 0, 
-        ROE: 0, 
-        부채비율: 0, 
-        유동비율: 0,
-        color: '#8B5CF6'
-      },
-      { 
-        company: 'LG생활건강', 
-        isBase: false,
-        매출액: 0, 
-        yoy: 0, 
-        영업이익률: 0, 
-        ROE: 0, 
-        부채비율: 0, 
-        유동비율: 0,
-        color: '#10B981'
-      },
-    ];
 
     // 카드 렌더링 함수
     const renderCard = (card, idx) => {
@@ -477,7 +640,7 @@ export default function FnFQ4Dashboard() {
           </div>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-zinc-900">{formatNumber(card.value)}</span>
-            <span className="text-sm text-zinc-400">억</span>
+            <span className="text-sm text-zinc-400">백만원</span>
           </div>
           <div className={`text-xs font-semibold mt-1 ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
             {change != 0 ? `${isPositive ? '▲' : '▼'} ${Math.abs(parseFloat(change))}% YoY` : '-'}
@@ -487,100 +650,76 @@ export default function FnFQ4Dashboard() {
     };
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
+        {/* 메인 헤더 섹션 */}
+        <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-xl p-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">F&F 연결 재무제표 총괄</h2>
+              <p className="text-zinc-300 text-sm">2025년 4분기 기준 연결 재무제표 요약 정보</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setActiveTab('income')}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                <span className="text-lg">📈</span>
+                <span>손익계산서 보기</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('balance')}
+                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                <span className="text-lg">💰</span>
+                <span>재무상태표 보기</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* 손익 요약 섹션 */}
         <div>
-          <h3 className="text-sm font-semibold text-zinc-700 mb-2 flex items-center gap-2">
-            <span className="w-1 h-4 bg-blue-500 rounded"></span>
-            손익 요약
-          </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
+              <span className="w-1 h-5 bg-blue-500 rounded"></span>
+              손익 요약
+            </h3>
+            <button
+              onClick={() => setActiveTab('income')}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+            >
+              상세 보기 <span>→</span>
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
             {incomeCards.map((card, idx) => renderCard(card, idx))}
           </div>
         </div>
 
         {/* 재무상태 요약 섹션 */}
         <div>
-          <h3 className="text-sm font-semibold text-zinc-700 mb-2 flex items-center gap-2">
-            <span className="w-1 h-4 bg-amber-500 rounded"></span>
-            재무상태 요약
-          </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
+              <span className="w-1 h-5 bg-amber-500 rounded"></span>
+              재무상태 요약
+            </h3>
+            <button
+              onClick={() => setActiveTab('balance')}
+              className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
+            >
+              상세 보기 <span>→</span>
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
             {balanceCards.map((card, idx) => renderCard(card, idx))}
           </div>
         </div>
 
-        {/* 경쟁사 비교 분석 */}
-        <div>
-          <h3 className="text-sm font-semibold text-zinc-700 mb-2 flex items-center gap-2">
-            <span className="w-1 h-4 bg-violet-500 rounded"></span>
-            주요 지표 경쟁사 비교
-          </h3>
-          <div className="grid grid-cols-4 gap-3">
-            {competitorData.map((comp, idx) => (
-              <div 
-                key={idx} 
-                className={`bg-white rounded-lg border p-4 ${
-                  comp.isBase ? 'border-blue-300 ring-1 ring-blue-100' : 'border-zinc-200'
-                }`}
-              >
-                {/* 회사명 */}
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: comp.color }}></span>
-                  <span className="text-sm font-semibold text-zinc-900">{comp.company}</span>
-                  {comp.isBase && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">기준</span>
-                  )}
-                </div>
-
-                {/* 매출액 */}
-                <div className="mb-3">
-                  <div className="text-xs text-zinc-400 mb-0.5">매출액</div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-bold text-zinc-900">{formatNumber(comp.매출액)}</span>
-                    <span className="text-xs text-zinc-400">억</span>
-                  </div>
-                  <div className={`text-xs font-semibold ${comp.yoy >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    YoY {comp.yoy >= 0 ? '+' : ''}{comp.yoy}%
-                  </div>
-                </div>
-
-                {/* 지표 그리드 */}
-                <div className="grid grid-cols-2 gap-2 pt-3 border-t border-zinc-100">
-                  <div>
-                    <div className="text-[10px] text-zinc-400">영업이익률</div>
-                    <div className={`text-sm font-bold ${comp.영업이익률 >= 10 ? 'text-emerald-600' : comp.영업이익률 >= 0 ? 'text-zinc-900' : 'text-rose-600'}`}>
-                      {comp.영업이익률}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-zinc-400">ROE</div>
-                    <div className={`text-sm font-bold ${comp.ROE >= 10 ? 'text-emerald-600' : comp.ROE >= 0 ? 'text-zinc-900' : 'text-rose-600'}`}>
-                      {comp.ROE}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-zinc-400">부채비율</div>
-                    <div className={`text-sm font-bold ${comp.부채비율 <= 100 ? 'text-emerald-600' : 'text-zinc-900'}`}>
-                      {comp.부채비율}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-zinc-400">유동비율</div>
-                    <div className={`text-sm font-bold ${comp.유동비율 >= 150 ? 'text-emerald-600' : 'text-zinc-900'}`}>
-                      {comp.유동비율}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* AI 분석 섹션 */}
         <div>
-          <h3 className="text-sm font-semibold text-zinc-700 mb-2 flex items-center gap-2">
-            <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-violet-500 rounded"></span>
+          <h3 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
+            <span className="w-1 h-5 bg-gradient-to-b from-blue-500 to-violet-500 rounded"></span>
             AI 분석
           </h3>
           <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-lg p-5 text-white">
@@ -590,7 +729,7 @@ export default function FnFQ4Dashboard() {
               </div>
               <div>
                 <div className="text-sm font-semibold">F&F 2025년 4분기 재무 분석</div>
-                <div className="text-xs text-zinc-400">경쟁사 비교 포함</div>
+                <div className="text-xs text-zinc-400">종합 재무 분석</div>
               </div>
             </div>
             
@@ -635,7 +774,7 @@ export default function FnFQ4Dashboard() {
                   <span className="text-xs font-semibold text-violet-400">종합 의견</span>
                 </div>
                 <p className="text-xs text-zinc-300 leading-relaxed">
-                  데이터 업데이트 후 경쟁사 대비 강점과 개선 영역 종합 분석이 표시됩니다.
+                  데이터 업데이트 후 강점과 개선 영역 종합 분석이 표시됩니다.
                 </p>
               </div>
             </div>
@@ -816,8 +955,8 @@ export default function FnFQ4Dashboard() {
         {/* 요약 카드 섹션 - 가로 배열, 균등 너비 */}
         <div className="grid grid-cols-4 gap-3">
           {summaryCards.map((card, idx) => {
-            const curr = incomeStatementData['2025_4Q'][card.key];
-            const prev = incomeStatementData['2024_4Q'][card.key];
+            const curr = incomeStatementData['2025_4Q']?.[card.key] || 0;
+            const prev = incomeStatementData['2024_4Q']?.[card.key] || 0;
             const diff = curr - prev;
             const changeRate = calculateYoY(curr, prev);
             const isPositive = parseFloat(changeRate) >= 0;
@@ -828,10 +967,10 @@ export default function FnFQ4Dashboard() {
             let rateDiff = null;
             if (card.hasRate) {
               const [num, denom] = card.rateOf;
-              const currNum = incomeStatementData['2025_4Q'][num];
-              const currDenom = incomeStatementData['2025_4Q'][denom];
-              const prevNum = incomeStatementData['2024_4Q'][num];
-              const prevDenom = incomeStatementData['2024_4Q'][denom];
+              const currNum = incomeStatementData['2025_4Q']?.[num] || 0;
+              const currDenom = incomeStatementData['2025_4Q']?.[denom] || 0;
+              const prevNum = incomeStatementData['2024_4Q']?.[num] || 0;
+              const prevDenom = incomeStatementData['2024_4Q']?.[denom] || 0;
               
               currRate = currDenom > 0 ? ((currNum / currDenom) * 100).toFixed(1) : '0.0';
               prevRate = prevDenom > 0 ? ((prevNum / prevDenom) * 100).toFixed(1) : '0.0';
@@ -932,10 +1071,10 @@ export default function FnFQ4Dashboard() {
                     // 비율 행 처리
                     if (isRateRow) {
                       const [num, denom] = item.rateOf;
-                      const rate2024Q = calcRate(incomeStatementData['2024_4Q'][num], incomeStatementData['2024_4Q'][denom]);
-                      const rate2024Y = calcRate(incomeStatementData['2024_Year'][num], incomeStatementData['2024_Year'][denom]);
-                      const rate2025Q = calcRate(incomeStatementData['2025_4Q'][num], incomeStatementData['2025_4Q'][denom]);
-                      const rate2025Y = calcRate(incomeStatementData['2025_Year'][num], incomeStatementData['2025_Year'][denom]);
+                      const rate2024Q = calcRate(incomeStatementData['2024_4Q']?.[num] || 0, incomeStatementData['2024_4Q']?.[denom] || 0);
+                      const rate2024Y = calcRate(incomeStatementData['2024_Year']?.[num] || 0, incomeStatementData['2024_Year']?.[denom] || 0);
+                      const rate2025Q = calcRate(incomeStatementData['2025_4Q']?.[num] || 0, incomeStatementData['2025_4Q']?.[denom] || 0);
+                      const rate2025Y = calcRate(incomeStatementData['2025_Year']?.[num] || 0, incomeStatementData['2025_Year']?.[denom] || 0);
                       const diffQ = calcRateDiff(rate2025Q, rate2024Q);
                       const diffY = calcRateDiff(rate2025Y, rate2024Y);
                       
@@ -957,10 +1096,10 @@ export default function FnFQ4Dashboard() {
                     }
 
                     // 일반 금액 행 처리
-                    const val2024Q = incomeStatementData['2024_4Q'][item.key];
-                    const val2024Y = incomeStatementData['2024_Year'][item.key];
-                    const val2025Q = incomeStatementData['2025_4Q'][item.key];
-                    const val2025Y = incomeStatementData['2025_Year'][item.key];
+                    const val2024Q = incomeStatementData['2024_4Q']?.[item.key] || 0;
+                    const val2024Y = incomeStatementData['2024_Year']?.[item.key] || 0;
+                    const val2025Q = incomeStatementData['2025_4Q']?.[item.key] || 0;
+                    const val2025Y = incomeStatementData['2025_Year']?.[item.key] || 0;
                     
                     const diffQ = val2025Q - val2024Q;
                     const diffY = val2025Y - val2024Y;
@@ -1140,370 +1279,8 @@ export default function FnFQ4Dashboard() {
         </div>
         </div>
 
-        {/* 경쟁사 비교 및 주요 지표 분석 */}
+        {/* 주요 지표 분석 */}
         <div className="mt-6 space-y-4">
-          {/* 경쟁사 비교 */}
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 mb-3 flex items-center gap-2">
-              <span className="w-1 h-4 bg-violet-500 rounded"></span>
-              경쟁사 비교 (손익 지표)
-            </h3>
-            <div className="grid grid-cols-4 gap-3">
-              {(() => {
-                // 손익계산서 데이터 기반 경쟁사 비교
-                const fnfRevenue = incomeStatementData['2025_Year']?.매출액 || 0;
-                const fnfGrossProfit = incomeStatementData['2025_Year']?.매출총이익 || 0;
-                const fnfGrossMargin = fnfRevenue > 0 ? ((fnfGrossProfit / fnfRevenue) * 100) : 0;
-                const fnfOperatingProfit = incomeStatementData['2025_Year']?.영업이익 || 0;
-                const fnfOperatingMargin = fnfRevenue > 0 ? ((fnfOperatingProfit / fnfRevenue) * 100) : 0;
-                const fnfYoY = incomeStatementData['2024_Year']?.매출액 > 0
-                  ? (((fnfRevenue - incomeStatementData['2024_Year'].매출액) / incomeStatementData['2024_Year'].매출액) * 100) : 0;
-
-                const competitors = [
-                  { 
-                    company: 'F&F', 
-                    isBase: true,
-                    매출액: fnfRevenue / 100, // 억원 단위
-                    yoy: fnfYoY.toFixed(1),
-                    매출총이익률: fnfGrossMargin.toFixed(1),
-                    영업이익률: fnfOperatingMargin.toFixed(1),
-                    color: '#3B82F6'
-                  },
-                  { 
-                    company: '휠라(미스토홀딩스)', 
-                    isBase: false,
-                    매출액: 0, 
-                    yoy: 0, 
-                    매출총이익률: 0, 
-                    영업이익률: 0, 
-                    color: '#EF4444'
-                  },
-                  { 
-                    company: '신세계INT', 
-                    isBase: false,
-                    매출액: 0, 
-                    yoy: 0, 
-                    매출총이익률: 0, 
-                    영업이익률: 0, 
-                    color: '#8B5CF6'
-                  },
-                  { 
-                    company: 'LG생활건강', 
-                    isBase: false,
-                    매출액: 0, 
-                    yoy: 0, 
-                    매출총이익률: 0, 
-                    영업이익률: 0, 
-                    color: '#10B981'
-                  },
-                ];
-
-                 return competitors.map((comp, idx) => (
-                   <div 
-                     key={idx} 
-                     className={`bg-white rounded-lg border p-4 ${
-                       comp.isBase ? 'border-blue-300 ring-1 ring-blue-100' : 'border-zinc-200'
-                     }`}
-                   >
-                     <div className="flex items-center gap-2 mb-3">
-                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: comp.color }}></span>
-                       <span className="text-sm font-semibold text-zinc-900">{comp.company}</span>
-                       {comp.isBase && (
-                         <span className="text-[10px] font-medium px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">기준</span>
-                       )}
-                     </div>
-                     <div className="mb-3">
-                       <div className="text-xs text-zinc-400 mb-0.5">매출액</div>
-                       <div className="flex items-baseline gap-1">
-                         <span className="text-xl font-bold text-zinc-900">{formatNumber(comp.매출액)}</span>
-                         <span className="text-xs text-zinc-400">억</span>
-                       </div>
-                       <div className={`text-xs font-semibold ${parseFloat(comp.yoy) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                         YoY {parseFloat(comp.yoy) >= 0 ? '+' : ''}{comp.yoy}%
-                       </div>
-                     </div>
-                     <div className="grid grid-cols-2 gap-2 pt-3 border-t border-zinc-100">
-                       <div>
-                         <div className="text-[10px] text-zinc-400">매출총이익률</div>
-                         <div className={`text-sm font-bold ${parseFloat(comp.매출총이익률) >= 50 ? 'text-emerald-600' : parseFloat(comp.매출총이익률) >= 0 ? 'text-zinc-900' : 'text-rose-600'}`}>
-                           {comp.매출총이익률}%
-                         </div>
-                       </div>
-                       <div>
-                         <div className="text-[10px] text-zinc-400">영업이익률</div>
-                         <div className={`text-sm font-bold ${parseFloat(comp.영업이익률) >= 10 ? 'text-emerald-600' : parseFloat(comp.영업이익률) >= 0 ? 'text-zinc-900' : 'text-rose-600'}`}>
-                           {comp.영업이익률}%
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 ));
-               })()}
-             </div>
-           </div>
-
-          {/* 경쟁사 비교 - 분기별 추이 그래프 */}
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-700 mb-3 flex items-center gap-2">
-              <span className="w-1 h-4 bg-violet-500 rounded"></span>
-              경쟁사 비교 분석 (분기별 추이)
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              {/* 분기별 매출액 추이 */}
-              <div className="bg-white rounded-lg border border-zinc-200 p-4">
-                <h4 className="text-xs font-semibold text-zinc-700 mb-3">분기별 매출액 추이</h4>
-                <div className="text-[10px] text-zinc-400 mb-1">단위: 억원</div>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={(() => {
-                      const quarters = ['2024_1Q', '2024_2Q', '2024_3Q', '2024_4Q', '2025_1Q', '2025_2Q', '2025_3Q'];
-                      return quarters.map(period => {
-                        const fnfRevenue = incomeStatementData[period]?.매출액 || 0;
-                        
-                        const periodLabel = period.replace('2024_', '24.').replace('2025_', '25.');
-                        return {
-                          period: periodLabel,
-                          'F&F': parseFloat((fnfRevenue / 100).toFixed(0)),
-                          '휠라(미스토홀딩스)': 0,
-                          '신세계INT': 0,
-                          'LG생활건강': 0,
-                        };
-                      });
-                    })()}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                      <XAxis 
-                        dataKey="period" 
-                        stroke="#71717a"
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: '#71717a' }}
-                      />
-                      <YAxis 
-                        stroke="#71717a"
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: '#71717a' }}
-                        label={{ value: '억원', angle: -90, position: 'insideLeft', style: { fontSize: '10px' } }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e4e4e7',
-                          borderRadius: '6px',
-                          fontSize: '12px'
-                        }}
-                        formatter={(value) => `${value}억원`}
-                      />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                        iconType="line"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="F&F" 
-                        stroke="#3B82F6" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#3B82F6' }}
-                        name="F&F"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="휠라(미스토홀딩스)" 
-                        stroke="#EF4444" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#EF4444', shape: 'square' }}
-                        name="휠라(미스토홀딩스)"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="신세계INT" 
-                        stroke="#8B5CF6" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#8B5CF6', shape: 'diamond' }}
-                        name="신세계INT"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="LG생활건강" 
-                        stroke="#10B981" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#10B981', shape: 'triangle' }}
-                        name="LG생활건강"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* 매출총이익률 추이 */}
-              <div className="bg-white rounded-lg border border-zinc-200 p-4">
-                <h4 className="text-xs font-semibold text-zinc-700 mb-3">매출총이익률 추이</h4>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={(() => {
-                      const quarters = ['2024_1Q', '2024_2Q', '2024_3Q', '2024_4Q', '2025_1Q', '2025_2Q', '2025_3Q'];
-                      return quarters.map(period => {
-                        const fnfRevenue = incomeStatementData[period]?.매출액 || 1;
-                        const fnfGrossProfit = incomeStatementData[period]?.매출총이익 || 0;
-                        const fnfGrossMargin = fnfRevenue > 0 ? ((fnfGrossProfit / fnfRevenue) * 100) : 0;
-                        
-                        const periodLabel = period.replace('2024_', '24.').replace('2025_', '25.');
-                        return {
-                          period: periodLabel,
-                          'F&F': parseFloat(fnfGrossMargin.toFixed(1)),
-                          '휠라(미스토홀딩스)': 0,
-                          '신세계INT': 0,
-                          'LG생활건강': 0,
-                        };
-                      });
-                    })()}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                      <XAxis 
-                        dataKey="period" 
-                        stroke="#71717a"
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: '#71717a' }}
-                      />
-                      <YAxis 
-                        stroke="#71717a"
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: '#71717a' }}
-                        label={{ value: '%', angle: -90, position: 'insideLeft', style: { fontSize: '10px' } }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e4e4e7',
-                          borderRadius: '6px',
-                          fontSize: '12px'
-                        }}
-                      />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                        iconType="line"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="F&F" 
-                        stroke="#3B82F6" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#3B82F6' }}
-                        name="F&F"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="휠라(미스토홀딩스)" 
-                        stroke="#EF4444" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#EF4444', shape: 'square' }}
-                        name="휠라(미스토홀딩스)"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="신세계INT" 
-                        stroke="#8B5CF6" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#8B5CF6', shape: 'diamond' }}
-                        name="신세계INT"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="LG생활건강" 
-                        stroke="#10B981" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#10B981', shape: 'triangle' }}
-                        name="LG생활건강"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* 영업이익률 추이 */}
-              <div className="bg-white rounded-lg border border-zinc-200 p-4">
-                <h4 className="text-xs font-semibold text-zinc-700 mb-3">영업이익률 추이</h4>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={(() => {
-                      const quarters = ['2024_1Q', '2024_2Q', '2024_3Q', '2024_4Q', '2025_1Q', '2025_2Q', '2025_3Q'];
-                      return quarters.map(period => {
-                        const fnfRevenue = incomeStatementData[period]?.매출액 || 1;
-                        const fnfOperating = incomeStatementData[period]?.영업이익 || 0;
-                        const fnfMargin = fnfRevenue > 0 ? ((fnfOperating / fnfRevenue) * 100) : 0;
-                        
-                        const periodLabel = period.replace('2024_', '24.').replace('2025_', '25.');
-                        return {
-                          period: periodLabel,
-                          'F&F': parseFloat(fnfMargin.toFixed(1)),
-                          '휠라(미스토홀딩스)': 0,
-                          '신세계INT': 0,
-                          'LG생활건강': 0,
-                        };
-                      });
-                    })()}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                      <XAxis 
-                        dataKey="period" 
-                        stroke="#71717a"
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: '#71717a' }}
-                      />
-                      <YAxis 
-                        stroke="#71717a"
-                        style={{ fontSize: '10px' }}
-                        tick={{ fill: '#71717a' }}
-                        label={{ value: '%', angle: -90, position: 'insideLeft', style: { fontSize: '10px' } }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e4e4e7',
-                          borderRadius: '6px',
-                          fontSize: '12px'
-                        }}
-                      />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                        iconType="line"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="F&F" 
-                        stroke="#3B82F6" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#3B82F6' }}
-                        name="F&F"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="휠라(미스토홀딩스)" 
-                        stroke="#EF4444" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#EF4444', shape: 'square' }}
-                        name="휠라(미스토홀딩스)"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="신세계INT" 
-                        stroke="#8B5CF6" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#8B5CF6', shape: 'diamond' }}
-                        name="신세계INT"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="LG생활건강" 
-                        stroke="#10B981" 
-                        strokeWidth={2}
-                        dot={{ r: 4, fill: '#10B981', shape: 'triangle' }}
-                        name="LG생활건강"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 주요 지표 분석 */}
           <div>
             <h3 className="text-sm font-semibold text-zinc-700 mb-3 flex items-center gap-2">
               <span className="w-1 h-4 bg-blue-500 rounded"></span>
@@ -2212,7 +1989,7 @@ export default function FnFQ4Dashboard() {
                   { 
                     company: 'F&F', 
                     isBase: true,
-                    매출액: fnfRevenue / 100, // 억원 단위
+                    매출액: fnfRevenue, // 백만원 단위
                     yoy: fnfYoY.toFixed(1),
                     영업이익률: 0,
                     ROE: fnfROE.toFixed(1),
@@ -2272,8 +2049,8 @@ export default function FnFQ4Dashboard() {
                     <div className="mb-3">
                       <div className="text-xs text-zinc-400 mb-0.5">자산총계</div>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-xl font-bold text-zinc-900">{formatNumber((calculateTotalAssets('2025_Year') || 0) / 100)}</span>
-                        <span className="text-xs text-zinc-400">억</span>
+                        <span className="text-xl font-bold text-zinc-900">{formatNumber(calculateTotalAssets('2025_Year') || 0)}</span>
+                        <span className="text-xs text-zinc-400">백만원</span>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 pt-3 border-t border-zinc-100">
@@ -2451,10 +2228,11 @@ export default function FnFQ4Dashboard() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 text-sm font-medium rounded transition-all duration-150 ${
                   activeTab === tab.id
-                    ? 'bg-white text-zinc-900 border border-zinc-200'
+                    ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm'
                     : 'text-zinc-500 hover:text-zinc-700'
                 }`}
               >
+                <span className="mr-1.5">{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
