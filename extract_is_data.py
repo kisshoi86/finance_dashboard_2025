@@ -262,11 +262,11 @@ def main():
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ 완료: {os.path.abspath(OUTPUT_JSON)} 에 결과를 저장했습니다.")
-    print("키 예시:")
+    print(f"[OK] Complete: {os.path.abspath(OUTPUT_JSON)}")
+    print("Key examples:")
     print(" - 2024_1Q, 2024_1Q_Year, 2024_2Q, ..., 2024_Year")
     print(" - 2025_1Q, 2025_1Q_Year, ..., 2025_Year")
-    print("값 단위: 백만원 (정수)")
+    print("Unit: Million KRW (integer)")
 
 
 if __name__ == "__main__":
