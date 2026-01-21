@@ -62,105 +62,446 @@ export default function FnFQ4Dashboard() {
   const [selectedBSAccount, setSelectedBSAccount] = useState('자산총계');
   const [isNonOperatingExpanded, setIsNonOperatingExpanded] = useState(false);
   const [incomeViewMode, setIncomeViewMode] = useState('quarter'); // 'quarter' | 'annual'
+  const [selectedPeriod, setSelectedPeriod] = useState('2025_Q4'); // 선택된 조회기간 ('2025_Q1' ~ '2025_Q4')
 
   // ============================================
-  // 손익계산서 데이터 - 분기(3개월) + 누적(연간) 통합
+  // 기간 매핑 함수
+  // ============================================
+  const getPeriodKey = (selectedPeriod, type) => {
+    // selectedPeriod: '2025_Q1', '2025_Q2', '2025_Q3', '2025_Q4'
+    // type: 'quarter' (분기), 'year' (누적), 'prev_quarter' (전년 동 분기), 'prev_year' (전년 동기 누적)
+    const [year, quarter] = selectedPeriod.split('_');
+    const yearNum = parseInt(year);
+    const quarterNum = quarter.replace('Q', '');
+    
+    if (type === 'quarter') {
+      return `${year}_${quarterNum}Q`;
+    } else if (type === 'year') {
+      // 누적: Q4는 '2025_Year', Q1~Q3는 '2025_1Q_Year' 형식
+      if (quarterNum === '4') {
+        return `${year}_Year`;
+      }
+      return `${year}_${quarterNum}Q_Year`;
+    } else if (type === 'prev_quarter') {
+      const prevYear = (yearNum - 1).toString();
+      return `${prevYear}_${quarterNum}Q`;
+    } else if (type === 'prev_year') {
+      const prevYear = (yearNum - 1).toString();
+      // 전년 동기 누적: Q4는 '2024_Year', Q1~Q3는 '2024_1Q_Year' 형식
+      if (quarterNum === '4') {
+        return `${prevYear}_Year`;
+      }
+      return `${prevYear}_${quarterNum}Q_Year`;
+    }
+    return `${year}_4Q`; // 기본값
+  };
+
+  const getPeriodLabel = (selectedPeriod) => {
+    // '2025_Q4' -> 'FY2025 Q4'
+    return selectedPeriod.replace('_', ' ');
+  };
+
+  // ============================================
+  // 재무상태표 조회 기준(컴포넌트 전역)
+  // - 재무상태표는 선택 분기 기말 vs 전년 기말 비교
+  // ============================================
+  const bsCurrentPeriod = getPeriodKey(selectedPeriod, 'quarter'); // 선택된 분기 기말
+  const bsPrevPeriod = '2024_4Q'; // 전년 기말 (고정)
+
+    // ============================================
+  // 손익계산서 데이터 - 분기(3개월) + 누적(연간) 통합 (CSV 기반)
   // ============================================
   const incomeStatementData = {
-    '2024_4Q': { // 전년 4분기 (3개월)
-      매출액: 546544,
+    // 2024년 분기 (3개월)
+    '2024_1Q': {
+      매출액: 507029,
+      매출원가: 174545,
+      매출총이익: 332484,
+      판매비와관리비: 202273,
+      인건비: 19658,
+      광고선전비: 24097,
+      수수료: 118770,
+      감가상각비: 20565,
+      기타판관비: 19183,
+      영업이익: 130211,
+      영업외손익: 21031,
+      외환손익: 10008,
+      선물환손익: 473,
+      금융상품손익: 1941,
+      이자손익: 4736,
+      배당수익: 62,
+      기타손익: 2913,
+      지분법손익: 803,
+      기부금: 94,
+      법인세비용차감전순이익: 128159,
+      법인세비용: 31837,
+      당기순이익: 96322,
+    },
+    '2024_2Q': {
+      매출액: 391473,
+      매출원가: 120174,
+      매출총이익: 271299,
+      판매비와관리비: 179497,
+      인건비: 22002,
+      광고선전비: 16955,
+      수수료: 102336,
+      감가상각비: 21537,
+      기타판관비: 16667,
+      영업이익: 91802,
+      영업외손익: 16367,
+      외환손익: 5536,
+      선물환손익: 471,
+      금융상품손익: 748,
+      이자손익: 4846,
+      배당수익: 2144,
+      기타손익: 1412,
+      지분법손익: 800,
+      기부금: 409,
+      법인세비용차감전순이익: 97956,
+      법인세용: 24005,
+      법인세비용: 24005,
+      당기순이익: 73951,
+    },
+    '2024_3Q': {
+      매출액: 450963,
+      매출원가: 166042,
+      매출총이익: 284921,
+      판매비와관리비: 176618,
+      인건비: 19926,
+      광고선전비: 19902,
+      수수료: 96464,
+      감가상각비: 23267,
+      기타판관비: 17059,
+      영업이익: 108303,
+      영업외손익: 32491,
+      외환손익: 5066,
+      선물환손익: 1022,
+      금융상품손익: 2468,
+      이자손익: 4486,
+      배당수익: 1088,
+      기타손익: 7353,
+      지분법손익: 9098,
+      기부금: 1910,
+      법인세비용차감전순이익: 109840,
+      법인세비용: 30039,
+      당기순이익: 79801,
+    },
+    '2024_4Q': {
+      매출액: 546545,
       매출원가: 188255,
-      매출총이익: 358288,
-      판매비와관리비: 237868,
-      인건비: 22684,
-      광고선전비: 32178,
-      수수료: 135911,
-      감가상각비: 23439,
-      기타판관비: 23654,
-      영업이익: 120420,
-      영업외손익: 3273,
-      외환손익: 7220,
-      선물환손익: 276,
-      금융상품손익: 1126,
-      이자손익: -2088,
-      배당수익: -270,
+      매출총이익: 358290,
+      판매비와관리비: 237871,
+      인건비: 22685,
+      광고선전비: 32179,
+      수수료: 135912,
+      감가상각비: 23440,
+      기타판관비: 23655,
+      영업이익: 120419,
+      영업외손익: 55396,
+      외환손익: 16230,
+      선물환손익: 685,
+      금융상품손익: 845,
+      이자손익: 4538,
+      배당수익: -271,
+      기타손익: 9703,
+      지분법손익: 17757,
       기부금: 826,
-      기타손익: -2165,
-      지분법손익: 17653,
       법인세비용차감전순이익: 141346,
-      법인세비용: 35460,
+      법인세비용: 35461,
       당기순이익: 105885,
     },
-    '2024_Year': { // 전년 누적 (연간)
-      매출액: 1896009,
+
+    // 2024년 누적
+    '2024_1Q_Year': {
+      매출액: 507029,
+      매출원가: 174545,
+      매출총이익: 332484,
+      판매비와관리비: 202273,
+      인건비: 19658,
+      광고선전비: 24097,
+      수수료: 118770,
+      감가상각비: 20565,
+      기타판관비: 19183,
+      영업이익: 130211,
+      영업외손익: 21031,
+      외환손익: 10008,
+      선물환손익: 473,
+      금융상품손익: 1941,
+      이자손익: 4736,
+      배당수익: 62,
+      기타손익: 2913,
+      지분법손익: 803,
+      기부금: 94,
+      법인세비용차감전순이익: 128159,
+      법인세비용: 31837,
+      당기순이익: 96322,
+    },
+    '2024_2Q_Year': {
+      매출액: 898501,
+      매출원가: 294720,
+      매출총이익: 603781,
+      판매비와관리비: 381771,
+      인건비: 41660,
+      광고선전비: 41052,
+      수수료: 221107,
+      감가상각비: 42103,
+      기타판관비: 35849,
+      영업이익: 222010,
+      영업외손익: 37398,
+      외환손익: 15547,
+      선물환손익: 944,
+      금융상품손익: 2689,
+      이자손익: 9581,
+      배당수익: 2207,
+      기타손익: 4326,
+      지분법손익: 1603,
+      기부금: 503,
+      법인세비용차감전순이익: 226115,
+      법인세비용: 55842,
+      당기순이익: 170273,
+    },
+    '2024_3Q_Year': {
+      매출액: 1349465,
+      매출원가: 460761,
+      매출총이익: 888704,
+      판매비와관리비: 558386,
+      인건비: 61585,
+      광고선전비: 60954,
+      수수료: 317570,
+      감가상각비: 65370,
+      기타판관비: 52907,
+      영업이익: 330318,
+      영업외손익: 69888,
+      외환손익: 20612,
+      선물환손익: 1966,
+      금융상품손익: 5157,
+      이자손익: 14068,
+      배당수익: 3295,
+      기타손익: 11678,
+      지분법손익: 10701,
+      기부금: 2413,
+      법인세비용차감전순이익: 335955,
+      법인세비용: 85881,
+      당기순이익: 250074,
+    },
+    '2024_Year': {
+      매출액: 1896010,
       매출원가: 649017,
-      매출총이익: 1246992,
-      판매비와관리비: 796255,
-      인건비: 84269,
-      광고선전비: 93132,
+      매출총이익: 1246993,
+      판매비와관리비: 796256,
+      인건비: 84270,
+      광고선전비: 93133,
       수수료: 453482,
       감가상각비: 88809,
-      기타판관비: 76561,
+      기타판관비: 76562,
       영업이익: 450737,
-      영업외손익: -1469,
-      외환손익: 8988,
-      선물환손익: 369,
-      금융상품손익: 428,
-      이자손익: -5074,
+      영업외손익: 125284,
+      외환손익: 36843,
+      선물환손익: 2651,
+      금융상품손익: 6002,
+      이자손익: 18606,
       배당수익: 3024,
+      기타손익: 21379,
+      지분법손익: 28458,
       기부금: 3239,
-      기타손익: -5965,
-      지분법손익: 28032,
       법인세비용차감전순이익: 477301,
       법인세비용: 121341,
-      당기순이익: 355959,
+      당기순이익: 355960,
     },
-    '2025_4Q': { // 당기 4분기 (3개월)
+
+    // 2025년 분기 (3개월)
+    '2025_1Q': {
+      매출액: 505617,
+      매출원가: 175882,
+      매출총이익: 329735,
+      판매비와관리비: 206117,
+      인건비: 21638,
+      광고선전비: 24609,
+      수수료: 114788,
+      감가상각비: 24508,
+      기타판관비: 20574,
+      영업이익: 123618,
+      영업외손익: 37983,
+      외환손익: 21907,
+      선물환손익: 3457,
+      금융상품손익: 1129,
+      이자손익: 4360,
+      배당수익: 337,
+      기타손익: 6022,
+      지분법손익: 766,
+      기부금: 5,
+      법인세비용차감전순이익: 110663,
+      법인세비용: 28094,
+      당기순이익: 82569,
+    },
+    '2025_2Q': {
+      매출액: 378870,
+      매출원가: 119965,
+      매출총이익: 258905,
+      판매비와관리비: 174878,
+      인건비: 20875,
+      광고선전비: 19539,
+      수수료: 95162,
+      감가상각비: 22116,
+      기타판관비: 17186,
+      영업이익: 84027,
+      영업외손익: 25837,
+      외환손익: 10246,
+      선물환손익: 5637,
+      금융상품손익: -46,
+      이자손익: 3016,
+      배당수익: 37,
+      기타손익: 6118,
+      지분법손익: 828,
+      기부금: 0,
+      법인세비용차감전순이익: 86083,
+      법인세비용: 23444,
+      당기순이익: 62639,
+    },
+    '2025_3Q': {
       매출액: 474257,
-      매출원가: 165302,
+      매출원가: 165303,
       매출총이익: 308954,
-      판매비와관리비: 180934,
+      판매비와관리비: 180936,
       인건비: 20266,
-      광고선전비: 25031,
-      수수료: 93906,
-      감가상각비: 22261,
-      기타판관비: 19468,
-      영업이익: 128019,
-      영업외손익: -4729,
-      외환손익: 5851,
-      선물환손익: -5574,
-      금융상품손익: -500,
-      이자손익: -1650,
-      배당수익: 481,
-      기부금: 77,
-      기타손익: -3260,
-      지분법손익: 11987,
-      법인세비용차감전순이익: 135277,
-      법인세비용: 34582,
+      광고선전비: 25032,
+      수수료: 93907,
+      감가상각비: 22262,
+      기타판관비: 19469,
+      영업이익: 128018,
+      영업외손익: 23580,
+      외환손익: 9435,
+      선물환손익: -5393,
+      금융상품손익: 668,
+      이자손익: 3480,
+      배당수익: 482,
+      기타손익: 5713,
+      지분법손익: 9117,
+      기부금: 78,
+      법인세비용차감전순이익: 135278,
+      법인세비용: 34583,
       당기순이익: 100695,
     },
-    '2025_Year': { // 당기 누적 (연간)
+    '2025_4Q': {
+      매출액: 474257,
+      매출원가: 165303,
+      매출총이익: 308954,
+      판매비와관리비: 180936,
+      인건비: 20266,
+      광고선전비: 25032,
+      수수료: 93907,
+      감가상각비: 22262,
+      기타판관비: 19469,
+      영업이익: 128018,
+      영업외손익: 23580,
+      외환손익: 9435,
+      선물환손익: -5393,
+      금융상품손익: 668,
+      이자손익: 3480,
+      배당수익: 482,
+      기타손익: 5713,
+      지분법손익: 9117,
+      기부금: 78,
+      법인세비용차감전순이익: 135278,
+      법인세비용: 34583,
+      당기순이익: 100695,
+    },
+
+    // 2025년 누적
+    '2025_1Q_Year': {
+      매출액: 505617,
+      매출원가: 175882,
+      매출총이익: 329735,
+      판매비와관리비: 206117,
+      인건비: 21638,
+      광고선전비: 24609,
+      수수료: 114788,
+      감가상각비: 24508,
+      기타판관비: 20574,
+      영업이익: 123618,
+      영업외손익: 37983,
+      외환손익: 21907,
+      선물환손익: 3457,
+      금융상품손익: 1129,
+      이자손익: 4360,
+      배당수익: 337,
+      기타손익: 6022,
+      지분법손익: 766,
+      기부금: 5,
+      법인세비용차감전순이익: 110663,
+      법인세비용: 28094,
+      당기순이익: 82569,
+    },
+    '2025_2Q_Year': {
+      매출액: 884487,
+      매출원가: 295848,
+      매출총이익: 588639,
+      판매비와관리비: 380996,
+      인건비: 42515,
+      광고선전비: 44148,
+      수수료: 209951,
+      감가상각비: 46623,
+      기타판관비: 37759,
+      영업이익: 207643,
+      영업외손익: 63818,
+      외환손익: 32153,
+      선물환손익: 9095,
+      금융상품손익: 1083,
+      이자손익: 7377,
+      배당수익: 373,
+      기타손익: 12138,
+      지분법손익: 1594,
+      기부금: 5,
+      법인세비용차감전순이익: 196746,
+      법인세비용: 51538,
+      당기순이익: 145208,
+    },
+    '2025_3Q_Year': {
       매출액: 1358744,
       매출원가: 461149,
-      매출총이익: 897594,
+      매출총이익: 897595,
       판매비와관리비: 561928,
       인건비: 62780,
-      광고선전비: 69179,
+      광고선전비: 69180,
       수수료: 303857,
-      감가상각비: 68885,
+      감가상각비: 68886,
       기타판관비: 57225,
-      영업이익: 335665,
-      영업외손익: -14033,
-      외환손익: -981,
-      선물환손익: 2820,
-      금융상품손익: -1264,
-      이자손익: -6040,
+      영업이익: 335667,
+      영업외손익: 87398,
+      외환손익: 41588,
+      선물환손익: 3700,
+      금융상품손익: 1752,
+      이자손익: 10856,
       배당수익: 855,
-      기부금: 82,
-      기타손익: -9341,
-      지분법손익: 10392,
+      기타손익: 17854,
+      지분법손익: 10711,
+      기부금: 83,
       법인세비용차감전순이익: 332024,
-      법인세비용: 86120,
+      법인세비용: 86121,
+      당기순이익: 245903,
+    },
+    '2025_Year': {
+      매출액: 1358744,
+      매출원가: 461149,
+      매출총이익: 897595,
+      판매비와관리비: 561928,
+      인건비: 62780,
+      광고선전비: 69180,
+      수수료: 303857,
+      감가상각비: 68886,
+      기타판관비: 57225,
+      영업이익: 335667,
+      영업외손익: 87398,
+      외환손익: 41588,
+      선물환손익: 3700,
+      금융상품손익: 1752,
+      이자손익: 10856,
+      배당수익: 855,
+      기타손익: 17854,
+      지분법손익: 10711,
+      기부금: 83,
+      법인세비용차감전순이익: 332024,
+      법인세비용: 86121,
       당기순이익: 245903,
     },
   };
@@ -170,26 +511,169 @@ export default function FnFQ4Dashboard() {
   // ============================================
   // 재무상태표 데이터 (성격별 분류 - 유동/비유동 통합)
   const balanceSheetData = {
-    '2025_4Q': {
-      // 자산 (성격별)
+    // 2024년 연결 BS (2024_BS.csv 기반, 단위: 백만원)
+    '2024_1Q': {
+      현금성자산: 334707,
+      금융상품: 32034,
+      매출채권: 82369,
+      재고자산: 323836,
+      관계기업투자: 633124,
+      유무형자산: 327883,
+      사용권자산: 213602,
+      기타자산: 109815,
+      자산총계: 2057370,
+      차입금: 73262,
+      매입채무: 75896,
+      미지급금: 95705,
+      리스부채: 163946,
+      보증금: 16360,
+      기타부채: 282478,
+      부채총계: 707649,
+      자본금: 3831,
+      자본잉여금: 317545,
+      기타자본: -21519,
+      이익잉여금: 1018879,
+      비지배지분: 30985,
+      자본총계: 1349721,
+    },
+    '2024_2Q': {
+      현금성자산: 220611,
+      금융상품: 18747,
+      매출채권: 67859,
+      재고자산: 292899,
+      관계기업투자: 632510,
+      유무형자산: 384106,
+      사용권자산: 210463,
+      기타자산: 99180,
+      자산총계: 1926377,
+      차입금: 820,
+      매입채무: 62956,
+      미지급금: 34040,
+      리스부채: 160758,
+      보증금: 16225,
+      기타부채: 239442,
+      부채총계: 514242,
+      자본금: 3831,
+      자본잉여금: 317545,
+      기타자본: -33162,
+      이익잉여금: 1092725,
+      비지배지분: 31196,
+      자본총계: 1412135,
+    },
+    '2024_3Q': {
+      현금성자산: 190422,
+      금융상품: 17954,
+      매출채권: 135245,
+      재고자산: 361737,
+      관계기업투자: 634781,
+      유무형자산: 441828,
+      사용권자산: 207368,
+      기타자산: 150141,
+      자산총계: 2139478,
+      차입금: 86820,
+      매입채무: 130612,
+      미지급금: 37911,
+      리스부채: 158831,
+      보증금: 16125,
+      기타부채: 224490,
+      부채총계: 654790,
+      자본금: 3831,
+      자본잉여금: 317545,
+      기타자본: -40262,
+      이익잉여금: 1176364,
+      비지배지분: 27209,
+      자본총계: 1484687,
+    },
+    // 2025년 연결 BS (2025_BS.csv 기반, 단위: 백만원)
+    '2025_1Q': {
+      현금성자산: 164044,
+      금융상품: 10966,
+      매출채권: 91239,
+      재고자산: 314052,
+      관계기업투자: 651745,
+      유무형자산: 713433,
+      사용권자산: 198220,
+      기타자산: 114250,
+      자산총계: 2257950,
+      차입금: 76470,
+      매입채무: 81968,
+      미지급금: 100026,
+      리스부채: 151882,
+      보증금: 18817,
+      기타부채: 234811,
+      부채총계: 663974,
+      자본금: 3831,
+      자본잉여금: 317545,
+      기타자본: -43459,
+      이익잉여금: 1302260,
+      비지배지분: 13799,
+      자본총계: 1593976,
+    },
+    '2025_2Q': {
+      현금성자산: 126440,
+      금융상품: 11012,
+      매출채권: 61178,
+      재고자산: 293350,
+      관계기업투자: 650955,
+      유무형자산: 702103,
+      사용권자산: 184171,
+      기타자산: 121492,
+      자산총계: 2150700,
+      차입금: 32157,
+      매입채무: 68454,
+      미지급금: 28936,
+      리스부채: 142100,
+      보증금: 19565,
+      기타부채: 211731,
+      부채총계: 502944,
+      자본금: 3831,
+      자본잉여금: 317545,
+      기타자본: -51346,
+      이익잉여금: 1364602,
+      비지배지분: 13124,
+      자본총계: 1647756,
+    },
+    '2025_3Q': {
       현금성자산: 208285,
-      금융상품: 37815,      // 유동 28,725 + 비유동 9,090
-      매출채권: 152793,
+      금융상품: 36645,
+      매출채권: 159109,
       재고자산: 414026,
       관계기업투자: 653157,
-      유무형자산: 703080,   // 유형 423,174 + 투자부동산 79,690 + 무형 200,217
+      유무형자산: 703080,
       사용권자산: 186155,
-      기타자산: 145351,     // 유동기타 57,390 + 비유동기타 87,961
+      기타자산: 140206,
       자산총계: 2500662,
-      // 부채 (성격별)
-      차입금: 160605,       // 단기 160,605 + 장기 0
+      차입금: 160605,
       매입채무: 158517,
       미지급금: 36728,
-      리스부채: 195362,     // 유동 55,602 + 비유동 139,760
-      보증금: 9968,
-      기타부채: 188982,     // 유동기타 162,111 + 비유동기타 26,871
+      리스부채: 139760,
+      보증금: 18953,
+      기타부채: 235599,
       부채총계: 750162,
-      // 자본
+      자본금: 3831,
+      자본잉여금: 317545,
+      기타자본: -50132,
+      이익잉여금: 1463247,
+      비지배지분: 16009,
+      자본총계: 1750500,
+    },
+    '2025_4Q': {
+      현금성자산: 208285,
+      금융상품: 36645,
+      매출채권: 159109,
+      재고자산: 414026,
+      관계기업투자: 653157,
+      유무형자산: 703080,
+      사용권자산: 186155,
+      기타자산: 140206,
+      자산총계: 2500662,
+      차입금: 160605,
+      매입채무: 158517,
+      미지급금: 36728,
+      리스부채: 139760,
+      보증금: 18953,
+      기타부채: 235599,
+      부채총계: 750162,
       자본금: 3831,
       자본잉여금: 317545,
       기타자본: -50132,
@@ -294,18 +778,20 @@ export default function FnFQ4Dashboard() {
   // 전체요약 탭 렌더링
   // ============================================
   const renderSummaryTab = () => {
-    // 손익 요약 카드 데이터 (억원 단위, 연간 기준)
+    // 손익 요약 카드 데이터 (억원 단위, 선택된 분기까지 누적 기준)
+    const selectedYearKey = getPeriodKey(selectedPeriod, 'year');
+    const prevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year';
     const incomeCards = [
-      { title: '매출액', value: Math.round(incomeStatementData['2025_Year'].매출액 / 100), prevValue: Math.round(incomeStatementData['2024_Year'].매출액 / 100), iconColor: 'bg-blue-500' },
-      { title: '영업이익', value: Math.round(incomeStatementData['2025_Year'].영업이익 / 100), prevValue: Math.round(incomeStatementData['2024_Year'].영업이익 / 100), iconColor: 'bg-emerald-500' },
-      { title: '당기순이익', value: Math.round(incomeStatementData['2025_Year'].당기순이익 / 100), prevValue: Math.round(incomeStatementData['2024_Year'].당기순이익 / 100), iconColor: 'bg-violet-500' },
+      { title: '매출액', value: Math.round((incomeStatementData[selectedYearKey]?.매출액 || 0) / 100), prevValue: Math.round((incomeStatementData[prevYearKey]?.매출액 || 0) / 100), iconColor: 'bg-blue-500' },
+      { title: '영업이익', value: Math.round((incomeStatementData[selectedYearKey]?.영업이익 || 0) / 100), prevValue: Math.round((incomeStatementData[prevYearKey]?.영업이익 || 0) / 100), iconColor: 'bg-emerald-500' },
+      { title: '당기순이익', value: Math.round((incomeStatementData[selectedYearKey]?.당기순이익 || 0) / 100), prevValue: Math.round((incomeStatementData[prevYearKey]?.당기순이익 || 0) / 100), iconColor: 'bg-violet-500' },
     ];
 
-    // 재무상태 요약 카드 데이터 (억원 단위)
+    // 재무상태 요약 카드 데이터 (억원 단위, 선택된 분기 기말 기준)
     const balanceCards = [
-      { title: '자산총계', value: Math.round(balanceSheetData['2025_4Q'].자산총계 / 100), prevValue: Math.round(balanceSheetData['2024_4Q'].자산총계 / 100), iconColor: 'bg-amber-500' },
-      { title: '부채총계', value: Math.round(balanceSheetData['2025_4Q'].부채총계 / 100), prevValue: Math.round(balanceSheetData['2024_4Q'].부채총계 / 100), iconColor: 'bg-rose-500' },
-      { title: '자본총계', value: Math.round(balanceSheetData['2025_4Q'].자본총계 / 100), prevValue: Math.round(balanceSheetData['2024_4Q'].자본총계 / 100), iconColor: 'bg-cyan-500' },
+      { title: '자산총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.자산총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.자산총계 || 0) / 100), iconColor: 'bg-amber-500' },
+      { title: '부채총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.부채총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.부채총계 || 0) / 100), iconColor: 'bg-rose-500' },
+      { title: '자본총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.자본총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.자본총계 || 0) / 100), iconColor: 'bg-cyan-500' },
     ];
 
     // 조단위 포맷 함수 (억원 단위 입력) - 숫자와 단위 분리 반환
@@ -590,10 +1076,31 @@ export default function FnFQ4Dashboard() {
       },
     };
 
-    // 현재 모드에 따른 기간 설정
-    const currPeriod = incomeViewMode === 'quarter' ? '2025_4Q' : '2025_Year';
-    const prevPeriod = incomeViewMode === 'quarter' ? '2024_4Q' : '2024_Year';
-    const periodLabel = incomeViewMode === 'quarter' ? '4분기' : '연간';
+    // 현재 모드에 따른 기간 설정 (선택된 기간 기준)
+    const getCurrentPeriodKey = () => {
+      if (incomeViewMode === 'quarter') {
+        return getPeriodKey(selectedPeriod, 'quarter');
+      } else {
+        // 누적: 선택된 분기까지의 누적
+        return getPeriodKey(selectedPeriod, 'year');
+      }
+    };
+
+    const getPrevPeriodKey = () => {
+      if (incomeViewMode === 'quarter') {
+        // 분기: 전년 동 분기
+        return getPeriodKey(selectedPeriod, 'prev_quarter');
+      } else {
+        // 누적: 전년 동기 누적
+        return getPeriodKey(selectedPeriod, 'prev_year');
+      }
+    };
+
+    const currPeriod = getCurrentPeriodKey();
+    const prevPeriod = getPrevPeriodKey();
+    const periodLabel = incomeViewMode === 'quarter' 
+      ? selectedPeriod.replace('2025_', '').replace('Q', '') + '분기'
+      : '연간';
 
     // 법인 색상
     const entityColors = {
@@ -656,29 +1163,58 @@ export default function FnFQ4Dashboard() {
     const MERGED_ENTITY_LABEL = '기타(연결조정)';
     const MAJOR_ENTITIES = ['OC(국내)', '중국'];
 
+    // 단일 기간용 (도넛 차트 등)
     const getGroupedEntityBreakdown = (accountKey, period) => {
-      const total = getConsolidatedTotal(accountKey, period);
-      const aligned = getAlignedEntityBreakdown(accountKey, period);
+      return getGroupedEntityBreakdownForComparison(accountKey, period, period);
+    };
+
+    // 비교용: 전기/당기 둘 다를 고려하여, 한 기간이라도 유의미하면 개별로 유지
+    const getGroupedEntityBreakdownForComparison = (accountKey, prevPeriod, currPeriod) => {
+      const totalCurr = getConsolidatedTotal(accountKey, currPeriod);
+      const totalPrev = getConsolidatedTotal(accountKey, prevPeriod);
+      const alignedCurr = getAlignedEntityBreakdown(accountKey, currPeriod);
+      const alignedPrev = getAlignedEntityBreakdown(accountKey, prevPeriod);
+
+      // 전기/당기 모두의 키를 합집합으로 수집
+      const allKeys = Array.from(new Set([...Object.keys(alignedPrev), ...Object.keys(alignedCurr)]));
 
       const merged = {};
-      let mergedSum = 0;
+      const entitiesToKeep = new Set();
 
-      for (const [name, value] of Object.entries(aligned)) {
-        const ratio = total !== 0 ? Math.abs(value) / Math.abs(total) : 0;
-        const isAdjustmentOrOther = name === '연결조정' || name === '기타';
-        const isMinor = !MAJOR_ENTITIES.includes(name) && ratio < MINOR_ENTITY_RATIO_THRESHOLD;
+      // 1. OC(국내), 중국은 항상 유지
+      MAJOR_ENTITIES.forEach(entity => {
+        if (allKeys.includes(entity)) {
+          entitiesToKeep.add(entity);
+        }
+      });
 
-        if (isAdjustmentOrOther || isMinor) {
-          mergedSum += value || 0;
-        } else {
-          merged[name] = value || 0;
+      // 2. 전기나 당기 중 하나라도 데이터가 있고, 그 기간의 비중이 3% 이상이면 개별로 유지
+      for (const name of allKeys) {
+        if (MAJOR_ENTITIES.includes(name) || name === '연결조정' || name === '기타') continue;
+
+        const prevVal = alignedPrev[name] || 0;
+        const currVal = alignedCurr[name] || 0;
+        
+        const prevRatio = totalPrev !== 0 ? Math.abs(prevVal) / Math.abs(totalPrev) : 0;
+        const currRatio = totalCurr !== 0 ? Math.abs(currVal) / Math.abs(totalCurr) : 0;
+
+        // 전기나 당기 중 하나라도 데이터가 있고, 그 기간의 비중이 3% 이상이면 개별 유지
+        const hasDataInEitherPeriod = prevVal !== 0 || currVal !== 0;
+        const isSignificantInEitherPeriod = prevRatio >= MINOR_ENTITY_RATIO_THRESHOLD || currRatio >= MINOR_ENTITY_RATIO_THRESHOLD;
+
+        if (hasDataInEitherPeriod && isSignificantInEitherPeriod) {
+          entitiesToKeep.add(name);
         }
       }
 
-      // 항상 합계가 연결 금액과 일치하도록(반올림/스케일링 오차 포함) 기타(연결조정)로 흡수
+      // 3. 유지할 법인들을 merged에 추가 (당기 값을 사용)
+      entitiesToKeep.forEach(name => {
+        merged[name] = alignedCurr[name] || 0;
+      });
+
+      // 4. 나머지는 기타(연결조정)로 흡수 (합계 정합성 보장)
       const keptSum = Object.values(merged).reduce((s, v) => s + (v || 0), 0);
-      const finalMerged = total - keptSum;
-      merged[MERGED_ENTITY_LABEL] = finalMerged;
+      merged[MERGED_ENTITY_LABEL] = totalCurr - keptSum;
 
       return merged;
     };
@@ -700,8 +1236,9 @@ export default function FnFQ4Dashboard() {
 
     // 법인별 테이블 데이터 - 현재 모드에 따라 연동
     const getEntityTableData = () => {
-      const prev = getGroupedEntityBreakdown(selectedAccount, prevPeriod);
-      const curr = getGroupedEntityBreakdown(selectedAccount, currPeriod);
+      // 비교용 함수 사용: 전기/당기 둘 다를 고려
+      const curr = getGroupedEntityBreakdownForComparison(selectedAccount, prevPeriod, currPeriod);
+      const prev = getGroupedEntityBreakdownForComparison(selectedAccount, prevPeriod, prevPeriod);
       const totalCurr = getConsolidatedTotal(selectedAccount, currPeriod);
       
       // 표 표시 순서:
@@ -796,19 +1333,23 @@ export default function FnFQ4Dashboard() {
       },
     ];
 
+    // 요약 카드는 조회 시점 기준 누적(연간) 데이터 사용
+    const incomeSummaryYearKey = getPeriodKey(selectedPeriod, 'year');
+    const incomeSummaryPrevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year';
+
     return (
       <div className="space-y-4">
-        {/* 요약 카드 섹션 - 누적 실적으로 고정 */}
+        {/* 요약 카드 섹션 - 조회 시점 기준 누적 실적 */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-zinc-700">실적 요약 (연간)</h3>
+            <h3 className="text-sm font-semibold text-zinc-700">실적 요약 (누적)</h3>
           </div>
 
           <div className="grid grid-cols-4 gap-3">
           {summaryCards.map((card, idx) => {
-            // 누적(연간) 데이터로 고정
-            const curr = incomeStatementData['2025_Year'][card.key];
-            const prev = incomeStatementData['2024_Year'][card.key];
+            // 선택된 기간 기준 누적(연간) 데이터
+            const curr = incomeStatementData[incomeSummaryYearKey]?.[card.key] || 0;
+            const prev = incomeStatementData[incomeSummaryPrevYearKey]?.[card.key] || 0;
             const diff = curr - prev;
             const changeRate = calculateYoY(curr, prev);
             const isPositive = parseFloat(changeRate) >= 0;
@@ -837,10 +1378,10 @@ export default function FnFQ4Dashboard() {
             let rateDiff = null;
             if (card.hasRate) {
               const [num, denom] = card.rateOf;
-              const currNum = incomeStatementData['2025_Year'][num];
-              const currDenom = incomeStatementData['2025_Year'][denom];
-              const prevNum = incomeStatementData['2024_Year'][num];
-              const prevDenom = incomeStatementData['2024_Year'][denom];
+              const currNum = incomeStatementData[incomeSummaryYearKey]?.[num] || 0;
+              const currDenom = incomeStatementData[incomeSummaryYearKey]?.[denom] || 0;
+              const prevNum = incomeStatementData[incomeSummaryPrevYearKey]?.[num] || 0;
+              const prevDenom = incomeStatementData[incomeSummaryPrevYearKey]?.[denom] || 0;
               
               currRate = currDenom > 0 ? ((currNum / currDenom) * 100).toFixed(1) : '0.0';
               prevRate = prevDenom > 0 ? ((prevNum / prevDenom) * 100).toFixed(1) : '0.0';
@@ -915,7 +1456,7 @@ export default function FnFQ4Dashboard() {
                         : 'text-zinc-500 hover:text-zinc-700'
                     }`}
                   >
-                    분기 (4Q)
+                    분기
                   </button>
                   <button
                     onClick={() => setIncomeViewMode('annual')}
@@ -936,10 +1477,23 @@ export default function FnFQ4Dashboard() {
                   <tr className="bg-zinc-50 border-b border-zinc-200">
                     <th className="text-left px-3 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[175px]">과목</th>
                     <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">
-                      {incomeViewMode === 'quarter' ? '2024.4Q' : '2024년'}
+                      {(() => {
+                        const [yearStr, qStr] = selectedPeriod.split('_'); // 예: ['2025','Q2']
+                        const quarterNum = (qStr || 'Q4').replace('Q', '');
+                        const prevYear = String(Number(yearStr) - 1);
+                        return incomeViewMode === 'quarter'
+                          ? `${prevYear}.${quarterNum}Q`
+                          : `${prevYear}년`;
+                      })()}
                     </th>
                     <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">
-                      {incomeViewMode === 'quarter' ? '2025.4Q' : '2025년'}
+                      {(() => {
+                        const [yearStr, qStr] = selectedPeriod.split('_'); // 예: ['2025','Q2']
+                        const quarterNum = (qStr || 'Q4').replace('Q', '');
+                        return incomeViewMode === 'quarter'
+                          ? `${yearStr}.${quarterNum}Q`
+                          : `${yearStr}년`;
+                      })()}
                     </th>
                     <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
                     <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
@@ -1234,18 +1788,18 @@ export default function FnFQ4Dashboard() {
   // 재무상태표 탭 렌더링
   // ============================================
   const renderBalanceSheetTab = () => {
-    // 운전자본 계산 (매출채권 + 재고자산 - 매입채무)
+      // 운전자본 계산 (매출채권 + 재고자산 - 매입채무)
     const calcWorkingCapital = (period) => {
       const bs = balanceSheetData[period];
-      return (bs.매출채권 || 0) + (bs.재고자산 || 0) - (bs.매입채무 || 0);
+      return (bs?.매출채권 || 0) + (bs?.재고자산 || 0) - (bs?.매입채무 || 0);
     };
 
     // ROE 계산 (당기순이익 / 자본총계 * 100)
     const calcROE = (period) => {
-      const netIncome = period === '2025_4Q' 
-        ? incomeStatementData['2025_Year'].당기순이익 
-        : incomeStatementData['2024_Year'].당기순이익;
-      const equity = balanceSheetData[period].자본총계;
+      const selectedQuarter = selectedPeriod.split('_')[1];
+      const yearKey = getPeriodKey(selectedPeriod, 'year');
+      const netIncome = incomeStatementData[yearKey]?.당기순이익 || 0;
+      const equity = balanceSheetData[period]?.자본총계 || 0;
       if (!equity || equity === 0) return 0;
       return ((netIncome / equity) * 100).toFixed(1);
     };
@@ -1268,29 +1822,29 @@ export default function FnFQ4Dashboard() {
     const summaryCards = [
       { 
         title: '자산총계', 
-        curr: balanceSheetData['2025_4Q'].자산총계 / 100,
-        prev: balanceSheetData['2024_4Q'].자산총계 / 100,
+        curr: (balanceSheetData[bsCurrentPeriod]?.자산총계 || 0) / 100,
+        prev: (balanceSheetData[bsPrevPeriod]?.자산총계 || 0) / 100,
         unit: '억원',
         useTril: true,
       },
       { 
         title: '운전자본', 
-        curr: calcWorkingCapital('2025_4Q') / 100,
-        prev: calcWorkingCapital('2024_4Q') / 100,
+        curr: calcWorkingCapital(bsCurrentPeriod) / 100,
+        prev: calcWorkingCapital(bsPrevPeriod) / 100,
         unit: '억원',
         useTril: false,
       },
       { 
         title: '자본총계', 
-        curr: balanceSheetData['2025_4Q'].자본총계 / 100,
-        prev: balanceSheetData['2024_4Q'].자본총계 / 100,
+        curr: (balanceSheetData[bsCurrentPeriod]?.자본총계 || 0) / 100,
+        prev: (balanceSheetData[bsPrevPeriod]?.자본총계 || 0) / 100,
         unit: '억원',
         useTril: true,
       },
       { 
         title: 'ROE', 
-        curr: calcROE('2025_4Q'),
-        prev: calcROE('2024_4Q'),
+        curr: calcROE(bsCurrentPeriod),
+        prev: calcROE(bsPrevPeriod),
         isRatio: true,
       },
     ];
@@ -1485,23 +2039,59 @@ export default function FnFQ4Dashboard() {
     const BS_MERGED_ENTITY_LABEL = '기타(연결조정)';
     const BS_MAJOR_ENTITIES = ['OC(국내)', '중국'];
 
+    // 단일 기간용 (도넛 차트 등)
     const getGroupedBSBreakdown = (accountKey, period) => {
-      const total = getBSConsolidatedTotal(accountKey, period);
-      const aligned = getAlignedBSBreakdown(accountKey, period);
+      return getGroupedBSBreakdownForComparison(accountKey, period, period);
+    };
+
+    // 비교용: 전기/당기 둘 다를 고려하여, 한 기간이라도 유의미하면 개별로 유지
+    const getGroupedBSBreakdownForComparison = (accountKey, prevPeriod, currPeriod) => {
+      const totalCurr = getBSConsolidatedTotal(accountKey, currPeriod);
+      const totalPrev = getBSConsolidatedTotal(accountKey, prevPeriod);
+      const alignedCurr = getAlignedBSBreakdown(accountKey, currPeriod);
+      const alignedPrev = getAlignedBSBreakdown(accountKey, prevPeriod);
+
+      // 전기/당기 모두의 키를 합집합으로 수집
+      const allKeys = Array.from(new Set([...Object.keys(alignedPrev), ...Object.keys(alignedCurr)]));
 
       const grouped = {};
-      for (const [name, value] of Object.entries(aligned)) {
-        const ratio = total !== 0 ? Math.abs(value) / Math.abs(total) : 0;
-        const isAdjustmentOrOther = name === '연결조정' || name === '기타';
-        const isMinor = !BS_MAJOR_ENTITIES.includes(name) && ratio < BS_MINOR_ENTITY_RATIO_THRESHOLD;
+      const entitiesToKeep = new Set();
 
-        if (isAdjustmentOrOther || isMinor) continue;
-        grouped[name] = value || 0;
+      // 1. OC(국내), 중국은 항상 유지
+      BS_MAJOR_ENTITIES.forEach(entity => {
+        if (allKeys.includes(entity)) {
+          entitiesToKeep.add(entity);
+        }
+      });
+
+      // 2. 전기나 당기 중 하나라도 데이터가 있고, 그 기간의 비중이 3% 이상이면 개별로 유지
+      for (const name of allKeys) {
+        if (BS_MAJOR_ENTITIES.includes(name) || name === '연결조정' || name === '기타') continue;
+
+        const prevVal = alignedPrev[name] || 0;
+        const currVal = alignedCurr[name] || 0;
+        
+        const prevRatio = totalPrev !== 0 ? Math.abs(prevVal) / Math.abs(totalPrev) : 0;
+        const currRatio = totalCurr !== 0 ? Math.abs(currVal) / Math.abs(totalCurr) : 0;
+
+        // 전기나 당기 중 하나라도 데이터가 있고, 그 기간의 비중이 3% 이상이면 개별 유지
+        const hasDataInEitherPeriod = prevVal !== 0 || currVal !== 0;
+        const isSignificantInEitherPeriod = prevRatio >= BS_MINOR_ENTITY_RATIO_THRESHOLD || currRatio >= BS_MINOR_ENTITY_RATIO_THRESHOLD;
+
+        if (hasDataInEitherPeriod && isSignificantInEitherPeriod) {
+          entitiesToKeep.add(name);
+        }
       }
 
-      // 나머지는 전부 기타(연결조정)로 흡수해 합계 정합성 보장
+      // 3. 유지할 법인들을 grouped에 추가 (당기 값을 사용)
+      entitiesToKeep.forEach(name => {
+        grouped[name] = alignedCurr[name] || 0;
+      });
+
+      // 4. 나머지는 기타(연결조정)로 흡수 (합계 정합성 보장)
       const keptSum = Object.values(grouped).reduce((s, v) => s + (v || 0), 0);
-      grouped[BS_MERGED_ENTITY_LABEL] = total - keptSum;
+      grouped[BS_MERGED_ENTITY_LABEL] = totalCurr - keptSum;
+
       return grouped;
     };
 
@@ -1526,8 +2116,8 @@ export default function FnFQ4Dashboard() {
     };
 
     // 도넛 차트 데이터 미리 계산
-    const donutData2024 = getBSDonutData('2024_4Q');
-    const donutData2025 = getBSDonutData('2025_4Q');
+    const donutData2024 = getBSDonutData(bsPrevPeriod);
+    const donutData2025 = getBSDonutData(bsCurrentPeriod);
 
     return (
       <div className="space-y-4">
@@ -1587,16 +2177,18 @@ export default function FnFQ4Dashboard() {
                   <thead>
                     <tr className="bg-zinc-50 border-b border-zinc-200">
                       <th className="text-left px-3 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[175px]">과목</th>
-                      <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">2024.4Q</th>
-                      <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">2025.4Q</th>
+                      <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">2024.기말</th>
+                      <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">
+                        {selectedPeriod.replace('2025_', '').replace('Q', ' Q')} 기말
+                      </th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
                     </tr>
                   </thead>
                   <tbody>
                     {balanceItems.map((item, idx) => {
-                      const val2024 = balanceSheetData['2024_4Q'][item.key] || 0;
-                      const val2025 = balanceSheetData['2025_4Q'][item.key] || 0;
+                      const val2024 = balanceSheetData[bsPrevPeriod]?.[item.key] || 0;
+                      const val2025 = balanceSheetData[bsCurrentPeriod]?.[item.key] || 0;
                       const diff = val2025 - val2024;
                       const change = calculateYoY(val2025, val2024);
                       
@@ -1832,8 +2424,8 @@ export default function FnFQ4Dashboard() {
                   })}
                   {/* 합계 행 */}
                   {(() => {
-                    const totalPrev = getBSConsolidatedTotal(selectedBSAccount, '2024_4Q');
-                    const totalCurr = getBSConsolidatedTotal(selectedBSAccount, '2025_4Q');
+                    const totalPrev = getBSConsolidatedTotal(selectedBSAccount, bsPrevPeriod);
+                    const totalCurr = getBSConsolidatedTotal(selectedBSAccount, bsCurrentPeriod);
                     const totalYoy = totalPrev !== 0 ? ((totalCurr - totalPrev) / totalPrev * 100).toFixed(1) : '-';
                     const isPositive = parseFloat(totalYoy) >= 0;
 
@@ -1860,8 +2452,8 @@ export default function FnFQ4Dashboard() {
               </h3>
               <div className="space-y-2 text-xs">
                 {(() => {
-                  const curr2025 = getAlignedBSBreakdown(selectedBSAccount, '2025_4Q');
-                  const curr2024 = getAlignedBSBreakdown(selectedBSAccount, '2024_4Q');
+                  const curr2025 = getAlignedBSBreakdown(selectedBSAccount, bsCurrentPeriod);
+                  const curr2024 = getAlignedBSBreakdown(selectedBSAccount, bsPrevPeriod);
                   
                   // 법인별 증감 계산
                   const changes = Object.keys(curr2025).map(entity => ({
@@ -1870,8 +2462,8 @@ export default function FnFQ4Dashboard() {
                     rate: curr2024[entity] !== 0 ? ((curr2025[entity] - curr2024[entity]) / Math.abs(curr2024[entity]) * 100).toFixed(1) : 0
                   })).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
                   
-                  const total2025 = getBSConsolidatedTotal(selectedBSAccount, '2025_4Q');
-                  const total2024 = getBSConsolidatedTotal(selectedBSAccount, '2024_4Q');
+                  const total2025 = getBSConsolidatedTotal(selectedBSAccount, bsCurrentPeriod);
+                  const total2024 = getBSConsolidatedTotal(selectedBSAccount, bsPrevPeriod);
                   const totalDiff = total2025 - total2024;
                   
                   return (
@@ -1927,11 +2519,22 @@ export default function FnFQ4Dashboard() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
-                <p className="text-xs text-zinc-500">2025년 4분기 연결 재무제표</p>
+                <p className="text-xs text-zinc-500">
+                  {selectedPeriod.replace('_', ' ').replace('Q', ' Q')} 연결 재무제표
+                </p>
               </div>
             </div>
-            <div className="px-3 py-1.5 bg-zinc-900 text-white text-xs font-medium rounded">
-              FY2025 Q4
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="px-3 py-1.5 bg-zinc-900 text-white text-xs font-medium rounded border-none outline-none cursor-pointer hover:bg-zinc-800 transition-colors"
+              >
+                <option value="2025_Q1">FY2025 Q1</option>
+                <option value="2025_Q2">FY2025 Q2</option>
+                <option value="2025_Q3">FY2025 Q3</option>
+                <option value="2025_Q4">FY2025 Q4</option>
+              </select>
             </div>
           </div>
         </div>
