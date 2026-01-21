@@ -382,30 +382,6 @@ export default function FnFQ4Dashboard() {
       법인세비용: 34583,
       당기순이익: 100695,
     },
-    '2025_4Q': {
-      매출액: 474257,
-      매출원가: 165303,
-      매출총이익: 308954,
-      판매비와관리비: 180936,
-      인건비: 20266,
-      광고선전비: 25032,
-      수수료: 93907,
-      감가상각비: 22262,
-      기타판관비: 19469,
-      영업이익: 128018,
-      영업외손익: 23580,
-      외환손익: 9435,
-      선물환손익: -5393,
-      금융상품손익: 668,
-      이자손익: 3480,
-      배당수익: 482,
-      기타손익: 5713,
-      지분법손익: 9117,
-      기부금: 78,
-      법인세비용차감전순이익: 135278,
-      법인세비용: 34583,
-      당기순이익: 100695,
-    },
 
     // 2025년 누적
     '2025_1Q_Year': {
@@ -657,30 +633,6 @@ export default function FnFQ4Dashboard() {
       비지배지분: 16009,
       자본총계: 1750500,
     },
-    '2025_4Q': {
-      현금성자산: 208285,
-      금융상품: 36645,
-      매출채권: 159109,
-      재고자산: 414026,
-      관계기업투자: 653157,
-      유무형자산: 703080,
-      사용권자산: 186155,
-      기타자산: 140206,
-      자산총계: 2500662,
-      차입금: 160605,
-      매입채무: 158517,
-      미지급금: 36728,
-      리스부채: 139760,
-      보증금: 18953,
-      기타부채: 235599,
-      부채총계: 750162,
-      자본금: 3831,
-      자본잉여금: 317545,
-      기타자본: -50132,
-      이익잉여금: 1463247,
-      비지배지분: 16009,
-      자본총계: 1750500,
-    },
     '2024_4Q': {
       // 자산 (성격별)
       현금성자산: 119833,
@@ -714,24 +666,6 @@ export default function FnFQ4Dashboard() {
   // 금융상품평가 데이터
   // ============================================
   const financialInstrumentsData = {
-    '2025_4Q': {
-      // 당기손익-공정가치 측정 금융자산
-      FVPL금융자산: 0,
-      // 기타포괄손익-공정가치 측정 금융자산
-      FVOCI금융자산: 0,
-      // 상각후원가 측정 금융자산
-      AC금융자산: 0,
-      // 파생상품자산
-      파생상품자산: 0,
-      // 금융부채
-      당기손익인식금융부채: 0,
-      상각후원가금융부채: 0,
-      파생상품부채: 0,
-      // 평가손익
-      FVPL평가손익: 0,
-      FVOCI평가손익: 0,
-      파생상품평가손익: 0,
-    },
     '2024_4Q': {
       FVPL금융자산: 0,
       FVOCI금융자산: 0,
@@ -781,17 +715,74 @@ export default function FnFQ4Dashboard() {
     // 손익 요약 카드 데이터 (억원 단위, 선택된 분기까지 누적 기준)
     const selectedYearKey = getPeriodKey(selectedPeriod, 'year');
     const prevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year';
+    
+    // 매출액 (비율 계산용)
+    const salesCurr = incomeStatementData[selectedYearKey]?.매출액 || 0;
+    const salesPrev = incomeStatementData[prevYearKey]?.매출액 || 0;
+    
+    // 매출총이익 및 매출총이익률
+    const grossProfitCurr = incomeStatementData[selectedYearKey]?.매출총이익 || 0;
+    const grossProfitPrev = incomeStatementData[prevYearKey]?.매출총이익 || 0;
+    const grossMarginCurr = salesCurr !== 0 ? (grossProfitCurr / salesCurr * 100) : 0;
+    const grossMarginPrev = salesPrev !== 0 ? (grossProfitPrev / salesPrev * 100) : 0;
+    
+    // 영업이익 및 영업이익률
+    const operatingIncomeCurr = incomeStatementData[selectedYearKey]?.영업이익 || 0;
+    const operatingIncomePrev = incomeStatementData[prevYearKey]?.영업이익 || 0;
+    const operatingMarginCurr = salesCurr !== 0 ? (operatingIncomeCurr / salesCurr * 100) : 0;
+    const operatingMarginPrev = salesPrev !== 0 ? (operatingIncomePrev / salesPrev * 100) : 0;
+    
+    // 당기순이익 및 당기순이익률
+    const netIncomeCurr = incomeStatementData[selectedYearKey]?.당기순이익 || 0;
+    const netIncomePrev = incomeStatementData[prevYearKey]?.당기순이익 || 0;
+    const netMarginCurr = salesCurr !== 0 ? (netIncomeCurr / salesCurr * 100) : 0;
+    const netMarginPrev = salesPrev !== 0 ? (netIncomePrev / salesPrev * 100) : 0;
+    
     const incomeCards = [
-      { title: '매출액', value: Math.round((incomeStatementData[selectedYearKey]?.매출액 || 0) / 100), prevValue: Math.round((incomeStatementData[prevYearKey]?.매출액 || 0) / 100), iconColor: 'bg-blue-500' },
-      { title: '영업이익', value: Math.round((incomeStatementData[selectedYearKey]?.영업이익 || 0) / 100), prevValue: Math.round((incomeStatementData[prevYearKey]?.영업이익 || 0) / 100), iconColor: 'bg-emerald-500' },
-      { title: '당기순이익', value: Math.round((incomeStatementData[selectedYearKey]?.당기순이익 || 0) / 100), prevValue: Math.round((incomeStatementData[prevYearKey]?.당기순이익 || 0) / 100), iconColor: 'bg-violet-500' },
+      { 
+        title: '매출액', 
+        value: Math.round(salesCurr / 100), 
+        prevValue: Math.round(salesPrev / 100), 
+        iconColor: 'bg-blue-500',
+        hasRate: false
+      },
+      { 
+        title: '매출총이익', 
+        value: Math.round(grossProfitCurr / 100), 
+        prevValue: Math.round(grossProfitPrev / 100), 
+        iconColor: 'bg-blue-500',
+        hasRate: true,
+        rateLabel: '매출총이익률',
+        rateCurr: grossMarginCurr,
+        ratePrev: grossMarginPrev
+      },
+      { 
+        title: '영업이익', 
+        value: Math.round(operatingIncomeCurr / 100), 
+        prevValue: Math.round(operatingIncomePrev / 100), 
+        iconColor: 'bg-emerald-500',
+        hasRate: true,
+        rateLabel: '영업이익률',
+        rateCurr: operatingMarginCurr,
+        ratePrev: operatingMarginPrev
+      },
+      { 
+        title: '당기순이익', 
+        value: Math.round(netIncomeCurr / 100), 
+        prevValue: Math.round(netIncomePrev / 100), 
+        iconColor: 'bg-violet-500',
+        hasRate: true,
+        rateLabel: '당기순이익률',
+        rateCurr: netMarginCurr,
+        ratePrev: netMarginPrev
+      },
     ];
 
     // 재무상태 요약 카드 데이터 (억원 단위, 선택된 분기 기말 기준)
     const balanceCards = [
-      { title: '자산총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.자산총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.자산총계 || 0) / 100), iconColor: 'bg-amber-500' },
-      { title: '부채총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.부채총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.부채총계 || 0) / 100), iconColor: 'bg-rose-500' },
-      { title: '자본총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.자본총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.자본총계 || 0) / 100), iconColor: 'bg-cyan-500' },
+      { title: '자산총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.자산총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.자산총계 || 0) / 100), iconColor: 'bg-amber-500', hasRate: false },
+      { title: '부채총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.부채총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.부채총계 || 0) / 100), iconColor: 'bg-rose-500', hasRate: false },
+      { title: '자본총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.자본총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.자본총계 || 0) / 100), iconColor: 'bg-cyan-500', hasRate: false },
     ];
 
     // 조단위 포맷 함수 (억원 단위 입력) - 숫자와 단위 분리 반환
@@ -815,20 +806,60 @@ export default function FnFQ4Dashboard() {
         : 0;
       const isPositive = parseFloat(change) >= 0;
       const formatted = formatTrilBilSummary(card.value);
+      const formattedPrev = formatTrilBilSummary(card.prevValue);
+      const diff = card.value - card.prevValue;
+      const formattedDiff = formatTrilBilSummary(diff);
+      
+      // 비율 증감 계산
+      let rateDiff = null;
+      if (card.hasRate && card.rateCurr !== undefined && card.ratePrev !== undefined) {
+        rateDiff = (card.rateCurr - card.ratePrev).toFixed(1);
+      }
       
       return (
         <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`w-2 h-2 rounded-full ${card.iconColor}`}></span>
+          {/* 헤더: 제목과 증감률 박스 */}
+          <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{card.title}</span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+              isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+            }`}>
+              {change != 0 ? `${isPositive ? '+' : ''}${change}%` : '-'}
+            </span>
           </div>
-          <div className="flex items-baseline gap-1">
+          
+          {/* 당년 수치 */}
+          <div className="flex items-baseline gap-1 mb-3">
             <span className="text-2xl font-bold text-zinc-900">{formatted.number}</span>
             <span className="text-sm font-normal text-zinc-400">{formatted.unit}</span>
           </div>
-          <div className={`text-xs font-semibold mt-1 ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-            {change != 0 ? `${isPositive ? '▲' : '▼'} ${Math.abs(parseFloat(change))}% YoY` : '-'}
+          
+          {/* 전년 수치 및 차액 (한 줄) */}
+          <div className="text-xs text-zinc-600 mb-3">
+            전년 {formattedPrev.number.replace('억원', '억')}
+            {diff !== 0 && (
+              <span className={`ml-1 font-medium ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {diff >= 0 ? '+' : ''}{formattedDiff.number.replace('억원', '억')}
+              </span>
+            )}
           </div>
+          
+          {/* 비율 (영업이익률, 당기순이익률) */}
+          {card.hasRate && card.rateCurr !== undefined && (
+            <div className="pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-400">{card.rateLabel}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-zinc-900 font-semibold">{card.rateCurr.toFixed(1)}%</span>
+                  {rateDiff !== null && parseFloat(rateDiff) !== 0 && (
+                    <span className={`text-xs font-medium ${parseFloat(rateDiff) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {parseFloat(rateDiff) >= 0 ? '+' : ''}{rateDiff}%p
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     };
@@ -841,7 +872,7 @@ export default function FnFQ4Dashboard() {
             <span className="w-1 h-4 bg-blue-500 rounded"></span>
             손익 요약
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {incomeCards.map((card, idx) => renderCard(card, idx))}
           </div>
         </div>
@@ -1577,7 +1608,7 @@ export default function FnFQ4Dashboard() {
                         : 'text-zinc-500 hover:text-zinc-700'
                     }`}
                   >
-                    분기
+                    분기(3개월)
                   </button>
                   <button
                     onClick={() => setIncomeViewMode('annual')}
@@ -1636,16 +1667,16 @@ export default function FnFQ4Dashboard() {
                     // 비율 행 처리
                     if (isRateRow) {
                       const [num, denom] = item.rateOf;
-                      const ratePrev = calcRate(incomeStatementData[prevPeriod][num], incomeStatementData[prevPeriod][denom]);
-                      const rateCurr = calcRate(incomeStatementData[currPeriod][num], incomeStatementData[currPeriod][denom]);
+                      const ratePrev = calcRate(incomeStatementData[prevPeriod]?.[num] || 0, incomeStatementData[prevPeriod]?.[denom] || 0);
+                      const rateCurr = calcRate(incomeStatementData[currPeriod]?.[num] || 0, incomeStatementData[currPeriod]?.[denom] || 0);
                       const rateDiff = calcRateDiff(rateCurr, ratePrev);
                       
                       return (
                         <tr key={idx} className="border-b border-zinc-100 bg-zinc-50/50">
-                          <td className="px-3 py-2 text-zinc-500 italic border-r border-zinc-200 text-xs">{item.label}</td>
-                          <td className="text-center px-3 py-2 text-zinc-500 border-r border-zinc-200">{ratePrev}</td>
-                          <td className="text-center px-3 py-2 font-medium text-zinc-700 border-r border-zinc-200 bg-zinc-50">{rateCurr}</td>
-                          <td colSpan="2" className={`text-center px-3 py-2 font-medium ${rateDiff.includes('+') ? 'text-emerald-600' : rateDiff.includes('-') ? 'text-rose-600' : 'text-zinc-500'}`}>
+                          <td className="px-3 py-2 text-blue-600 italic border-r border-zinc-200 text-xs">{item.label}</td>
+                          <td className="text-center px-3 py-2 text-blue-600 border-r border-zinc-200">{ratePrev}</td>
+                          <td className="text-center px-3 py-2 font-medium text-blue-600 border-r border-zinc-200 bg-zinc-50">{rateCurr}</td>
+                          <td colSpan="2" className={`text-center px-3 py-2 font-medium ${rateDiff.includes('+') ? 'text-emerald-600' : rateDiff.includes('-') ? 'text-rose-600' : 'text-blue-600'}`}>
                             {rateDiff}
                           </td>
                         </tr>
@@ -1653,8 +1684,8 @@ export default function FnFQ4Dashboard() {
                     }
 
                     // 일반 금액 행 처리
-                    const valPrev = incomeStatementData[prevPeriod][item.key];
-                    const valCurr = incomeStatementData[currPeriod][item.key];
+                    const valPrev = incomeStatementData[prevPeriod]?.[item.key] || 0;
+                    const valCurr = incomeStatementData[currPeriod]?.[item.key] || 0;
                     const diff = valCurr - valPrev;
                     const changeRate = calculateYoY(valCurr, valPrev);
                     
@@ -1739,7 +1770,13 @@ export default function FnFQ4Dashboard() {
               </div>
               <div className="text-center">
                 <p className="text-xs font-medium text-zinc-500 mb-2">
-                  {incomeViewMode === 'quarter' ? '2025.4Q' : '2025년'}
+                  {incomeViewMode === 'quarter' 
+                    ? (() => {
+                        const [yearStr, qStr] = selectedPeriod.split('_');
+                        const quarterNum = (qStr || 'Q4').replace('Q', '');
+                        return `${yearStr}.${quarterNum}Q`;
+                      })()
+                    : '2025년'}
                 </p>
                 <div style={{ width: 110, height: 110 }}>
                   {getDonutData(currPeriod).length > 0 ? (
@@ -2008,18 +2045,6 @@ export default function FnFQ4Dashboard() {
         부채총계: { 'OC(국내)': 429786, 중국: 252897, 홍콩: 64912, ST미국: 26968 },
         자본총계: { 'OC(국내)': 1493718, 중국: 83714, 홍콩: 2333, ST미국: 85361 },
       },
-      '2025_4Q': {
-        현금성자산: { 'OC(국내)': 182075, 중국: 9318, 홍콩: 4446, ST미국: 11400 },
-        매출채권: { 'OC(국내)': 205309, 중국: 97531, 홍콩: 2871, ST미국: 16277 },
-        재고자산: { 'OC(국내)': 242024, 중국: 281973, 홍콩: 34165, ST미국: 12558 },
-        유무형자산: { 'OC(국내)': 605414, 중국: 8114, 홍콩: 3290, ST미국: 67161 },
-        사용권자산: { 'OC(국내)': 135457, 중국: 30581, 홍콩: 17979, ST미국: 945 },
-        차입금: { 'OC(국내)': 0, 중국: 160605, 홍콩: 0, ST미국: 0 },
-        매입채무: { 'OC(국내)': 139941, 중국: 131315, 홍콩: 47089, ST미국: 3739 },
-        자산총계: { 'OC(국내)': 2145196, 중국: 495765, 홍콩: 71221, ST미국: 111397 },
-        부채총계: { 'OC(국내)': 423707, 중국: 389821, 홍콩: 69512, ST미국: 32762 },
-        자본총계: { 'OC(국내)': 1721489, 중국: 105943, 홍콩: 1710, ST미국: 78635 },
-      },
     };
 
     // 분기별 법인별 추이 데이터 (24.1Q ~ 25.4Q)
@@ -2032,7 +2057,6 @@ export default function FnFQ4Dashboard() {
         { quarter: '25.1Q', 'OC(국내)': 95000, 중국: 25000, 기타: 22000 },
         { quarter: '25.2Q', 'OC(국내)': 120000, 중국: 18000, 기타: 20000 },
         { quarter: '25.3Q', 'OC(국내)': 150000, 중국: 12000, 기타: 18000 },
-        { quarter: '25.4Q', 'OC(국내)': 182075, 중국: 9318, 기타: 15846 },
       ],
       매출채권: [
         { quarter: '24.1Q', 'OC(국내)': 120000, 중국: 35000, 기타: 10000 },
@@ -2042,7 +2066,6 @@ export default function FnFQ4Dashboard() {
         { quarter: '25.1Q', 'OC(국내)': 145000, 중국: 55000, 기타: 14000 },
         { quarter: '25.2Q', 'OC(국내)': 165000, 중국: 70000, 기타: 16000 },
         { quarter: '25.3Q', 'OC(국내)': 185000, 중국: 85000, 기타: 18000 },
-        { quarter: '25.4Q', 'OC(국내)': 205309, 중국: 97531, 기타: 19148 },
       ],
       재고자산: [
         { quarter: '24.1Q', 'OC(국내)': 180000, 중국: 100000, 기타: 38000 },
@@ -2052,7 +2075,6 @@ export default function FnFQ4Dashboard() {
         { quarter: '25.1Q', 'OC(국내)': 220000, 중국: 180000, 기타: 44000 },
         { quarter: '25.2Q', 'OC(국내)': 228000, 중국: 220000, 기타: 45000 },
         { quarter: '25.3Q', 'OC(국내)': 235000, 중국: 250000, 기타: 46000 },
-        { quarter: '25.4Q', 'OC(국내)': 242024, 중국: 281973, 기타: 46723 },
       ],
       유무형자산: [
         { quarter: '24.1Q', 'OC(국내)': 620000, 중국: 12000, 기타: 74000 },
@@ -2062,7 +2084,6 @@ export default function FnFQ4Dashboard() {
         { quarter: '25.1Q', 'OC(국내)': 608000, 중국: 9800, 기타: 72000 },
         { quarter: '25.2Q', 'OC(국내)': 607000, 중국: 9200, 기타: 71000 },
         { quarter: '25.3Q', 'OC(국내)': 606000, 중국: 8600, 기타: 70500 },
-        { quarter: '25.4Q', 'OC(국내)': 605414, 중국: 8114, 기타: 70451 },
       ],
       사용권자산: [
         { quarter: '24.1Q', 'OC(국내)': 155000, 중국: 52000, 기타: 14000 },
@@ -2072,7 +2093,6 @@ export default function FnFQ4Dashboard() {
         { quarter: '25.1Q', 'OC(국내)': 143000, 중국: 42000, 기타: 15000 },
         { quarter: '25.2Q', 'OC(국내)': 140000, 중국: 38000, 기타: 17000 },
         { quarter: '25.3Q', 'OC(국내)': 138000, 중국: 34000, 기타: 18500 },
-        { quarter: '25.4Q', 'OC(국내)': 135457, 중국: 30581, 기타: 18924 },
       ],
       차입금: [
         { quarter: '24.1Q', 'OC(국내)': 60000, 중국: 80000, 기타: 0 },
@@ -2082,7 +2102,6 @@ export default function FnFQ4Dashboard() {
         { quarter: '25.1Q', 'OC(국내)': 30000, 중국: 120000, 기타: 0 },
         { quarter: '25.2Q', 'OC(국내)': 15000, 중국: 140000, 기타: 0 },
         { quarter: '25.3Q', 'OC(국내)': 5000, 중국: 150000, 기타: 0 },
-        { quarter: '25.4Q', 'OC(국내)': 0, 중국: 160605, 기타: 0 },
       ],
       매입채무: [
         { quarter: '24.1Q', 'OC(국내)': 65000, 중국: 12000, 기타: 48000 },
@@ -2092,7 +2111,6 @@ export default function FnFQ4Dashboard() {
         { quarter: '25.1Q', 'OC(국내)': 95000, 중국: 50000, 기타: 52000 },
         { quarter: '25.2Q', 'OC(국내)': 110000, 중국: 80000, 기타: 51500 },
         { quarter: '25.3Q', 'OC(국내)': 125000, 중국: 105000, 기타: 51000 },
-        { quarter: '25.4Q', 'OC(국내)': 139941, 중국: 131315, 기타: 50828 },
       ],
     };
 
@@ -2298,9 +2316,13 @@ export default function FnFQ4Dashboard() {
                   <thead>
                     <tr className="bg-zinc-50 border-b border-zinc-200">
                       <th className="text-left px-3 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[175px]">과목</th>
-                      <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">2024.기말</th>
+                      <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">2024.4Q</th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">
-                        {selectedPeriod.replace('2025_', '').replace('Q', ' Q')} 기말
+                        {(() => {
+                          const [yearStr, qStr] = selectedPeriod.split('_');
+                          const quarterNum = (qStr || 'Q4').replace('Q', '');
+                          return `${yearStr}.${quarterNum}Q`;
+                        })()}
                       </th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
@@ -2446,7 +2468,7 @@ export default function FnFQ4Dashboard() {
               <div className="flex justify-around mt-4">
                 {/* 2024년 도넛 */}
                 <div className="text-center">
-                  <p className="text-xs font-medium text-zinc-500 mb-2">2024년말</p>
+                  <p className="text-xs font-medium text-zinc-500 mb-2">2024.4Q</p>
                   <div style={{ width: 120, height: 120 }}>
                     {donutData2024.length > 0 ? (
                       <PieChart width={120} height={120}>
@@ -2472,7 +2494,13 @@ export default function FnFQ4Dashboard() {
                 </div>
                 {/* 2025년 도넛 */}
                 <div className="text-center">
-                  <p className="text-xs font-medium text-zinc-500 mb-2">2025년말</p>
+                  <p className="text-xs font-medium text-zinc-500 mb-2">
+                    {(() => {
+                      const [yearStr, qStr] = selectedPeriod.split('_');
+                      const quarterNum = (qStr || 'Q4').replace('Q', '');
+                      return `${yearStr}.${quarterNum}Q`;
+                    })()}
+                  </p>
                   <div style={{ width: 120, height: 120 }}>
                     {donutData2025.length > 0 ? (
                       <PieChart width={120} height={120}>
@@ -2634,14 +2662,18 @@ export default function FnFQ4Dashboard() {
         {/* 헤더 */}
         <div className="mb-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-zinc-900 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">F&F</span>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-zinc-900 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-base">F&F</span>
               </div>
               <div>
-                <h1 className="text-xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
-                <p className="text-xs text-zinc-500">
-                  {selectedPeriod.replace('_', ' ').replace('Q', ' Q')} 연결 재무제표
+                <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
+                <p className="text-sm text-zinc-500">
+                  {(() => {
+                    const [yearStr, qStr] = selectedPeriod.split('_');
+                    const quarterNum = (qStr || 'Q4').replace('Q', '');
+                    return `${yearStr} ${quarterNum}Q`;
+                  })()} 연결 재무제표
                 </p>
               </div>
             </div>
@@ -2651,10 +2683,10 @@ export default function FnFQ4Dashboard() {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="px-3 py-1.5 bg-zinc-900 text-white text-xs font-medium rounded border-none outline-none cursor-pointer hover:bg-zinc-800 transition-colors"
               >
-                <option value="2025_Q1">FY2025 Q1</option>
-                <option value="2025_Q2">FY2025 Q2</option>
-                <option value="2025_Q3">FY2025 Q3</option>
-                <option value="2025_Q4">FY2025 Q4</option>
+                <option value="2025_Q1">FY2025 1Q</option>
+                <option value="2025_Q2">FY2025 2Q</option>
+                <option value="2025_Q3">FY2025 3Q</option>
+                <option value="2025_Q4">FY2025 4Q</option>
               </select>
             </div>
           </div>
