@@ -69,7 +69,7 @@ export default function FnFQ4Dashboard() {
   // ============================================
   const getPeriodKey = (selectedPeriod, type) => {
     // selectedPeriod: '2025_Q1', '2025_Q2', '2025_Q3', '2025_Q4'
-    // type: 'quarter' (분기), 'year' (누적), 'prev_quarter' (전년 동 분기), 'prev_year' (전년 동기 누적)
+    // type: 'quarter' (분기), 'year' (누적), 'prev_quarter' (전년 동 분기), 'prev_year' (전년 동기 누적), 'prev' (전 분기)
     const [year, quarter] = selectedPeriod.split('_');
     const yearNum = parseInt(year);
     const quarterNum = quarter.replace('Q', '');
@@ -92,6 +92,15 @@ export default function FnFQ4Dashboard() {
         return `${prevYear}_Year`;
       }
       return `${prevYear}_${quarterNum}Q_Year`;
+    } else if (type === 'prev') {
+      // 전 분기: Q1이면 전년 Q4, 그 외는 같은 해 전 분기
+      if (quarterNum === '1') {
+        const prevYear = (yearNum - 1).toString();
+        return `${prevYear}_4Q`;
+      } else {
+        const prevQuarter = (parseInt(quarterNum) - 1).toString();
+        return `${year}_${prevQuarter}Q`;
+      }
     }
     return `${year}_4Q`; // 기본값
   };
@@ -898,6 +907,95 @@ export default function FnFQ4Dashboard() {
   };
 
   // ============================================
+  // 법인별 재무상태표 데이터 (컴포넌트 상위 레벨)
+  // ============================================
+  const entityBSData = {
+    '2024_1Q': {
+      현금성자산: { 'OC(국내)': 291693, 중국: 12162, 홍콩: 4132, ST미국: 22754 },
+      매출채권: { 'OC(국내)': 109224, 중국: 7225, 홍콩: 3399, ST미국: 3441 },
+      재고자산: { 'OC(국내)': 232095, 중국: 136110, 홍콩: 33179, ST미국: 4244 },
+      유무형자산: { 'OC(국내)': 197870, 중국: 9894, 홍콩: 3591, ST미국: 64546 },
+      사용권자산: { 'OC(국내)': 182423, 중국: 62091, 홍콩: 36179, ST미국: 2573 },
+      차입금: { 'OC(국내)': 0, 중국: 72442, 홍콩: 0, ST미국: 9051 },
+      매입채무: { 'OC(국내)': 69104, 중국: 5104, 홍콩: 45034, ST미국: 1191 },
+      자산총계: { 'OC(국내)': 1765417, 중국: 271920, 홍콩: 64615, ST미국: 99288 },
+      부채총계: { 'OC(국내)': 492867, 중국: 201248, 홍콩: 64061, ST미국: 14432 },
+      자본총계: { 'OC(국내)': 1272550, 중국: 70672, 홍콩: 554, ST미국: 84856 },
+    },
+    '2024_2Q': {
+      현금성자산: { 'OC(국내)': 161519, 중국: 27175, 홍콩: 3743, ST미국: 23099 },
+      매출채권: { 'OC(국내)': 91507, 중국: 7183, 홍콩: 2816, ST미국: 5174 },
+      재고자산: { 'OC(국내)': 207444, 중국: 115040, 홍콩: 30582, ST미국: 4806 },
+      유무형자산: { 'OC(국내)': 251498, 중국: 10189, 홍콩: 3419, ST미국: 66586 },
+      사용권자산: { 'OC(국내)': 181318, 중국: 73343, 홍콩: 35860, ST미국: 2654 },
+      차입금: { 'OC(국내)': 0, 중국: 0, 홍콩: 0, ST미국: 9440 },
+      매입채무: { 'OC(국내)': 48681, 중국: 1415, 홍콩: 42027, ST미국: 3799 },
+      자산총계: { 'OC(국내)': 1636710, 중국: 243233, 홍콩: 59168, ST미국: 105286 },
+      부채총계: { 'OC(국내)': 330928, 중국: 155343, 홍콩: 58441, ST미국: 17169 },
+      자본총계: { 'OC(국내)': 1305782, 중국: 87890, 홍콩: 727, ST미국: 88118 },
+    },
+    '2024_3Q': {
+      현금성자산: { 'OC(국내)': 142325, 중국: 24304, 홍콩: 3061, ST미국: 19294 },
+      매출채권: { 'OC(국내)': 137912, 중국: 81857, 홍콩: 2230, ST미국: 6587 },
+      재고자산: { 'OC(국내)': 247068, 중국: 174481, 홍콩: 34086, ST미국: 5150 },
+      유무형자산: { 'OC(국내)': 345549, 중국: 9901, 홍콩: 2659, ST미국: 63244 },
+      사용권자산: { 'OC(국내)': 185625, 중국: 77192, 홍콩: 36969, ST미국: 2521 },
+      차입금: { 'OC(국내)': 0, 중국: 86820, 홍콩: 0, ST미국: 10398 },
+      매입채무: { 'OC(국내)': 115166, 중국: 63397, 홍콩: 43473, ST미국: 1942 },
+      자산총계: { 'OC(국내)': 1806476, 중국: 363370, 홍콩: 59839, ST미국: 97845 },
+      부채총계: { 'OC(국내)': 397220, 중국: 266874, 홍콩: 59025, ST미국: 16360 },
+      자본총계: { 'OC(국내)': 1409256, 중국: 96496, 홍콩: 814, ST미국: 81486 },
+    },
+    '2024_4Q': {
+      현금성자산: { 'OC(국내)': 61500, 중국: 29229, 홍콩: 6073, ST미국: 22881 },
+      매출채권: { 'OC(국내)': 134453, 중국: 40081, 홍콩: 3967, ST미국: 7463 },
+      재고자산: { 'OC(국내)': 214281, 중국: 141223, 홍콩: 35205, ST미국: 8723 },
+      유무형자산: { 'OC(국내)': 609769, 중국: 10416, 홍콩: 2479, ST미국: 70443 },
+      사용권자산: { 'OC(국내)': 183782, 중국: 93085, 홍콩: 43127, ST미국: 2809 },
+      차입금: { 'OC(국내)': 45000, 중국: 100635, 홍콩: 0, ST미국: 16128 },
+      매입채무: { 'OC(국내)': 79795, 중국: 17885, 홍콩: 47089, ST미국: 6030 },
+      자산총계: { 'OC(국내)': 1923504, 중국: 336611, 홍콩: 67244, ST미국: 112329 },
+      부채총계: { 'OC(국내)': 429786, 중국: 252897, 홍콩: 64912, ST미국: 26968 },
+      자본총계: { 'OC(국내)': 1493718, 중국: 83714, 홍콩: 2333, ST미국: 85361 },
+    },
+    '2025_1Q': {
+      현금성자산: { 'OC(국내)': 79496, 중국: 60404, 홍콩: 7022, ST미국: 16283 },
+      매출채권: { 'OC(국내)': 123193, 중국: 20896, 홍콩: 2465, ST미국: 8621 },
+      재고자산: { 'OC(국내)': 214607, 중국: 123617, 홍콩: 33553, ST미국: 9993 },
+      유무형자산: { 'OC(국내)': 611019, 중국: 9130, 홍콩: 1887, ST미국: 70268 },
+      사용권자산: { 'OC(국내)': 187827, 중국: 64626, 홍콩: 28845, ST미국: 1788 },
+      차입금: { 'OC(국내)': 20000, 중국: 56470, 홍콩: 0, ST미국: 19935 },
+      매입채무: { 'OC(국내)': 69813, 중국: 28622, 홍콩: 44833, ST미국: 3153 },
+      자산총계: { 'OC(국내)': 1944504, 중국: 290073, 홍콩: 65030, ST미국: 108362 },
+      부채총계: { 'OC(국내)': 435129, 중국: 202453, 홍콩: 62976, ST미국: 27826 },
+      자본총계: { 'OC(국내)': 1509375, 중국: 87621, 홍콩: 2054, ST미국: 80536 },
+    },
+    '2025_2Q': {
+      현금성자산: { 'OC(국내)': 88735, 중국: 20311, 홍콩: 4732, ST미국: 12241 },
+      매출채권: { 'OC(국내)': 81953, 중국: 8793, 홍콩: 3324, ST미국: 7117 },
+      재고자산: { 'OC(국내)': 199308, 중국: 113822, 홍콩: 29260, ST미국: 9317 },
+      유무형자산: { 'OC(국내)': 607960, 중국: 7699, 홍콩: 2490, ST미국: 64980 },
+      사용권자산: { 'OC(국내)': 188380, 중국: 54824, 홍콩: 25337, ST미국: 1653 },
+      차입금: { 'OC(국내)': 0, 중국: 32157, 홍콩: 0, ST미국: 18641 },
+      매입채무: { 'OC(국내)': 53644, 중국: 10263, 홍콩: 39679, ST미국: 3362 },
+      자산총계: { 'OC(국내)': 1891404, 중국: 231683, 홍콩: 56311, ST미국: 99662 },
+      부채총계: { 'OC(국내)': 318573, 중국: 150855, 홍콩: 52987, ST미국: 25993 },
+      자본총계: { 'OC(국내)': 1572831, 중국: 80828, 홍콩: 3324, ST미국: 73668 },
+    },
+    '2025_3Q': {
+      현금성자산: { 'OC(국내)': 182075, 중국: 9318, 홍콩: 4446, ST미국: 11400 },
+      매출채권: { 'OC(국내)': 205309, 중국: 97531, 홍콩: 2871, ST미국: 16277 },
+      재고자산: { 'OC(국내)': 242024, 중국: 281973, 홍콩: 34165, ST미국: 12558 },
+      유무형자산: { 'OC(국내)': 605413, 중국: 8114, 홍콩: 3290, ST미국: 67161 },
+      사용권자산: { 'OC(국내)': 186612, 중국: 56782, 홍콩: 37937, ST미국: 1709 },
+      차입금: { 'OC(국내)': 0, 중국: 160605, 홍콩: 0, ST미국: 25140 },
+      매입채무: { 'OC(국내)': 139941, 중국: 131315, 홍콩: 47089, ST미국: 3739 },
+      자산총계: { 'OC(국내)': 2145196, 중국: 495765, 홍콩: 71221, ST미국: 111397 },
+      부채총계: { 'OC(국내)': 423707, 중국: 389821, 홍콩: 69512, ST미국: 32762 },
+      자본총계: { 'OC(국내)': 1721489, 중국: 105943, 홍콩: 1710, ST미국: 78635 },
+    },
+  };
+  // ============================================
   // AI 분석 함수
   // ============================================
   const generateAIAnalysis = () => {
@@ -917,8 +1015,21 @@ export default function FnFQ4Dashboard() {
     }
     const selectedYearKey = getPeriodKey(selectedPeriod, 'year');
     const prevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year';
-    const currentPeriod = selectedPeriod;
-    const prevPeriod = getPeriodKey(selectedPeriod, 'prev') || '2024_4Q';
+    // 재무상태표는 분기별 데이터이므로 quarter 키 사용
+    let currentPeriod = getPeriodKey(selectedPeriod, 'quarter'); // '2025_Q4' -> '2025_4Q'
+    let prevPeriod = getPeriodKey(selectedPeriod, 'prev') || '2024_4Q';
+    
+    // 재무상태표 데이터가 없으면 최신 분기 데이터 사용 (fallback)
+    if (!balanceSheetData[currentPeriod]) {
+      // 2025_4Q가 없으면 2025_3Q 사용
+      if (currentPeriod === '2025_4Q') {
+        currentPeriod = '2025_3Q';
+      }
+    }
+    if (!balanceSheetData[prevPeriod]) {
+      // 전 분기 데이터가 없으면 전년 동기 사용
+      prevPeriod = getPeriodKey(selectedPeriod, 'prev_quarter') || '2024_4Q';
+    }
     
     // 1) 핵심 지표 계산
     const salesCurr = incomeStatementData[selectedYearKey]?.매출액 || 0;
@@ -927,33 +1038,78 @@ export default function FnFQ4Dashboard() {
     const opIncomePrev = incomeStatementData[prevYearKey]?.영업이익 || 0;
     const netIncomeCurr = incomeStatementData[selectedYearKey]?.당기순이익 || 0;
     const netIncomePrev = incomeStatementData[prevYearKey]?.당기순이익 || 0;
-    const totalAssetsCurr = balanceSheetData[currentPeriod]?.자산총계 || 0;
-    const totalAssetsPrev = balanceSheetData[prevPeriod]?.자산총계 || 0;
-    const totalDebtCurr = balanceSheetData[currentPeriod]?.부채총계 || 0;
-    const totalDebtPrev = balanceSheetData[prevPeriod]?.부채총계 || 0;
-    const totalEquityCurr = balanceSheetData[currentPeriod]?.자본총계 || 0;
-    const totalEquityPrev = balanceSheetData[prevPeriod]?.자본총계 || 0;
+    
+    // 재무상태표 데이터 확인 및 계산 (안전한 접근)
+    const bsCurr = balanceSheetData?.[currentPeriod] || {};
+    const bsPrev = balanceSheetData?.[prevPeriod] || {};
+    const totalAssetsCurr = bsCurr.자산총계 || 0;
+    const totalAssetsPrev = bsPrev.자산총계 || 0;
+    const totalDebtCurr = bsCurr.부채총계 || 0;
+    const totalDebtPrev = bsPrev.부채총계 || 0;
+    const totalEquityCurr = bsCurr.자본총계 || 0;
+    const totalEquityPrev = bsPrev.자본총계 || 0;
     
     const opMarginCurr = salesCurr > 0 ? (opIncomeCurr / salesCurr * 100) : 0;
     const opMarginPrev = salesPrev > 0 ? (opIncomePrev / salesPrev * 100) : 0;
     const netMarginCurr = salesCurr > 0 ? (netIncomeCurr / salesCurr * 100) : 0;
     const netMarginPrev = salesPrev > 0 ? (netIncomePrev / salesPrev * 100) : 0;
-    const debtRatioCurr = totalEquityCurr > 0 ? (totalDebtCurr / totalEquityCurr * 100) : 0;
-    const debtRatioPrev = totalEquityPrev > 0 ? (totalDebtPrev / totalEquityPrev * 100) : 0;
-    const roeCurr = totalEquityCurr > 0 ? (netIncomeCurr / totalEquityCurr * 100) : 0;
-    const roePrev = totalEquityPrev > 0 ? (netIncomePrev / totalEquityPrev * 100) : 0;
+    
+    // 부채비율 계산 (부채총계 / 자본총계 * 100)
+    let debtRatioCurr = 0;
+    if (totalEquityCurr > 0) {
+      debtRatioCurr = (totalDebtCurr / totalEquityCurr * 100);
+      if (!isFinite(debtRatioCurr) || isNaN(debtRatioCurr)) debtRatioCurr = 0;
+    } else if (totalDebtCurr > 0) {
+      debtRatioCurr = 999; // 자본이 0인 경우
+    }
+    
+    let debtRatioPrev = 0;
+    if (totalEquityPrev > 0) {
+      debtRatioPrev = (totalDebtPrev / totalEquityPrev * 100);
+      if (!isFinite(debtRatioPrev) || isNaN(debtRatioPrev)) debtRatioPrev = 0;
+    } else if (totalDebtPrev > 0) {
+      debtRatioPrev = 999;
+    }
+    
+    // ROE 계산 (당기순이익 / 자본총계 * 100)
+    let roeCurr = 0;
+    if (totalEquityCurr > 0) {
+      roeCurr = (netIncomeCurr / totalEquityCurr * 100);
+      if (!isFinite(roeCurr) || isNaN(roeCurr)) roeCurr = 0;
+    }
+    
+    let roePrev = 0;
+    if (totalEquityPrev > 0) {
+      roePrev = (netIncomePrev / totalEquityPrev * 100);
+      if (!isFinite(roePrev) || isNaN(roePrev)) roePrev = 0;
+    }
     
     const salesGrowth = salesPrev > 0 ? ((salesCurr - salesPrev) / salesPrev * 100) : 0;
     const opMarginChange = opMarginCurr - opMarginPrev;
     const netMarginChange = netMarginCurr - netMarginPrev;
     const roeChange = roeCurr - roePrev;
     
-    // 2) 법인별 수익성 분석
+    // 2) 법인별 수익성 분석 (영업이익률 + ROE)
+    // entityBSData도 같은 currentPeriod 사용 (fallback 적용됨)
+    const entityBSPeriod = entityBSData[currentPeriod] ? currentPeriod : (currentPeriod === '2025_4Q' ? '2025_3Q' : currentPeriod);
+    
     const entityProfitability = ['OC(국내)', '중국', '홍콩', '기타'].map(entity => {
       const sales = entityData.매출액?.[selectedYearKey]?.[entity] || 0;
       const opIncome = entityData.영업이익?.[selectedYearKey]?.[entity] || 0;
+      const netIncome = entityData.당기순이익?.[selectedYearKey]?.[entity] || 0;
       const margin = sales > 0 ? (opIncome / sales * 100) : 0;
-      return { entity, sales, opIncome, margin };
+      
+      // 법인별 ROE 계산 (법인별 당기순이익 / 법인별 자본총계 * 100)
+      const entityEquity = (entityBSData && entityBSData[entityBSPeriod] && entityBSData[entityBSPeriod].자본총계) 
+        ? (entityBSData[entityBSPeriod].자본총계[entity] || 0) 
+        : 0;
+      let entityROE = 0;
+      if (entityEquity > 0) {
+        entityROE = (netIncome / entityEquity * 100);
+        if (!isFinite(entityROE) || isNaN(entityROE)) entityROE = 0;
+      }
+      
+      return { entity, sales, opIncome, netIncome, margin, equity: entityEquity, roe: entityROE };
     }).sort((a, b) => b.margin - a.margin);
     
     // 3) 판관비 구조 분석
@@ -966,21 +1122,21 @@ export default function FnFQ4Dashboard() {
     }).sort((a, b) => b.curr - a.curr);
     
     // 4) 재무안정성 분석
-    const cashCurr = balanceSheetData[currentPeriod]?.현금및현금성자산 || 0;
-    const cashPrev = balanceSheetData[prevPeriod]?.현금및현금성자산 || 0;
-    const arCurr = balanceSheetData[currentPeriod]?.매출채권 || 0;
-    const inventoryCurr = balanceSheetData[currentPeriod]?.재고자산 || 0;
-    const inventoryPrev = balanceSheetData[prevPeriod]?.재고자산 || 0;
-    const apCurr = balanceSheetData[currentPeriod]?.매입채무 || 0;
+    const cashCurr = bsCurr.현금및현금성자산 || bsCurr.현금성자산 || 0;
+    const cashPrev = bsPrev.현금및현금성자산 || bsPrev.현금성자산 || 0;
+    const arCurr = bsCurr.매출채권 || 0;
+    const inventoryCurr = bsCurr.재고자산 || 0;
+    const inventoryPrev = bsPrev.재고자산 || 0;
+    const apCurr = bsCurr.매입채무 || 0;
     const workingCapitalCurr = arCurr + inventoryCurr - apCurr;
     
     const inventoryGrowth = inventoryPrev > 0 ? ((inventoryCurr - inventoryPrev) / inventoryPrev * 100) : 0;
     const cashGrowth = cashPrev > 0 ? ((cashCurr - cashPrev) / cashPrev * 100) : 0;
     
-    // 5) 차입금 분석
+    // 5) 차입금 분석 (entityBSPeriod 사용)
     const borrowingsByEntity = ['OC(국내)', '중국', '홍콩', 'ST미국'].map(entity => {
-      const debt = (entityBSData && entityBSData[currentPeriod] && entityBSData[currentPeriod].차입금) ? (entityBSData[currentPeriod].차입금[entity] || 0) : 0;
-      const equity = (entityBSData && entityBSData[currentPeriod] && entityBSData[currentPeriod].자본총계) ? (entityBSData[currentPeriod].자본총계[entity] || 0) : 0;
+      const debt = (entityBSData && entityBSData[entityBSPeriod] && entityBSData[entityBSPeriod].차입금) ? (entityBSData[entityBSPeriod].차입금[entity] || 0) : 0;
+      const equity = (entityBSData && entityBSData[entityBSPeriod] && entityBSData[entityBSPeriod].자본총계) ? (entityBSData[entityBSPeriod].자본총계[entity] || 0) : 0;
       const debtRatio = equity > 0 ? (debt / equity * 100) : 0;
       return { entity, debt, equity, debtRatio };
     }).filter(x => x.debt > 0).sort((a, b) => b.debt - a.debt);
@@ -1080,7 +1236,33 @@ export default function FnFQ4Dashboard() {
     if (topProfitEntity && topProfitEntity.margin > 25) {
       insights.push({
         title: `${topProfitEntity.entity} 수익성 우수`,
-        desc: `영업이익률 ${topProfitEntity.margin.toFixed(1)}%, 매출 ${Math.round(topProfitEntity.sales/100)}억원. 성공 모델로 다른 법인 벤치마킹`
+        desc: `영업이익률 ${topProfitEntity.margin.toFixed(1)}%, ROE ${topProfitEntity.roe.toFixed(1)}%, 매출 ${Math.round(topProfitEntity.sales/100)}억원. 성공 모델로 다른 법인 벤치마킹`
+      });
+    }
+    
+    // 법인별 ROE 분석
+    const entityROEAnalysis = entityProfitability
+      .filter(e => e.equity > 0)
+      .sort((a, b) => b.roe - a.roe);
+    
+    const topROEEntity = entityROEAnalysis.length > 0 ? entityROEAnalysis[0] : null;
+    const lowROEEntity = entityROEAnalysis.find(e => e.roe < 10 && e.equity > 10000);
+    
+    if (topROEEntity && topROEEntity.roe > 15) {
+      insights.push({
+        title: `${topROEEntity.entity} ROE 우수`,
+        desc: `ROE ${topROEEntity.roe.toFixed(1)}%, 자본 효율성 최고. 자본 배분 우선순위 검토`
+      });
+    }
+    
+    if (lowROEEntity && topROEEntity && topROEEntity.roe > lowROEEntity.roe + 5) {
+      risks.push({
+        title: `${lowROEEntity.entity} 자본 효율성 저하`,
+        desc: `ROE ${lowROEEntity.roe.toFixed(1)}% (${topROEEntity.entity}: ${topROEEntity.roe.toFixed(1)}%). 자본 대비 수익 창출 능력 개선 필요`
+      });
+      actions.push({
+        title: `${lowROEEntity.entity} ROE 제고`,
+        desc: `수익성 개선 또는 자본 구조 최적화로 ROE ${(lowROEEntity.roe + 5).toFixed(1)}% 목표`
       });
     }
     
@@ -1088,7 +1270,7 @@ export default function FnFQ4Dashboard() {
     if (lowProfitEntity && topProfitEntity) {
       risks.push({
         title: `${lowProfitEntity.entity} 수익성 저하`,
-        desc: `영업이익률 ${lowProfitEntity.margin.toFixed(1)}%, 매출 ${Math.round(lowProfitEntity.sales/100)}억원. ${topProfitEntity.entity}(${topProfitEntity.margin.toFixed(1)}%)와 ${Math.abs(lowProfitEntity.margin - topProfitEntity.margin).toFixed(1)}%p 격차`
+        desc: `영업이익률 ${lowProfitEntity.margin.toFixed(1)}%, ROE ${lowProfitEntity.roe.toFixed(1)}%, 매출 ${Math.round(lowProfitEntity.sales/100)}억원. ${topProfitEntity.entity}(${topProfitEntity.margin.toFixed(1)}%)와 ${Math.abs(lowProfitEntity.margin - topProfitEntity.margin).toFixed(1)}%p 격차`
       });
       actions.push({
         title: `${lowProfitEntity.entity} 수익성 개선`,
@@ -1127,7 +1309,11 @@ export default function FnFQ4Dashboard() {
       });
       
       const targetReduction = top.curr * 0.15; // 15% 절감 시
-      const roeImpact = totalEquityCurr > 0 ? (targetReduction*0.73 / totalEquityCurr * 100) : 0;
+      let roeImpact = 0;
+      if (totalEquityCurr > 0) {
+        roeImpact = (targetReduction*0.73 / totalEquityCurr * 100);
+        if (!isFinite(roeImpact) || isNaN(roeImpact)) roeImpact = 0;
+      }
       
       improvementTargets.push({
         area: `${top.item} 구조 혁신`,
@@ -1156,14 +1342,14 @@ export default function FnFQ4Dashboard() {
       if (cashCurr > totalAssetsCurr * 0.1) {
         actions.push({
           title: '잉여현금 전략적 활용',
-          desc: `${Math.round(cashCurr*0.4/100)}억원을 M&A 또는 신규 브랜드에 투자 시 ROE ${(cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1)}%p 추가 개선 가능`
+          desc: `${Math.round(cashCurr*0.4/100)}억원을 M&A 또는 신규 브랜드에 투자 시 ROE ${totalEquityCurr > 0 ? (cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1) : '0.0'}%p 추가 개선 가능`
         });
         
         improvementTargets.push({
           area: '잉여현금 전략적 재배치',
           current: `현금성자산 ${Math.round(cashCurr/100)}억원 (자산대비 ${cashRatio.toFixed(1)}%)`,
           target: `적정 현금 ${Math.round(cashCurr*0.6/100)}억원 유지 + 전략투자 ${Math.round(cashCurr*0.4/100)}억원`,
-          impact: `ROE 15% 투자처 발굴 시 연결 ROE +${(cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1)}%p, 주주가치 증대`,
+          impact: `ROE 15% 투자처 발굴 시 연결 ROE +${totalEquityCurr > 0 ? (cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1) : '0.0'}%p, 주주가치 증대`,
           method: `옵션1: 고수익 브랜드 M&A (목표 ROE 18%+), 옵션2: 배당성향 30%→50% 확대 + 자사주 매입 ${Math.round(cashCurr*0.15/100)}억원, 옵션3: 해외 거점 확대 투자 (동남아, 중동)`
         });
       }
@@ -1222,6 +1408,28 @@ export default function FnFQ4Dashboard() {
       });
     }
     
+    // 부채비율 분석
+    if (debtRatioCurr > 100) {
+      risks.push({
+        title: '부채비율 위험',
+        desc: `${debtRatioCurr.toFixed(1)}%로 자본 대비 부채 과다. 재무 안정성 악화 및 금융비용 부담 증가`
+      });
+      actions.push({
+        title: '부채비율 개선',
+        desc: `자기자본 확충 또는 부채 상환으로 부채비율 100% 이하 목표. 연간 ${Math.round(totalDebtCurr*0.2/100)}억원 상환 계획`
+      });
+    } else if (debtRatioCurr > 50 && debtRatioCurr <= 100) {
+      risks.push({
+        title: '부채비율 주의',
+        desc: `${debtRatioCurr.toFixed(1)}%로 적정 수준이나 지속 모니터링 필요`
+      });
+    } else if (debtRatioCurr > 0 && debtRatioCurr <= 50) {
+      insights.push({
+        title: '부채비율 안정',
+        desc: `${debtRatioCurr.toFixed(1)}%로 재무 안정성 양호. 적정 수준의 레버리지 활용`
+      });
+    }
+    
     // ROE 분석
     if (roeChange < -3) {
       risks.push({
@@ -1231,6 +1439,16 @@ export default function FnFQ4Dashboard() {
       actions.push({
         title: 'ROE 제고',
         desc: `순이익률 개선 + 자산회전율 향상으로 ROE 15% 달성. 저효율 자산 매각 검토`
+      });
+    } else if (roeCurr > 15) {
+      insights.push({
+        title: 'ROE 우수',
+        desc: `${roeCurr.toFixed(1)}%로 자본 효율성 우수. 주주가치 창출 능력 강화`
+      });
+    } else if (roeCurr > 0 && roeCurr < 10) {
+      risks.push({
+        title: 'ROE 개선 필요',
+        desc: `${roeCurr.toFixed(1)}%로 자본 대비 수익 창출 능력 저조. 수익성 및 자산 효율 개선 필요`
       });
     }
     
@@ -1272,7 +1490,11 @@ export default function FnFQ4Dashboard() {
     if (highSalesLowMargin.length > 0) {
       const target = highSalesLowMargin[0];
       const potentialIncrease = (target.sales * 0.05); // 영업이익률 5%p 개선 시
-      const roeImpact = totalEquityCurr > 0 ? (potentialIncrease / totalEquityCurr * 100) : 0;
+      let roeImpact = 0;
+      if (totalEquityCurr > 0) {
+        roeImpact = (potentialIncrease / totalEquityCurr * 100);
+        if (!isFinite(roeImpact) || isNaN(roeImpact)) roeImpact = 0;
+      }
       improvementTargets.push({
         area: `${target.entity} 수익성 집중 개선`,
         current: `영업이익률 ${target.margin.toFixed(1)}%, 매출 ${Math.round(target.sales/100)}억원`,
@@ -1317,7 +1539,7 @@ export default function FnFQ4Dashboard() {
         area: '재고자산 최적화',
         current: `${Math.round(inventoryCurr/100)}억원 (전년대비 +${inventoryGrowth.toFixed(0)}%)`,
         target: `${Math.round(inventoryCurr*0.75/100)}억원 (25% 감축)`,
-        impact: `운전자본 ${Math.round(targetReduction/100)}억원 절감, 이자비용 -${Math.round(interestSaving/100)}억원, ROE +${(interestSaving/totalEquityCurr*100).toFixed(1)}%p`,
+        impact: `운전자본 ${Math.round(targetReduction/100)}억원 절감, 이자비용 -${Math.round(interestSaving/100)}억원, ROE +${totalEquityCurr > 0 ? (interestSaving/totalEquityCurr*100).toFixed(1) : '0.0'}%p`,
         method: '시즌별 재고 회전율 목표 관리, 프로모션 타이밍 최적화, 느린 상품 조기 할인'
       });
     }
@@ -1329,13 +1551,17 @@ export default function FnFQ4Dashboard() {
       const interestRate = 0.045; // 연 4.5% 가정
       const interestSaving = targetReduction * interestRate; // 연 이자 절감
       const netIncomIncrease = interestSaving * 0.73; // 세후 효과 (법인세율 27%)
-      const roeImpact = totalEquityCurr > 0 ? (netIncomIncrease / totalEquityCurr * 100) : 0;
+      let roeImpact = 0;
+      if (totalEquityCurr > 0) {
+        roeImpact = (netIncomIncrease / totalEquityCurr * 100);
+        if (!isFinite(roeImpact) || isNaN(roeImpact)) roeImpact = 0;
+      }
       
       improvementTargets.push({
         area: '차입금 전략적 감축',
         current: `총 ${Math.round(totalBorrowing/100)}억원 (${topDebtor.entity} ${Math.round(topDebtor.debt/100)}억원, 부채비율 ${topDebtor.debtRatio.toFixed(0)}%)`,
         target: `${Math.round(totalBorrowing*0.5/100)}억원으로 감축 (${topDebtor.entity} 우선 상환)`,
-        impact: `이자비용 -${Math.round(interestSaving/100)}억원/년, 당기순이익 +${Math.round(netIncomIncrease/100)}억원, 순이익률 +${(netIncomIncrease/salesCurr*100).toFixed(1)}%p, ROE +${roeImpact.toFixed(1)}%p, 부채비율 ${(debtRatioCurr - totalBorrowing*0.5/totalEquityCurr*100).toFixed(0)}%로 개선`,
+        impact: `이자비용 -${Math.round(interestSaving/100)}억원/년, 당기순이익 +${Math.round(netIncomIncrease/100)}억원, 순이익률 +${(netIncomIncrease/salesCurr*100).toFixed(1)}%p, ROE +${roeImpact.toFixed(1)}%p, 부채비율 ${totalEquityCurr > 0 ? (debtRatioCurr - totalBorrowing*0.5/totalEquityCurr*100).toFixed(0) : debtRatioCurr.toFixed(0)}%로 개선`,
         method: `${topDebtor.entity} 재고 감축으로 현금 ${Math.round(topDebtor.debt*0.3/100)}억원 확보 + 영업이익 개선 + 본사 여유자금 ${Math.round(cashCurr*0.3/100)}억원 지원 + 저효율 자산 매각`
       });
     }
@@ -1346,7 +1572,11 @@ export default function FnFQ4Dashboard() {
       const targetWC = workingCapitalCurr * 0.7; // 30% 개선 시
       const freedCash = workingCapitalCurr - targetWC;
       const interestSaving = freedCash * 0.04; // 연 4% 절감 효과
-      const roeImpact = totalEquityCurr > 0 ? (interestSaving*0.73 / totalEquityCurr * 100) : 0;
+      let roeImpact = 0;
+      if (totalEquityCurr > 0) {
+        roeImpact = (interestSaving*0.73 / totalEquityCurr * 100);
+        if (!isFinite(roeImpact) || isNaN(roeImpact)) roeImpact = 0;
+      }
       
       const arDaysStr = (arDays > 0 && arDays < 1000) ? `${Math.round(arDays)}→${Math.round(arDays*0.8)}일` : '단축';
       const inventoryDaysStr = (inventoryDays > 0 && inventoryDays < 1000) ? `${Math.round(inventoryDays)}→${Math.round(inventoryDays*0.75)}일` : '단축';
@@ -1374,7 +1604,7 @@ export default function FnFQ4Dashboard() {
         area: `${target.entity} 수익구조 정상화`,
         current: `매출비중 ${target.salesShare.toFixed(0)}% vs 이익비중 ${target.profitShare.toFixed(0)}% (${profitGap.toFixed(0)}%p 괴리)`,
         target: `이익 기여도를 매출 비중 수준으로 개선 (영업이익률 ${target.margin.toFixed(1)}%→${targetMargin.toFixed(1)}%)`,
-        impact: `연결 영업이익 +${Math.round(potentialIncrease/100)}억원, 영업이익률 +${(potentialIncrease/salesCurr*100).toFixed(1)}%p, ROE +${(potentialIncrease*0.73/totalEquityCurr*100).toFixed(1)}%p`,
+        impact: `연결 영업이익 +${Math.round(potentialIncrease/100)}억원, 영업이익률 +${(potentialIncrease/salesCurr*100).toFixed(1)}%p, ROE +${totalEquityCurr > 0 ? (potentialIncrease*0.73/totalEquityCurr*100).toFixed(1) : '0.0'}%p`,
         method: `저마진 제품 단종/가격 인상, 고마진 법인(${entityProfitability[0].entity})의 운영 노하우 이전, 고정비 구조조정, 브랜드 포트폴리오 재편`
       });
     }
@@ -2669,93 +2899,8 @@ export default function FnFQ4Dashboard() {
       { key: '자본총계', label: '자본총계', bold: true, highlight: 'green' },
     ];
 
-    // 법인별 데이터 (재무상태표용) - CSV에서 추출한 실제 데이터
-    const entityBSData = {
-      '2024_1Q': {
-        현금성자산: { 'OC(국내)': 291693, 중국: 12162, 홍콩: 4132, ST미국: 22754 },
-        매출채권: { 'OC(국내)': 109224, 중국: 7225, 홍콩: 3399, ST미국: 3441 },
-        재고자산: { 'OC(국내)': 232095, 중국: 136110, 홍콩: 33179, ST미국: 4244 },
-        유무형자산: { 'OC(국내)': 197870, 중국: 9894, 홍콩: 3591, ST미국: 64546 },
-        사용권자산: { 'OC(국내)': 182423, 중국: 62091, 홍콩: 36179, ST미국: 2573 },
-        차입금: { 'OC(국내)': 0, 중국: 72442, 홍콩: 0, ST미국: 9051 },
-        매입채무: { 'OC(국내)': 69104, 중국: 5104, 홍콩: 45034, ST미국: 1191 },
-        자산총계: { 'OC(국내)': 1765417, 중국: 271920, 홍콩: 64615, ST미국: 99288 },
-        부채총계: { 'OC(국내)': 492867, 중국: 201248, 홍콩: 64061, ST미국: 14432 },
-        자본총계: { 'OC(국내)': 1272550, 중국: 70672, 홍콩: 554, ST미국: 84856 },
-      },
-      '2024_2Q': {
-        현금성자산: { 'OC(국내)': 161519, 중국: 27175, 홍콩: 3743, ST미국: 23099 },
-        매출채권: { 'OC(국내)': 91507, 중국: 7183, 홍콩: 2816, ST미국: 5174 },
-        재고자산: { 'OC(국내)': 207444, 중국: 115040, 홍콩: 30582, ST미국: 4806 },
-        유무형자산: { 'OC(국내)': 251498, 중국: 10189, 홍콩: 3419, ST미국: 66586 },
-        사용권자산: { 'OC(국내)': 181318, 중국: 73343, 홍콩: 35860, ST미국: 2654 },
-        차입금: { 'OC(국내)': 0, 중국: 0, 홍콩: 0, ST미국: 9440 },
-        매입채무: { 'OC(국내)': 48681, 중국: 1415, 홍콩: 42027, ST미국: 3799 },
-        자산총계: { 'OC(국내)': 1636710, 중국: 243233, 홍콩: 59168, ST미국: 105286 },
-        부채총계: { 'OC(국내)': 330928, 중국: 155343, 홍콩: 58441, ST미국: 17169 },
-        자본총계: { 'OC(국내)': 1305782, 중국: 87890, 홍콩: 727, ST미국: 88118 },
-      },
-      '2024_3Q': {
-        현금성자산: { 'OC(국내)': 142325, 중국: 24304, 홍콩: 3061, ST미국: 19294 },
-        매출채권: { 'OC(국내)': 137912, 중국: 81857, 홍콩: 2230, ST미국: 6587 },
-        재고자산: { 'OC(국내)': 247068, 중국: 174481, 홍콩: 34086, ST미국: 5150 },
-        유무형자산: { 'OC(국내)': 345549, 중국: 9901, 홍콩: 2659, ST미국: 63244 },
-        사용권자산: { 'OC(국내)': 185625, 중국: 77192, 홍콩: 36969, ST미국: 2521 },
-        차입금: { 'OC(국내)': 0, 중국: 86820, 홍콩: 0, ST미국: 10398 },
-        매입채무: { 'OC(국내)': 115166, 중국: 63397, 홍콩: 43473, ST미국: 1942 },
-        자산총계: { 'OC(국내)': 1806476, 중국: 363370, 홍콩: 59839, ST미국: 97845 },
-        부채총계: { 'OC(국내)': 397220, 중국: 266874, 홍콩: 59025, ST미국: 16360 },
-        자본총계: { 'OC(국내)': 1409256, 중국: 96496, 홍콩: 814, ST미국: 81486 },
-      },
-      '2024_4Q': {
-        현금성자산: { 'OC(국내)': 61500, 중국: 29229, 홍콩: 6073, ST미국: 22881 },
-        매출채권: { 'OC(국내)': 134453, 중국: 40081, 홍콩: 3967, ST미국: 7463 },
-        재고자산: { 'OC(국내)': 214281, 중국: 141223, 홍콩: 35205, ST미국: 8723 },
-        유무형자산: { 'OC(국내)': 609769, 중국: 10416, 홍콩: 2479, ST미국: 70443 },
-        사용권자산: { 'OC(국내)': 183782, 중국: 93085, 홍콩: 43127, ST미국: 2809 },
-        차입금: { 'OC(국내)': 45000, 중국: 100635, 홍콩: 0, ST미국: 16128 },
-        매입채무: { 'OC(국내)': 79795, 중국: 17885, 홍콩: 47089, ST미국: 6030 },
-        자산총계: { 'OC(국내)': 1923504, 중국: 336611, 홍콩: 67244, ST미국: 112329 },
-        부채총계: { 'OC(국내)': 429786, 중국: 252897, 홍콩: 64912, ST미국: 26968 },
-        자본총계: { 'OC(국내)': 1493718, 중국: 83714, 홍콩: 2333, ST미국: 85361 },
-      },
-      '2025_1Q': {
-        현금성자산: { 'OC(국내)': 79496, 중국: 60404, 홍콩: 7022, ST미국: 16283 },
-        매출채권: { 'OC(국내)': 123193, 중국: 20896, 홍콩: 2465, ST미국: 8621 },
-        재고자산: { 'OC(국내)': 214607, 중국: 123617, 홍콩: 33553, ST미국: 9993 },
-        유무형자산: { 'OC(국내)': 611019, 중국: 9130, 홍콩: 1887, ST미국: 70268 },
-        사용권자산: { 'OC(국내)': 187827, 중국: 64626, 홍콩: 28845, ST미국: 1788 },
-        차입금: { 'OC(국내)': 20000, 중국: 56470, 홍콩: 0, ST미국: 19935 },
-        매입채무: { 'OC(국내)': 69813, 중국: 28622, 홍콩: 44833, ST미국: 3153 },
-        자산총계: { 'OC(국내)': 1944504, 중국: 290073, 홍콩: 65030, ST미국: 108362 },
-        부채총계: { 'OC(국내)': 435129, 중국: 202453, 홍콩: 62976, ST미국: 27826 },
-        자본총계: { 'OC(국내)': 1509375, 중국: 87621, 홍콩: 2054, ST미국: 80536 },
-      },
-      '2025_2Q': {
-        현금성자산: { 'OC(국내)': 88735, 중국: 20311, 홍콩: 4732, ST미국: 12241 },
-        매출채권: { 'OC(국내)': 81953, 중국: 8793, 홍콩: 3324, ST미국: 7117 },
-        재고자산: { 'OC(국내)': 199308, 중국: 113822, 홍콩: 29260, ST미국: 9317 },
-        유무형자산: { 'OC(국내)': 607960, 중국: 7699, 홍콩: 2490, ST미국: 64980 },
-        사용권자산: { 'OC(국내)': 188380, 중국: 54824, 홍콩: 25337, ST미국: 1653 },
-        차입금: { 'OC(국내)': 0, 중국: 32157, 홍콩: 0, ST미국: 18641 },
-        매입채무: { 'OC(국내)': 53644, 중국: 10263, 홍콩: 39679, ST미국: 3362 },
-        자산총계: { 'OC(국내)': 1891404, 중국: 231683, 홍콩: 56311, ST미국: 99662 },
-        부채총계: { 'OC(국내)': 318573, 중국: 150855, 홍콩: 52987, ST미국: 25993 },
-        자본총계: { 'OC(국내)': 1572831, 중국: 80828, 홍콩: 3324, ST미국: 73668 },
-      },
-      '2025_3Q': {
-        현금성자산: { 'OC(국내)': 182075, 중국: 9318, 홍콩: 4446, ST미국: 11400 },
-        매출채권: { 'OC(국내)': 205309, 중국: 97531, 홍콩: 2871, ST미국: 16277 },
-        재고자산: { 'OC(국내)': 242024, 중국: 281973, 홍콩: 34165, ST미국: 12558 },
-        유무형자산: { 'OC(국내)': 605413, 중국: 8114, 홍콩: 3290, ST미국: 67161 },
-        사용권자산: { 'OC(국내)': 186612, 중국: 56782, 홍콩: 37937, ST미국: 1709 },
-        차입금: { 'OC(국내)': 0, 중국: 160605, 홍콩: 0, ST미국: 25140 },
-        매입채무: { 'OC(국내)': 139941, 중국: 131315, 홍콩: 47089, ST미국: 3739 },
-        자산총계: { 'OC(국내)': 2145196, 중국: 495765, 홍콩: 71221, ST미국: 111397 },
-        부채총계: { 'OC(국내)': 423707, 중국: 389821, 홍콩: 69512, ST미국: 32762 },
-        자본총계: { 'OC(국내)': 1721489, 중국: 105943, 홍콩: 1710, ST미국: 78635 },
-      },
-    };
+    // 법인별 데이터는 컴포넌트 상위 레벨에서 정의됨 (entityBSData)
+    // 아래 중복 정의는 제거됨 - 상위 레벨의 entityBSData 사용
 
     // 분기별 법인별 추이 데이터 (24.1Q ~ 25.4Q)
     const quarterlyEntityData = {
