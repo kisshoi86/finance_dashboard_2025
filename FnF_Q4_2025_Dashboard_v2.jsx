@@ -63,6 +63,10 @@ export default function FnFQ4Dashboard() {
   const [isNonOperatingExpanded, setIsNonOperatingExpanded] = useState(false);
   const [incomeViewMode, setIncomeViewMode] = useState('quarter'); // 'quarter' | 'annual'
   const [selectedPeriod, setSelectedPeriod] = useState('2025_Q4'); // 선택된 조회기간 ('2025_Q1' ~ '2025_Q4')
+  const [incomeEditMode, setIncomeEditMode] = useState(false); // 손익계산서 증감 분석 편집 모드
+  const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
+  const [incomeEditData, setIncomeEditData] = useState({}); // 손익계산서 편집 데이터 {entity: {amount, rate, contribution}}
+  const [bsEditData, setBsEditData] = useState({}); // 재무상태표 편집 데이터
 
   // ============================================
   // 기간 매핑 함수
@@ -2736,8 +2740,22 @@ export default function FnFQ4Dashboard() {
           </div>
 
           {/* 법인별 증감 분석 - 동적 생성 */}
-          <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3">
-            <h4 className="text-xs font-semibold text-zinc-700 mb-2">📊 YoY 증감 분석</h4>
+          <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-zinc-900">
+                {incomeItems.find(i => i.key === selectedAccount)?.label || selectedAccount} 증감 분석
+              </h3>
+              <button
+                onClick={() => setIncomeEditMode(!incomeEditMode)}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  incomeEditMode 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                }`}
+              >
+                {incomeEditMode ? '✓ 완료' : '✏️ 편집'}
+              </button>
+            </div>
             <div className="space-y-2 text-xs">
               {(() => {
                 const tableData = getEntityTableData().filter(row => row.entity !== '기타');
@@ -2753,28 +2771,67 @@ export default function FnFQ4Dashboard() {
                     const contribution = totalDiff !== 0 ? ((diff / Math.abs(totalDiff)) * 100).toFixed(0) : 0;
                     const diffBil = Math.round(diff / 100); // 억원 단위
                     
+                    // 편집된 데이터가 있으면 사용, 없으면 계산된 값 사용
+                    const editKey = `${selectedAccount}_${row.entity}`;
+                    const editedData = incomeEditData[editKey] || {};
+                    const displayAmount = editedData.amount !== undefined ? editedData.amount : `${isPositive ? '+' : ''}${formatNumber(diffBil)}`;
+                    const displayRate = editedData.rate !== undefined ? editedData.rate : row.change;
+                    const displayContribution = editedData.contribution !== undefined ? editedData.contribution : contribution;
+                    
                     const colorMap = {
-                      'OC(국내)': { bg: 'bg-blue-50/50', border: 'border-blue-400', icon: '🏢' },
-                      '중국': { bg: 'bg-amber-50/50', border: 'border-amber-400', icon: '🇨🇳' },
-                      '홍콩': { bg: 'bg-violet-50/50', border: 'border-violet-400', icon: '🇭🇰' },
+                      'OC(국내)': { bg: 'bg-blue-50/50', border: 'border-blue-400' },
+                      '중국': { bg: 'bg-amber-50/50', border: 'border-amber-400' },
+                      '홍콩': { bg: 'bg-violet-50/50', border: 'border-violet-400' },
                     };
-                    const colors = colorMap[row.entity] || { bg: 'bg-zinc-50', border: 'border-zinc-300', icon: '📍' };
+                    const colors = colorMap[row.entity] || { bg: 'bg-zinc-50', border: 'border-zinc-300' };
                     
                     return (
                       <div key={idx} className={`p-2.5 ${colors.bg} rounded-lg border-l-2 ${colors.border}`}>
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-zinc-800">{colors.icon} {row.entity}</span>
-                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                            {isPositive ? '▲' : '▼'} {row.change}%
-                          </span>
+                          <span className="font-medium text-zinc-800">{row.entity}</span>
+                          {incomeEditMode ? (
+                            <input
+                              type="text"
+                              value={displayRate}
+                              onChange={(e) => setIncomeEditData(prev => ({
+                                ...prev,
+                                [editKey]: { ...prev[editKey], rate: e.target.value }
+                              }))}
+                              className="w-16 text-right text-xs font-bold px-1.5 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                          ) : (
+                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${parseFloat(displayRate) >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                              {parseFloat(displayRate) >= 0 ? '▲' : '▼'} {displayRate}%
+                            </span>
+                          )}
                         </div>
                         <div className="mt-1.5 flex items-center justify-between text-[11px]">
-                          <span className="text-zinc-500">
-                            {isPositive ? '+' : ''}{formatNumber(diffBil)}억원
-                          </span>
-                          <span className="text-zinc-400">
-                            기여도 {contribution}%
-                          </span>
+                          {incomeEditMode ? (
+                            <input
+                              type="text"
+                              value={displayAmount}
+                              onChange={(e) => setIncomeEditData(prev => ({
+                                ...prev,
+                                [editKey]: { ...prev[editKey], amount: e.target.value }
+                              }))}
+                              className="w-[100px] text-xs px-2 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                          ) : (
+                            <span className="text-zinc-500">{displayAmount}억원</span>
+                          )}
+                          {incomeEditMode ? (
+                            <input
+                              type="text"
+                              value={displayContribution}
+                              onChange={(e) => setIncomeEditData(prev => ({
+                                ...prev,
+                                [editKey]: { ...prev[editKey], contribution: e.target.value }
+                              }))}
+                              className="w-12 text-right text-xs px-1 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                          ) : (
+                            <span className="text-zinc-400">기여도 {displayContribution}%</span>
+                          )}
                         </div>
                       </div>
                     );
@@ -2792,13 +2849,44 @@ export default function FnFQ4Dashboard() {
               const totalChange = totalPrev !== 0 ? ((totalDiff / totalPrev) * 100).toFixed(1) : 0;
               const isPositive = totalDiff >= 0;
               
+              // 편집된 전체 데이터
+              const totalEditKey = `${selectedAccount}_total`;
+              const totalEdited = incomeEditData[totalEditKey] || {};
+              const displayTotalAmount = totalEdited.amount !== undefined ? totalEdited.amount : `${isPositive ? '+' : ''}${formatNumber(totalDiffBil)}`;
+              const displayTotalRate = totalEdited.rate !== undefined ? totalEdited.rate : `${isPositive ? '+' : ''}${totalChange}`;
+              
               return (
                 <div className="mt-3 pt-3 border-t border-zinc-200">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-600 font-medium">전체 YoY 변동</span>
-                    <span className={`font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {isPositive ? '+' : ''}{formatNumber(totalDiffBil)}억원 ({isPositive ? '+' : ''}{totalChange}%)
-                    </span>
+                    {incomeEditMode ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={displayTotalAmount}
+                          onChange={(e) => setIncomeEditData(prev => ({
+                            ...prev,
+                            [totalEditKey]: { ...prev[totalEditKey], amount: e.target.value }
+                          }))}
+                          className="w-20 text-right text-xs font-bold px-1 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                        />
+                        <span className="text-zinc-500">억원 (</span>
+                        <input
+                          type="text"
+                          value={displayTotalRate}
+                          onChange={(e) => setIncomeEditData(prev => ({
+                            ...prev,
+                            [totalEditKey]: { ...prev[totalEditKey], rate: e.target.value }
+                          }))}
+                          className="w-14 text-right text-xs font-bold px-1 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                        />
+                        <span className="text-zinc-500">%)</span>
+                      </div>
+                    ) : (
+                      <span className={`font-bold ${parseFloat(displayTotalRate) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {displayTotalAmount}억원 ({displayTotalRate}%)
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -3449,58 +3537,167 @@ export default function FnFQ4Dashboard() {
               </table>
             </div>
 
-            {/* 주요 인사이트 */}
+            {/* 법인별 증감 분석 */}
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
-              <h3 className="text-sm font-semibold text-zinc-900 mb-3">
-                {balanceItems.find(i => i.key === selectedBSAccount)?.label || selectedBSAccount} 증감 분석
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-zinc-900">
+                  {balanceItems.find(i => i.key === selectedBSAccount)?.label || selectedBSAccount} 증감 분석
+                </h3>
+                <button
+                  onClick={() => setBsEditMode(!bsEditMode)}
+                  className={`text-xs px-2 py-1 rounded transition-colors ${
+                    bsEditMode 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                  }`}
+                >
+                  {bsEditMode ? '✓ 완료' : '✏️ 편집'}
+                </button>
+              </div>
               <div className="space-y-2 text-xs">
                 {(() => {
                   const curr2025 = getAlignedBSBreakdown(selectedBSAccount, bsCurrentPeriod);
                   const curr2024 = getAlignedBSBreakdown(selectedBSAccount, bsPrevPeriod);
                   
                   // 법인별 증감 계산
-                  const changes = Object.keys(curr2025).map(entity => ({
-                    name: entity,
-                    diff: curr2025[entity] - curr2024[entity],
-                    rate: curr2024[entity] !== 0 ? ((curr2025[entity] - curr2024[entity]) / Math.abs(curr2024[entity]) * 100).toFixed(1) : 0
-                  })).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+                  const changes = Object.keys(curr2025)
+                    .filter(entity => entity !== '기타')
+                    .map(entity => ({
+                      name: entity,
+                      currVal: curr2025[entity] || 0,
+                      prevVal: curr2024[entity] || 0,
+                      diff: (curr2025[entity] || 0) - (curr2024[entity] || 0),
+                      rate: curr2024[entity] !== 0 ? ((curr2025[entity] - curr2024[entity]) / Math.abs(curr2024[entity]) * 100).toFixed(1) : 0
+                    })).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
                   
                   const total2025 = getBSConsolidatedTotal(selectedBSAccount, bsCurrentPeriod);
                   const total2024 = getBSConsolidatedTotal(selectedBSAccount, bsPrevPeriod);
                   const totalDiff = total2025 - total2024;
                   
-                  return (
-                    <>
-                      <div className="p-2 bg-blue-50 rounded border-l-2 border-blue-400">
-                        <p className="font-medium text-blue-800">전체 YoY</p>
-                        <p className="text-blue-600 text-[11px] mt-0.5">
-                          {totalDiff >= 0 ? '+' : ''}{formatNumber(totalDiff)}백만원 
-                          ({total2024 !== 0 ? `${((total2025 - total2024) / Math.abs(total2024) * 100).toFixed(1)}%` : '-'})
-                        </p>
-                      </div>
-                      <div className={`p-2 rounded border-l-2 ${changes[0]?.diff >= 0 ? 'bg-emerald-50 border-emerald-400' : 'bg-rose-50 border-rose-400'}`}>
-                        <p className={`font-medium ${changes[0]?.diff >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
-                          최대 {changes[0]?.diff >= 0 ? '증가' : '감소'}: {changes[0]?.name}
-                        </p>
-                        <p className={`text-[11px] mt-0.5 ${changes[0]?.diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {changes[0]?.diff >= 0 ? '+' : ''}{formatNumber(changes[0]?.diff)}백만원 ({changes[0]?.rate}%)
-                        </p>
-                      </div>
-                      {changes[1] && Math.abs(changes[1].diff) > 0 && (
-                        <div className={`p-2 rounded border-l-2 ${changes[1]?.diff >= 0 ? 'bg-amber-50 border-amber-400' : 'bg-zinc-50 border-zinc-300'}`}>
-                          <p className={`font-medium ${changes[1]?.diff >= 0 ? 'text-amber-800' : 'text-zinc-700'}`}>
-                            {changes[1]?.diff >= 0 ? '증가' : '감소'}: {changes[1]?.name}
-                          </p>
-                          <p className={`text-[11px] mt-0.5 ${changes[1]?.diff >= 0 ? 'text-amber-600' : 'text-zinc-500'}`}>
-                            {changes[1]?.diff >= 0 ? '+' : ''}{formatNumber(changes[1]?.diff)}백만원 ({changes[1]?.rate}%)
-                          </p>
+                  const colorMap = {
+                    'OC(국내)': { bg: 'bg-blue-50/50', border: 'border-blue-400' },
+                    '중국': { bg: 'bg-amber-50/50', border: 'border-amber-400' },
+                    '홍콩': { bg: 'bg-violet-50/50', border: 'border-violet-400' },
+                  };
+                  
+                  return changes.map((row, idx) => {
+                    const isPositive = row.diff >= 0;
+                    const contribution = totalDiff !== 0 ? ((row.diff / Math.abs(totalDiff)) * 100).toFixed(0) : 0;
+                    const diffBil = Math.round(row.diff / 100); // 억원 단위
+                    const colors = colorMap[row.name] || { bg: 'bg-zinc-50', border: 'border-zinc-300' };
+                    
+                    // 편집된 데이터가 있으면 사용, 없으면 계산된 값 사용
+                    const editKey = `${selectedBSAccount}_${row.name}`;
+                    const editedData = bsEditData[editKey] || {};
+                    const displayAmount = editedData.amount !== undefined ? editedData.amount : `${isPositive ? '+' : ''}${formatNumber(diffBil)}`;
+                    const displayRate = editedData.rate !== undefined ? editedData.rate : row.rate;
+                    const displayContribution = editedData.contribution !== undefined ? editedData.contribution : contribution;
+                    
+                    return (
+                      <div key={idx} className={`p-2.5 ${colors.bg} rounded-lg border-l-2 ${colors.border}`}>
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-zinc-800">{row.name}</span>
+                          {bsEditMode ? (
+                            <input
+                              type="text"
+                              value={displayRate}
+                              onChange={(e) => setBsEditData(prev => ({
+                                ...prev,
+                                [editKey]: { ...prev[editKey], rate: e.target.value }
+                              }))}
+                              className="w-16 text-right text-xs font-bold px-1.5 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                          ) : (
+                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${parseFloat(displayRate) >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                              {parseFloat(displayRate) >= 0 ? '▲' : '▼'} {displayRate}%
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </>
-                  );
+                        <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                          {bsEditMode ? (
+                            <input
+                              type="text"
+                              value={displayAmount}
+                              onChange={(e) => setBsEditData(prev => ({
+                                ...prev,
+                                [editKey]: { ...prev[editKey], amount: e.target.value }
+                              }))}
+                              className="w-[100px] text-xs px-2 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                          ) : (
+                            <span className="text-zinc-500">{displayAmount}억원</span>
+                          )}
+                          {bsEditMode ? (
+                            <input
+                              type="text"
+                              value={displayContribution}
+                              onChange={(e) => setBsEditData(prev => ({
+                                ...prev,
+                                [editKey]: { ...prev[editKey], contribution: e.target.value }
+                              }))}
+                              className="w-12 text-right text-xs px-1 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            />
+                          ) : (
+                            <span className="text-zinc-400">기여도 {displayContribution}%</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
                 })()}
               </div>
+              
+              {/* 전체 요약 */}
+              {(() => {
+                const total2025 = getBSConsolidatedTotal(selectedBSAccount, bsCurrentPeriod);
+                const total2024 = getBSConsolidatedTotal(selectedBSAccount, bsPrevPeriod);
+                const totalDiff = total2025 - total2024;
+                const totalDiffBil = Math.round(totalDiff / 100);
+                const totalChange = total2024 !== 0 ? ((totalDiff / Math.abs(total2024)) * 100).toFixed(1) : 0;
+                const isPositive = totalDiff >= 0;
+                
+                // 편집된 전체 데이터
+                const totalEditKey = `${selectedBSAccount}_total`;
+                const totalEdited = bsEditData[totalEditKey] || {};
+                const displayTotalAmount = totalEdited.amount !== undefined ? totalEdited.amount : `${isPositive ? '+' : ''}${formatNumber(totalDiffBil)}`;
+                const displayTotalRate = totalEdited.rate !== undefined ? totalEdited.rate : `${isPositive ? '+' : ''}${totalChange}`;
+                
+                return (
+                  <div className="mt-3 pt-3 border-t border-zinc-200">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-zinc-600 font-medium">전체 YoY 변동</span>
+                      {bsEditMode ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            value={displayTotalAmount}
+                            onChange={(e) => setBsEditData(prev => ({
+                              ...prev,
+                              [totalEditKey]: { ...prev[totalEditKey], amount: e.target.value }
+                            }))}
+                            className="w-20 text-right text-xs font-bold px-1 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          />
+                          <span className="text-zinc-500">억원 (</span>
+                          <input
+                            type="text"
+                            value={displayTotalRate}
+                            onChange={(e) => setBsEditData(prev => ({
+                              ...prev,
+                              [totalEditKey]: { ...prev[totalEditKey], rate: e.target.value }
+                            }))}
+                            className="w-14 text-right text-xs font-bold px-1 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          />
+                          <span className="text-zinc-500">%)</span>
+                        </div>
+                      ) : (
+                        <span className={`font-bold ${parseFloat(displayTotalRate) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {displayTotalAmount}억원 ({displayTotalRate}%)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -3516,9 +3713,9 @@ export default function FnFQ4Dashboard() {
       <div className="max-w-6xl mx-auto p-4">
         {/* 헤더 */}
         <div className="mb-12">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-zinc-900 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-base">F&F</span>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-zinc-900 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">F&F</span>
             </div>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
@@ -3554,7 +3751,7 @@ export default function FnFQ4Dashboard() {
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-3 py-1.5 bg-zinc-900 text-white text-xs font-medium rounded border-none outline-none cursor-pointer hover:bg-zinc-800 transition-colors"
+              className="px-4 py-2 bg-zinc-900 text-white text-sm font-medium rounded-lg border-none outline-none cursor-pointer hover:bg-zinc-800 transition-colors"
             >
               <option value="2025_Q1">FY2025 1Q</option>
               <option value="2025_Q2">FY2025 2Q</option>
