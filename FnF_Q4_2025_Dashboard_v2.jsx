@@ -31,24 +31,36 @@ const CustomPieTooltip = ({ active, payload, formatter }) => {
 };
 
 // 커스텀 차트 툴팁 컴포넌트
-const CustomChartTooltip = ({ active, payload, label }) => {
+const CustomChartTooltip = ({ active, payload, label, formatter }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg shadow-lg px-3 py-2.5 min-w-[140px]">
         <p className="text-xs font-medium text-zinc-500 mb-1.5 pb-1.5 border-b border-zinc-100 whitespace-nowrap">{label}</p>
         <div className="space-y-1">
-          {payload.map((entry, index) => (
-            <div key={index} className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5">
-                <span 
-                  className="w-2 h-2 rounded-full flex-shrink-0" 
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-xs text-zinc-600 whitespace-nowrap">{entry.name || entry.dataKey}</span>
+          {payload.map((entry, index) => {
+            let displayValue;
+            if (formatter && typeof formatter === 'function') {
+              // recharts formatter 시그니처: (value, name, props, index, payload)
+              const formatted = formatter(entry.value, entry.name, entry, index, payload);
+              displayValue = Array.isArray(formatted) ? formatted[0] : formatted;
+            } else {
+              displayValue = entry.value?.toLocaleString();
+            }
+            return (
+              <div key={index} className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span 
+                    className="w-2 h-2 rounded-full flex-shrink-0" 
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className="text-xs text-zinc-600 whitespace-nowrap">{entry.name || entry.dataKey}</span>
+                </div>
+                <span className="text-xs font-semibold text-zinc-900 whitespace-nowrap" style={{ color: entry.color }}>
+                  {displayValue}
+                </span>
               </div>
-              <span className="text-xs font-semibold text-zinc-900 whitespace-nowrap">{entry.value?.toLocaleString()}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -2805,6 +2817,281 @@ export default function FnFQ4Dashboard() {
             })()}
           </div>
         </div>
+
+        {/* 분기별 수익성 변화 추이 */}
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-zinc-700 mb-4 flex items-center gap-2">
+            <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-violet-500 rounded"></span>
+            분기별 수익성 변화 추이
+          </h3>
+          
+          {(() => {
+            // 분기별 데이터 준비 (24.1Q ~ 25.4Q)
+            const quarters = ['2024_1Q', '2024_2Q', '2024_3Q', '2024_4Q', '2025_1Q', '2025_2Q', '2025_3Q', '2025_4Q'];
+            const chartData = quarters.map(quarter => {
+              const data = incomeStatementData[quarter];
+              if (!data) return null;
+              
+              const sales = (data.매출액 || 0) / 100; // 억원 단위
+              const grossProfit = (data.매출총이익 || 0) / 100;
+              const opIncome = (data.영업이익 || 0) / 100;
+              const netIncome = (data.당기순이익 || 0) / 100;
+              
+              const grossMargin = sales > 0 ? (grossProfit / sales * 100) : 0;
+              const opMargin = sales > 0 ? (opIncome / sales * 100) : 0;
+              const netMargin = sales > 0 ? (netIncome / sales * 100) : 0;
+              
+              return {
+                quarter: quarter.replace('_', '.').replace('Q', 'Q'),
+                quarterKey: quarter,
+                매출액: sales,
+                매출총이익: grossProfit,
+                영업이익: opIncome,
+                당기순이익: netIncome,
+                매출총이익률: grossMargin,
+                영업이익률: opMargin,
+                당기순이익률: netMargin,
+              };
+            }).filter(Boolean);
+
+            // 요약 통계 계산
+            const salesData = chartData.map(d => d.매출액);
+            const grossProfitData = chartData.map(d => d.매출총이익);
+            const opIncomeData = chartData.map(d => d.영업이익);
+            const netIncomeData = chartData.map(d => d.당기순이익);
+            
+            const grossMarginData = chartData.map(d => d.매출총이익률);
+            const opMarginData = chartData.map(d => d.영업이익률);
+            const netMarginData = chartData.map(d => d.당기순이익률);
+
+            const findMaxMin = (data, field) => {
+              const values = data.map((d, idx) => ({ value: d[field], quarter: d.quarter }));
+              const max = values.reduce((a, b) => a.value > b.value ? a : b);
+              const min = values.reduce((a, b) => a.value < b.value ? a : b);
+              const avg = values.reduce((sum, v) => sum + v.value, 0) / values.length;
+              return { max, min, avg };
+            };
+
+            const salesStats = findMaxMin(chartData, '매출액');
+            const grossProfitStats = findMaxMin(chartData, '매출총이익');
+            const opIncomeStats = findMaxMin(chartData, '영업이익');
+            const netIncomeStats = findMaxMin(chartData, '당기순이익');
+            
+            const grossMarginStats = findMaxMin(chartData, '매출총이익률');
+            const opMarginStats = findMaxMin(chartData, '영업이익률');
+            const netMarginStats = findMaxMin(chartData, '당기순이익률');
+
+            return (
+              <div className="space-y-6">
+                {/* 분기별 수익성 종합 분석 */}
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 relative overflow-hidden">
+                  {/* 왼쪽 accent bar */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-violet-500"></div>
+                  <div className="pl-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-blue-500 text-sm">⚡</span>
+                      <h4 className="text-sm font-semibold text-zinc-900">분기별 수익성 종합 분석</h4>
+                    </div>
+                  <div className="grid grid-cols-2 gap-4 text-xs text-zinc-700">
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-semibold text-zinc-900">계절성 패턴:</span> 2Q(하계) 매출·이익 감소, 1Q·4Q 성수기 집중
+                      </div>
+                      <div>
+                        <span className="font-semibold text-zinc-900">25년 3분기 성과:</span> 25.3Q 영업이익 {opIncomeStats.max.value.toFixed(0)}억원으로 역대 최고치 달성, 전년대비 {(() => {
+                          const curr2025_3Q = chartData.find(d => d.quarterKey === '2025_3Q')?.영업이익 || 0;
+                          const prev2024_3Q = chartData.find(d => d.quarterKey === '2024_3Q')?.영업이익 || 1;
+                          return prev2024_3Q > 0 ? ((curr2025_3Q / prev2024_3Q - 1) * 100).toFixed(1) : '0.0';
+                        })()}% 증가로 수익성 대폭 개선
+                      </div>
+                      <div>
+                        <span className="font-semibold text-zinc-900">25.2Q 저점 극복:</span> 2Q(비수기) 실적(매출 {(() => {
+                          const q2025_2Q = chartData.find(d => d.quarterKey === '2025_2Q');
+                          return q2025_2Q ? q2025_2Q.매출액.toFixed(0) : '0';
+                        })()}억원, 영업이익 {(() => {
+                          const q2025_2Q = chartData.find(d => d.quarterKey === '2025_2Q');
+                          return q2025_2Q ? q2025_2Q.영업이익.toFixed(0) : '0';
+                        })()}억원) 이후 3Q 급반등으로 V자 회복세 형성
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="font-semibold text-zinc-900">영업이익률 안정:</span> 25.3Q 영업이익률 {(() => {
+                          const q2025_3Q = chartData.find(d => d.quarterKey === '2025_3Q');
+                          return q2025_3Q ? q2025_3Q.영업이익률.toFixed(1) : '0.0';
+                        })()}%, 전년대비 {(() => {
+                          const q2025_3Q = chartData.find(d => d.quarterKey === '2025_3Q')?.영업이익률 || 0;
+                          const q2024_3Q = chartData.find(d => d.quarterKey === '2024_3Q')?.영업이익률 || 0;
+                          return (q2025_3Q - q2024_3Q).toFixed(1);
+                        })()}%p 개선
+                      </div>
+                      <div>
+                        <span className="font-semibold text-zinc-900">매출총이익률 안정:</span> 매출총이익률 {grossMarginStats.min.value.toFixed(1)}~{grossMarginStats.max.value.toFixed(1)}% 구간 안정 유지, 25.3Q {(() => {
+                          const q2025_3Q = chartData.find(d => d.quarterKey === '2025_3Q');
+                          return q2025_3Q ? q2025_3Q.매출총이익률.toFixed(1) : '0.0';
+                        })()}%로 전년대비 {(() => {
+                          const q2025_3Q = chartData.find(d => d.quarterKey === '2025_3Q')?.매출총이익률 || 0;
+                          const q2024_3Q = chartData.find(d => d.quarterKey === '2024_3Q')?.매출총이익률 || 0;
+                          return (q2025_3Q - q2024_3Q).toFixed(1);
+                        })()}%p 개선
+                      </div>
+                      <div>
+                        <span className="font-semibold text-zinc-900">당기순이익률 개선:</span> 25.3Q 당기순이익률 {(() => {
+                          const q2025_3Q = chartData.find(d => d.quarterKey === '2025_3Q');
+                          return q2025_3Q ? q2025_3Q.당기순이익률.toFixed(1) : '0.0';
+                        })()}%, 전년대비 {(() => {
+                          const q2025_3Q = chartData.find(d => d.quarterKey === '2025_3Q')?.당기순이익률 || 0;
+                          const q2024_3Q = chartData.find(d => d.quarterKey === '2024_3Q')?.당기순이익률 || 0;
+                          return (q2025_3Q - q2024_3Q).toFixed(1);
+                        })()}%p 대폭 개선
+                      </div>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+
+                {/* 그래프 섹션 */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* 매출 및 이익 추이 */}
+                  <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
+                    <div className="mb-3">
+                      <h4 className="text-sm font-semibold text-zinc-900 mb-1">매출 및 이익 추이</h4>
+                      <p className="text-xs text-zinc-500">분기별 절대금액 (단위: 억원)</p>
+                    </div>
+                    <div style={{ height: 280 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="quarter" 
+                            tick={{ fontSize: 11, fill: '#6b7280' }}
+                            axisLine={{ stroke: '#d1d5db' }}
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 11, fill: '#6b7280' }}
+                            axisLine={{ stroke: '#d1d5db' }}
+                            tickFormatter={(value) => `${value}억`}
+                          />
+                          <Tooltip 
+                            content={<CustomChartTooltip formatter={(value) => [`${value.toFixed(0)}억원`, '']} />}
+                          />
+                          <Legend 
+                            wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
+                            iconType="circle"
+                          />
+                          <Line type="monotone" dataKey="매출액" stroke="#3B82F6" strokeWidth={2} dot={{ r: 4 }} name="매출액" />
+                          <Line type="monotone" dataKey="매출총이익" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 4 }} name="매출총이익" />
+                          <Line type="monotone" dataKey="영업이익" stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} name="영업이익" />
+                          <Line type="monotone" dataKey="당기순이익" stroke="#F59E0B" strokeWidth={2} dot={{ r: 4 }} name="당기순이익" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* 요약 카드 */}
+                    <div className="grid grid-cols-2 gap-2 mt-4">
+                      <div className="bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-blue-500 text-xs">📊</span>
+                          <span className="text-xs font-semibold text-zinc-700">매출액</span>
+                        </div>
+                        <div className="text-[10px] text-zinc-600">최고: {salesStats.max.quarter} ({salesStats.max.value.toFixed(0)}억원)</div>
+                        <div className="text-[10px] text-zinc-600">최저: {salesStats.min.quarter} ({salesStats.min.value.toFixed(0)}억원)</div>
+                      </div>
+                      <div className="bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-purple-500 text-xs">📊</span>
+                          <span className="text-xs font-semibold text-zinc-700">매출총이익</span>
+                        </div>
+                        <div className="text-[10px] text-zinc-600">최고: {grossProfitStats.max.quarter} ({grossProfitStats.max.value.toFixed(0)}억원)</div>
+                        <div className="text-[10px] text-zinc-600">최저: {grossProfitStats.min.quarter} ({grossProfitStats.min.value.toFixed(0)}억원)</div>
+                      </div>
+                      <div className="bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-emerald-500 text-xs">📊</span>
+                          <span className="text-xs font-semibold text-zinc-700">영업이익</span>
+                        </div>
+                        <div className="text-[10px] text-zinc-600">최고: {opIncomeStats.max.quarter} ({opIncomeStats.max.value.toFixed(0)}억원)</div>
+                        <div className="text-[10px] text-zinc-600">최저: {opIncomeStats.min.quarter} ({opIncomeStats.min.value.toFixed(0)}억원)</div>
+                      </div>
+                      <div className="bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-amber-500 text-xs">📊</span>
+                          <span className="text-xs font-semibold text-zinc-700">당기순이익</span>
+                        </div>
+                        <div className="text-[10px] text-zinc-600">최고: {netIncomeStats.max.quarter} ({netIncomeStats.max.value.toFixed(0)}억원)</div>
+                        <div className="text-[10px] text-zinc-600">최저: {netIncomeStats.min.quarter} ({netIncomeStats.min.value.toFixed(0)}억원)</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 수익률 추이 */}
+                  <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
+                    <div className="mb-3">
+                      <h4 className="text-sm font-semibold text-zinc-900 mb-1">수익률 추이</h4>
+                      <p className="text-xs text-zinc-500">분기별 이익률 변화 (단위: %)</p>
+                    </div>
+                    <div style={{ height: 280 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="quarter" 
+                            tick={{ fontSize: 11, fill: '#6b7280' }}
+                            axisLine={{ stroke: '#d1d5db' }}
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 11, fill: '#6b7280' }}
+                            axisLine={{ stroke: '#d1d5db' }}
+                            tickFormatter={(value) => `${value}%`}
+                          />
+                          <Tooltip 
+                            content={<CustomChartTooltip formatter={(value) => [`${value.toFixed(1)}%`, '']} />}
+                          />
+                          <Legend 
+                            wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
+                            iconType="circle"
+                          />
+                          <Line type="monotone" dataKey="매출총이익률" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 4 }} name="매출총이익률" />
+                          <Line type="monotone" dataKey="영업이익률" stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} name="영업이익률" />
+                          <Line type="monotone" dataKey="당기순이익률" stroke="#F59E0B" strokeWidth={2} dot={{ r: 4 }} name="당기순이익률" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* 요약 카드 */}
+                    <div className="grid grid-cols-3 gap-2 mt-4">
+                      <div className="bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-purple-500 text-xs">📊</span>
+                          <span className="text-xs font-semibold text-zinc-700">매출총이익률</span>
+                        </div>
+                        <div className="text-[10px] text-zinc-600">최고: {grossMarginStats.max.quarter} ({grossMarginStats.max.value.toFixed(1)}%)</div>
+                        <div className="text-[10px] text-zinc-600">최저: {grossMarginStats.min.quarter} ({grossMarginStats.min.value.toFixed(1)}%)</div>
+                        <div className="text-[10px] text-zinc-600">평균: {grossMarginStats.avg.toFixed(1)}%</div>
+                      </div>
+                      <div className="bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-emerald-500 text-xs">📊</span>
+                          <span className="text-xs font-semibold text-zinc-700">영업이익률</span>
+                        </div>
+                        <div className="text-[10px] text-zinc-600">최고: {opMarginStats.max.quarter} ({opMarginStats.max.value.toFixed(1)}%)</div>
+                        <div className="text-[10px] text-zinc-600">최저: {opMarginStats.min.quarter} ({opMarginStats.min.value.toFixed(1)}%)</div>
+                        <div className="text-[10px] text-zinc-600">평균: {opMarginStats.avg.toFixed(1)}%</div>
+                      </div>
+                      <div className="bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-amber-500 text-xs">📊</span>
+                          <span className="text-xs font-semibold text-zinc-700">당기순이익률</span>
+                        </div>
+                        <div className="text-[10px] text-zinc-600">최고: {netMarginStats.max.quarter} ({netMarginStats.max.value.toFixed(1)}%)</div>
+                        <div className="text-[10px] text-zinc-600">최저: {netMarginStats.min.quarter} ({netMarginStats.min.value.toFixed(1)}%)</div>
+                        <div className="text-[10px] text-zinc-600">평균: {netMarginStats.avg.toFixed(1)}%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
       </div>
     </div>
     );
@@ -3149,7 +3436,7 @@ export default function FnFQ4Dashboard() {
                   </span>
                   {!card.isRatio && (
                     <span className={`font-semibold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {isPositive ? '+' : ''}{formatNumber(Math.round(diff))}
+                      {isPositive ? '+' : ''}{formatNumber(Math.round(diff))}{card.unit || ''}
                     </span>
                   )}
                 </div>
@@ -3256,27 +3543,7 @@ export default function FnFQ4Dashboard() {
                         tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
                       />
                       <Tooltip 
-                        content={({ active, payload, label }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg shadow-lg px-3 py-2.5 min-w-[130px]">
-                                <p className="text-xs font-medium text-zinc-500 mb-1.5 pb-1.5 border-b border-zinc-100">{label}</p>
-                                <div className="space-y-1">
-                                  {payload.map((entry, index) => (
-                                    <div key={index} className="flex items-center justify-between gap-3">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-                                        <span className="text-xs text-zinc-600">{entry.dataKey}</span>
-                                      </div>
-                                      <span className="text-xs font-semibold text-zinc-900">{formatNumber(entry.value)}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
+                        content={<CustomChartTooltip formatter={(value) => [formatNumber(value), '']} />}
                       />
                       <Line 
                         type="monotone" 
