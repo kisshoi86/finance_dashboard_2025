@@ -3149,7 +3149,7 @@ export default function FnFQ4Dashboard() {
                   </span>
                   {!card.isRatio && (
                     <span className={`font-semibold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {isPositive ? '+' : ''}{formatNumber(Math.round(diff))}
+                      {isPositive ? '+' : ''}{formatNumber(Math.round(diff))}{card.unit || '억원'}
                     </span>
                   )}
                 </div>
