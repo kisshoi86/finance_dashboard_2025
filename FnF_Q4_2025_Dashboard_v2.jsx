@@ -709,6 +709,692 @@ export default function FnFQ4Dashboard() {
   ];
 
   // ============================================
+  // 법인별 손익계산서 데이터 (컴포넌트 상위 레벨)
+  // ============================================
+  // 법인별 데이터 (선택된 과목에 따라) - 분기 및 누적
+  // 주의: 법인별 데이터는 연결조정 전 법인별 합산 기준 (연간 누적)
+  // entity_is_data.json에서 변환: China -> 중국, Sergio + 기타 -> 기타
+  const entityData = {
+    '매출액': {
+      '2024_1Q': { 'OC(국내)': 388852, '중국': 238976, '홍콩': 22211, '기타': 9926 },
+      '2024_1Q_Year': { 'OC(국내)': 388852, '중국': 238976, '홍콩': 22211, '기타': 9926 },
+      '2024_2Q': { 'OC(국내)': 275632, '중국': 154544, '홍콩': 16965, '기타': 11200 },
+      '2024_2Q_Year': { 'OC(국내)': 664484, '중국': 393520, '홍콩': 39176, '기타': 21126 },
+      '2024_3Q': { 'OC(국내)': 417280, '중국': 250154, '홍콩': 15559, '기타': 17473 },
+      '2024_3Q_Year': { 'OC(국내)': 1081765, '중국': 643675, '홍콩': 54736, '기타': 38599 },
+      '2024_4Q': { 'OC(국내)': 436230, '중국': 214166, '홍콩': 20299, '기타': 11221 },
+      '2024_Year': { 'OC(국내)': 1517994, '중국': 857840, '홍콩': 75035, '기타': 49820 },
+      '2025_1Q': { 'OC(국내)': 396770, '중국': 258540, '홍콩': 20663, '기타': 9432 },
+      '2025_1Q_Year': { 'OC(국내)': 396770, '중국': 258540, '홍콩': 20663, '기타': 9432 },
+      '2025_2Q': { 'OC(국내)': 307393, '중국': 170703, '홍콩': 15742, '기타': 10275 },
+      '2025_2Q_Year': { 'OC(국내)': 704163, '중국': 429243, '홍콩': 36405, '기타': 19708 },
+      '2025_3Q': { 'OC(국내)': 510671, '중국': 283919, '홍콩': 16908, '기타': 18838 },
+      '2025_3Q_Year': { 'OC(국내)': 1214834, '중국': 713162, '홍콩': 53313, '기타': 38547 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 1214834, '중국': 713162, '홍콩': 53313, '기타': 38547 },
+    },
+    '매출원가': {
+      '2024_1Q': { 'OC(국내)': 147628, '중국': 173679, '홍콩': 9231, '기타': 4830 },
+      '2024_1Q_Year': { 'OC(국내)': 147628, '중국': 173679, '홍콩': 9231, '기타': 4830 },
+      '2024_2Q': { 'OC(국내)': 89806, '중국': 103635, '홍콩': 7228, '기타': 5609 },
+      '2024_2Q_Year': { 'OC(국내)': 237433, '중국': 277315, '홍콩': 16460, '기타': 10439 },
+      '2024_3Q': { 'OC(국내)': 158791, '중국': 198826, '홍콩': 7135, '기타': 15991 },
+      '2024_3Q_Year': { 'OC(국내)': 396225, '중국': 476141, '홍콩': 23595, '기타': 26430 },
+      '2024_4Q': { 'OC(국내)': 147388, '중국': 188025, '홍콩': 8472, '기타': 9945 },
+      '2024_Year': { 'OC(국내)': 543613, '중국': 664166, '홍콩': 32067, '기타': 36374 },
+      '2025_1Q': { 'OC(국내)': 145093, '중국': 203778, '홍콩': 9671, '기타': 3643 },
+      '2025_1Q_Year': { 'OC(국내)': 145093, '중국': 203778, '홍콩': 9671, '기타': 3643 },
+      '2025_2Q': { 'OC(국내)': 102778, '중국': 135222, '홍콩': 6988, '기타': 4565 },
+      '2025_2Q_Year': { 'OC(국내)': 247871, '중국': 339000, '홍콩': 16659, '기타': 8208 },
+      '2025_3Q': { 'OC(국내)': 202041, '중국': 208506, '홍콩': 8019, '기타': 7562 },
+      '2025_3Q_Year': { 'OC(국내)': 449912, '중국': 547506, '홍콩': 24679, '기타': 15770 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 449912, '중국': 547506, '홍콩': 24679, '기타': 15770 },
+    },
+    '매출총이익': {
+      '2024_1Q': { 'OC(국내)': 241224, '중국': 65297, '홍콩': 12980, '기타': 5096 },
+      '2024_1Q_Year': { 'OC(국내)': 241224, '중국': 65297, '홍콩': 12980, '기타': 5096 },
+      '2024_2Q': { 'OC(국내)': 185827, '중국': 50908, '홍콩': 9737, '기타': 5591 },
+      '2024_2Q_Year': { 'OC(국내)': 427051, '중국': 116206, '홍콩': 22717, '기타': 10687 },
+      '2024_3Q': { 'OC(국내)': 258489, '중국': 51328, '홍콩': 8424, '기타': 1481 },
+      '2024_3Q_Year': { 'OC(국내)': 685540, '중국': 167533, '홍콩': 31141, '기타': 12168 },
+      '2024_4Q': { 'OC(국내)': 288842, '중국': 26141, '홍콩': 11827, '기타': 1276 },
+      '2024_Year': { 'OC(국내)': 974382, '중국': 193674, '홍콩': 42968, '기타': 13445 },
+      '2025_1Q': { 'OC(국내)': 251677, '중국': 54762, '홍콩': 10992, '기타': 5789 },
+      '2025_1Q_Year': { 'OC(국내)': 251677, '중국': 54762, '홍콩': 10992, '기타': 5789 },
+      '2025_2Q': { 'OC(국내)': 204615, '중국': 35481, '홍콩': 8754, '기타': 5712 },
+      '2025_2Q_Year': { 'OC(국내)': 456292, '중국': 90244, '홍콩': 19746, '기타': 11501 },
+      '2025_3Q': { 'OC(국내)': 308630, '중국': 75413, '홍콩': 8889, '기타': 11276 },
+      '2025_3Q_Year': { 'OC(국내)': 764922, '중국': 165656, '홍콩': 28634, '기타': 22777 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 764922, '중국': 165656, '홍콩': 28634, '기타': 22777 },
+    },
+    '인건비': {
+      '2024_1Q': { 'OC(국내)': 9937, '중국': 6513, '홍콩': 1928, '기타': 1229 },
+      '2024_1Q_Year': { 'OC(국내)': 9937, '중국': 6513, '홍콩': 1928, '기타': 1229 },
+      '2024_2Q': { 'OC(국내)': 11939, '중국': 6389, '홍콩': 1977, '기타': 1627 },
+      '2024_2Q_Year': { 'OC(국내)': 21876, '중국': 12901, '홍콩': 3906, '기타': 2856 },
+      '2024_3Q': { 'OC(국내)': 10188, '중국': 6043, '홍콩': 1724, '기타': 1893 },
+      '2024_3Q_Year': { 'OC(국내)': 32064, '중국': 18944, '홍콩': 5630, '기타': 4749 },
+      '2024_4Q': { 'OC(국내)': 11627, '중국': 7185, '홍콩': 2181, '기타': 1570 },
+      '2024_Year': { 'OC(국내)': 43692, '중국': 26130, '홍콩': 7811, '기타': 6319 },
+      '2025_1Q': { 'OC(국내)': 9755, '중국': 7851, '홍콩': 2410, '기타': 1515 },
+      '2025_1Q_Year': { 'OC(국내)': 9755, '중국': 7851, '홍콩': 2410, '기타': 1515 },
+      '2025_2Q': { 'OC(국내)': 10693, '중국': 7020, '홍콩': 1718, '기타': 1305 },
+      '2025_2Q_Year': { 'OC(국내)': 20448, '중국': 14870, '홍콩': 4128, '기타': 2819 },
+      '2025_3Q': { 'OC(국내)': 9633, '중국': 6734, '홍콩': 2156, '기타': 1610 },
+      '2025_3Q_Year': { 'OC(국내)': 30082, '중국': 21604, '홍콩': 6284, '기타': 4429 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 30082, '중국': 21604, '홍콩': 6284, '기타': 4429 },
+    },
+    '광고선전비': {
+      '2024_1Q': { 'OC(국내)': 10689, '중국': 12045, '홍콩': 422, '기타': 940 },
+      '2024_1Q_Year': { 'OC(국내)': 10689, '중국': 12045, '홍콩': 422, '기타': 940 },
+      '2024_2Q': { 'OC(국내)': 9145, '중국': 5745, '홍콩': 635, '기타': 1430 },
+      '2024_2Q_Year': { 'OC(국내)': 19835, '중국': 17790, '홍콩': 1057, '기타': 2371 },
+      '2024_3Q': { 'OC(국내)': 7102, '중국': 10839, '홍콩': 415, '기타': 1546 },
+      '2024_3Q_Year': { 'OC(국내)': 26937, '중국': 28628, '홍콩': 1472, '기타': 3917 },
+      '2024_4Q': { 'OC(국내)': 13418, '중국': 16640, '홍콩': 542, '기타': 1579 },
+      '2024_Year': { 'OC(국내)': 40355, '중국': 45269, '홍콩': 2014, '기타': 5496 },
+      '2025_1Q': { 'OC(국내)': 8143, '중국': 14554, '홍콩': 534, '기타': 1379 },
+      '2025_1Q_Year': { 'OC(국내)': 8143, '중국': 14554, '홍콩': 534, '기타': 1379 },
+      '2025_2Q': { 'OC(국내)': 8488, '중국': 9119, '홍콩': 554, '기타': 1386 },
+      '2025_2Q_Year': { 'OC(국내)': 16631, '중국': 23672, '홍콩': 1088, '기타': 2765 },
+      '2025_3Q': { 'OC(국내)': 6683, '중국': 16328, '홍콩': 585, '기타': 1462 },
+      '2025_3Q_Year': { 'OC(국내)': 23314, '중국': 40000, '홍콩': 1673, '기타': 4227 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 23314, '중국': 40000, '홍콩': 1673, '기타': 4227 },
+    },
+    '수수료': {
+      '2024_1Q': { 'OC(국내)': 103398, '중국': 11140, '홍콩': 4655, '기타': 2205 },
+      '2024_1Q_Year': { 'OC(국내)': 103398, '중국': 11140, '홍콩': 4655, '기타': 2205 },
+      '2024_2Q': { 'OC(국내)': 89436, '중국': 8168, '홍콩': 1479, '기타': 2829 },
+      '2024_2Q_Year': { 'OC(국내)': 192834, '중국': 19308, '홍콩': 6133, '기타': 5035 },
+      '2024_3Q': { 'OC(국내)': 82954, '중국': 8951, '홍콩': 811, '기타': 2866 },
+      '2024_3Q_Year': { 'OC(국내)': 275788, '중국': 28260, '홍콩': 6944, '기타': 7900 },
+      '2024_4Q': { 'OC(국내)': 121114, '중국': 13237, '홍콩': 1689, '기타': -469 },
+      '2024_Year': { 'OC(국내)': 396902, '중국': 41497, '홍콩': 8633, '기타': 7432 },
+      '2025_1Q': { 'OC(국내)': 98102, '중국': 13152, '홍콩': 2341, '기타': 1523 },
+      '2025_1Q_Year': { 'OC(국내)': 98102, '중국': 13152, '홍콩': 2341, '기타': 1523 },
+      '2025_2Q': { 'OC(국내)': 82021, '중국': 10209, '홍콩': 1841, '기타': 1844 },
+      '2025_2Q_Year': { 'OC(국내)': 180123, '중국': 23360, '홍콩': 4182, '기타': 3367 },
+      '2025_3Q': { 'OC(국내)': 78829, '중국': 11034, '홍콩': 2221, '기타': 1788 },
+      '2025_3Q_Year': { 'OC(국내)': 258952, '중국': 34395, '홍콩': 6403, '기타': 5156 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 258952, '중국': 34395, '홍콩': 6403, '기타': 5156 },
+    },
+    '감가상각비': {
+      '2024_1Q': { 'OC(국내)': 10414, '중국': 5333, '홍콩': 3793, '기타': 327 },
+      '2024_1Q_Year': { 'OC(국내)': 10414, '중국': 5333, '홍콩': 3793, '기타': 327 },
+      '2024_2Q': { 'OC(국내)': 10778, '중국': 6017, '홍콩': 3760, '기타': 262 },
+      '2024_2Q_Year': { 'OC(국내)': 21192, '중국': 11350, '홍콩': 7552, '기타': 590 },
+      '2024_3Q': { 'OC(국내)': 11822, '중국': 6248, '홍콩': 3540, '기타': 313 },
+      '2024_3Q_Year': { 'OC(국내)': 33014, '중국': 17598, '홍콩': 11093, '기타': 902 },
+      '2024_4Q': { 'OC(국내)': 12447, '중국': 6712, '홍콩': 3264, '기타': 282 },
+      '2024_Year': { 'OC(국내)': 45461, '중국': 24311, '홍콩': 14357, '기타': 1184 },
+      '2025_1Q': { 'OC(국내)': 12795, '중국': 7629, '홍콩': 3123, '기타': 284 },
+      '2025_1Q_Year': { 'OC(국내)': 12795, '중국': 7629, '홍콩': 3123, '기타': 284 },
+      '2025_2Q': { 'OC(국내)': 13173, '중국': 6121, '홍콩': 1876, '기타': 292 },
+      '2025_2Q_Year': { 'OC(국내)': 25968, '중국': 13750, '홍콩': 5000, '기타': 576 },
+      '2025_3Q': { 'OC(국내)': 12850, '중국': 5468, '홍콩': 3009, '기타': 290 },
+      '2025_3Q_Year': { 'OC(국내)': 38819, '중국': 19219, '홍콩': 8009, '기타': 867 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 38819, '중국': 19219, '홍콩': 8009, '기타': 867 },
+    },
+    '기타판관비': {
+      '2024_1Q': { 'OC(국내)': 11331, '중국': 5585, '홍콩': 1532, '기타': 978 },
+      '2024_1Q_Year': { 'OC(국내)': 11331, '중국': 5585, '홍콩': 1532, '기타': 978 },
+      '2024_2Q': { 'OC(국내)': 10450, '중국': 3883, '홍콩': 1390, '기타': 973 },
+      '2024_2Q_Year': { 'OC(국내)': 21781, '중국': 9469, '홍콩': 2921, '기타': 1952 },
+      '2024_3Q': { 'OC(국내)': 9320, '중국': 5952, '홍콩': 1478, '기타': 1074 },
+      '2024_3Q_Year': { 'OC(국내)': 31101, '중국': 15420, '홍콩': 4400, '기타': 3025 },
+      '2024_4Q': { 'OC(국내)': 14464, '중국': 4950, '홍콩': 2397, '기타': 1893 },
+      '2024_Year': { 'OC(국내)': 45565, '중국': 20370, '홍콩': 6797, '기타': 4918 },
+      '2025_1Q': { 'OC(국내)': 10904, '중국': 5466, '홍콩': 2581, '기타': 1618 },
+      '2025_1Q_Year': { 'OC(국내)': 10904, '중국': 5466, '홍콩': 2581, '기타': 1618 },
+      '2025_2Q': { 'OC(국내)': 9640, '중국': 3353, '홍콩': 2577, '기타': 1649 },
+      '2025_2Q_Year': { 'OC(국내)': 20544, '중국': 8820, '홍콩': 5158, '기타': 3267 },
+      '2025_3Q': { 'OC(국내)': 8066, '중국': 5795, '홍콩': 2164, '기타': 3459 },
+      '2025_3Q_Year': { 'OC(국내)': 28610, '중국': 14615, '홍콩': 7323, '기타': 6726 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 28610, '중국': 14615, '홍콩': 7323, '기타': 6726 },
+    },
+    '영업이익': {
+      '2024_1Q': { 'OC(국내)': 95454, '중국': 24682, '홍콩': 650, '기타': -583 },
+      '2024_1Q_Year': { 'OC(국내)': 95454, '중국': 24682, '홍콩': 650, '기타': -583 },
+      '2024_2Q': { 'OC(국내)': 54079, '중국': 20706, '홍콩': 497, '기타': -1531 },
+      '2024_2Q_Year': { 'OC(국내)': 149533, '중국': 45387, '홍콩': 1147, '기타': -2114 },
+      '2024_3Q': { 'OC(국내)': 137103, '중국': 13296, '홍콩': 455, '기타': -6210 },
+      '2024_3Q_Year': { 'OC(국내)': 286636, '중국': 58683, '홍콩': 1602, '기타': -8324 },
+      '2024_4Q': { 'OC(국내)': 115771, '중국': -22584, '홍콩': 1754, '기타': -3579 },
+      '2024_Year': { 'OC(국내)': 402407, '중국': 36099, '홍콩': 3357, '기타': -11903 },
+      '2025_1Q': { 'OC(국내)': 111978, '중국': 6110, '홍콩': 3, '기타': -529 },
+      '2025_1Q_Year': { 'OC(국내)': 111978, '중국': 6110, '홍콩': 3, '기타': -529 },
+      '2025_2Q': { 'OC(국내)': 80600, '중국': -340, '홍콩': 187, '기타': -765 },
+      '2025_2Q_Year': { 'OC(국내)': 192577, '중국': 5770, '홍콩': 190, '기타': -1294 },
+      '2025_3Q': { 'OC(국내)': 192568, '중국': 30053, '홍콩': -1246, '기타': 2667 },
+      '2025_3Q_Year': { 'OC(국내)': 385145, '중국': 35823, '홍콩': -1056, '기타': 1372 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 385145, '중국': 35823, '홍콩': -1056, '기타': 1372 },
+    },
+    '당기순이익': {
+      '2024_1Q': { 'OC(국내)': 72187, '중국': 18059, '홍콩': 319, '기타': -820 },
+      '2024_1Q_Year': { 'OC(국내)': 72187, '중국': 18059, '홍콩': 319, '기타': -820 },
+      '2024_2Q': { 'OC(국내)': 48504, '중국': 15349, '홍콩': 267, '기타': -2445 },
+      '2024_2Q_Year': { 'OC(국내)': 120691, '중국': 33409, '홍콩': 586, '기타': -3265 },
+      '2024_3Q': { 'OC(국내)': 105886, '중국': 9479, '홍콩': 2, '기타': -9957 },
+      '2024_3Q_Year': { 'OC(국내)': 226577, '중국': 42887, '홍콩': 588, '기타': -13222 },
+      '2024_4Q': { 'OC(국내)': 96955, '중국': -17665, '홍콩': 1540, '기타': -9135 },
+      '2024_Year': { 'OC(국내)': 323532, '중국': 25222, '홍콩': 2128, '기타': -22358 },
+      '2025_1Q': { 'OC(국내)': 79838, '중국': 3693, '홍콩': -173, '기타': -4775 },
+      '2025_1Q_Year': { 'OC(국내)': 79838, '중국': 3693, '홍콩': -173, '기타': -4775 },
+      '2025_2Q': { 'OC(국내)': 64206, '중국': -1457, '홍콩': 397, '기타': -4516 },
+      '2025_2Q_Year': { 'OC(국내)': 144044, '중국': 2236, '홍콩': 224, '기타': -9292 },
+      '2025_3Q': { 'OC(국내)': 150942, '중국': 21686, '홍콩': -1312, '기타': -259 },
+      '2025_3Q_Year': { 'OC(국내)': 294987, '중국': 23922, '홍콩': -1087, '기타': -9551 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
+      '2025_Year': { 'OC(국내)': 294987, '중국': 23922, '홍콩': -1087, '기타': -9551 },
+    },
+  };
+
+  // ============================================
+  // AI 분석 함수
+  // ============================================
+  const generateAIAnalysis = () => {
+    if (!selectedPeriod) {
+      return {
+        keyMetrics: {
+          opMargin: { curr: 0, prev: 0, change: 0 },
+          netMargin: { curr: 0, prev: 0, change: 0 },
+          debtRatio: { curr: 0, prev: 0, status: '안정' },
+          roe: { curr: 0, prev: 0, change: 0 }
+        },
+        insights: [],
+        risks: [],
+        actions: [],
+        improvementTargets: []
+      };
+    }
+    const selectedYearKey = getPeriodKey(selectedPeriod, 'year');
+    const prevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year';
+    const currentPeriod = selectedPeriod;
+    const prevPeriod = getPeriodKey(selectedPeriod, 'prev') || '2024_4Q';
+    
+    // 1) 핵심 지표 계산
+    const salesCurr = incomeStatementData[selectedYearKey]?.매출액 || 0;
+    const salesPrev = incomeStatementData[prevYearKey]?.매출액 || 0;
+    const opIncomeCurr = incomeStatementData[selectedYearKey]?.영업이익 || 0;
+    const opIncomePrev = incomeStatementData[prevYearKey]?.영업이익 || 0;
+    const netIncomeCurr = incomeStatementData[selectedYearKey]?.당기순이익 || 0;
+    const netIncomePrev = incomeStatementData[prevYearKey]?.당기순이익 || 0;
+    const totalAssetsCurr = balanceSheetData[currentPeriod]?.자산총계 || 0;
+    const totalAssetsPrev = balanceSheetData[prevPeriod]?.자산총계 || 0;
+    const totalDebtCurr = balanceSheetData[currentPeriod]?.부채총계 || 0;
+    const totalDebtPrev = balanceSheetData[prevPeriod]?.부채총계 || 0;
+    const totalEquityCurr = balanceSheetData[currentPeriod]?.자본총계 || 0;
+    const totalEquityPrev = balanceSheetData[prevPeriod]?.자본총계 || 0;
+    
+    const opMarginCurr = salesCurr > 0 ? (opIncomeCurr / salesCurr * 100) : 0;
+    const opMarginPrev = salesPrev > 0 ? (opIncomePrev / salesPrev * 100) : 0;
+    const netMarginCurr = salesCurr > 0 ? (netIncomeCurr / salesCurr * 100) : 0;
+    const netMarginPrev = salesPrev > 0 ? (netIncomePrev / salesPrev * 100) : 0;
+    const debtRatioCurr = totalEquityCurr > 0 ? (totalDebtCurr / totalEquityCurr * 100) : 0;
+    const debtRatioPrev = totalEquityPrev > 0 ? (totalDebtPrev / totalEquityPrev * 100) : 0;
+    const roeCurr = totalEquityCurr > 0 ? (netIncomeCurr / totalEquityCurr * 100) : 0;
+    const roePrev = totalEquityPrev > 0 ? (netIncomePrev / totalEquityPrev * 100) : 0;
+    
+    const salesGrowth = salesPrev > 0 ? ((salesCurr - salesPrev) / salesPrev * 100) : 0;
+    const opMarginChange = opMarginCurr - opMarginPrev;
+    const netMarginChange = netMarginCurr - netMarginPrev;
+    const roeChange = roeCurr - roePrev;
+    
+    // 2) 법인별 수익성 분석
+    const entityProfitability = ['OC(국내)', '중국', '홍콩', '기타'].map(entity => {
+      const sales = entityData.매출액?.[selectedYearKey]?.[entity] || 0;
+      const opIncome = entityData.영업이익?.[selectedYearKey]?.[entity] || 0;
+      const margin = sales > 0 ? (opIncome / sales * 100) : 0;
+      return { entity, sales, opIncome, margin };
+    }).sort((a, b) => b.margin - a.margin);
+    
+    // 3) 판관비 구조 분석
+    const sgaBreakdown = ['인건비', '광고선전비', '수수료', '감가상각비', '기타판관비'].map(item => {
+      const curr = incomeStatementData[selectedYearKey]?.[item] || 0;
+      const prev = incomeStatementData[prevYearKey]?.[item] || 0;
+      const change = prev > 0 ? ((curr - prev) / prev * 100) : 0;
+      const salesRatio = salesCurr > 0 ? (curr / salesCurr * 100) : 0;
+      return { item, curr, prev, change, salesRatio };
+    }).sort((a, b) => b.curr - a.curr);
+    
+    // 4) 재무안정성 분석
+    const cashCurr = balanceSheetData[currentPeriod]?.현금및현금성자산 || 0;
+    const cashPrev = balanceSheetData[prevPeriod]?.현금및현금성자산 || 0;
+    const arCurr = balanceSheetData[currentPeriod]?.매출채권 || 0;
+    const inventoryCurr = balanceSheetData[currentPeriod]?.재고자산 || 0;
+    const inventoryPrev = balanceSheetData[prevPeriod]?.재고자산 || 0;
+    const apCurr = balanceSheetData[currentPeriod]?.매입채무 || 0;
+    const workingCapitalCurr = arCurr + inventoryCurr - apCurr;
+    
+    const inventoryGrowth = inventoryPrev > 0 ? ((inventoryCurr - inventoryPrev) / inventoryPrev * 100) : 0;
+    const cashGrowth = cashPrev > 0 ? ((cashCurr - cashPrev) / cashPrev * 100) : 0;
+    
+    // 5) 차입금 분석
+    const borrowingsByEntity = ['OC(국내)', '중국', '홍콩', 'ST미국'].map(entity => {
+      const debt = (entityBSData && entityBSData[currentPeriod] && entityBSData[currentPeriod].차입금) ? (entityBSData[currentPeriod].차입금[entity] || 0) : 0;
+      const equity = (entityBSData && entityBSData[currentPeriod] && entityBSData[currentPeriod].자본총계) ? (entityBSData[currentPeriod].자본총계[entity] || 0) : 0;
+      const debtRatio = equity > 0 ? (debt / equity * 100) : 0;
+      return { entity, debt, equity, debtRatio };
+    }).filter(x => x.debt > 0).sort((a, b) => b.debt - a.debt);
+    
+    const totalBorrowing = borrowingsByEntity.reduce((sum, x) => sum + x.debt, 0);
+    
+    // 6) 회전율 분석
+    const inventoryTurnover = (salesCurr > 0 && inventoryCurr > 0) ? (salesCurr / inventoryCurr) : 0;
+    const inventoryDays = inventoryTurnover > 0 ? (365 / inventoryTurnover) : 0;
+    const arTurnover = (salesCurr > 0 && arCurr > 0) ? (salesCurr / arCurr) : 0;
+    const arDays = arTurnover > 0 ? (365 / arTurnover) : 0;
+    const apTurnover = (salesCurr > 0 && apCurr > 0) ? (salesCurr / apCurr) : 0;
+    const apDays = apTurnover > 0 ? (365 / apTurnover) : 0;
+    const cashConversionCycle = (arDays || 0) + (inventoryDays || 0) - (apDays || 0);
+    
+    // 7) 매출총이익률 분석
+    const grossProfitCurr = incomeStatementData[selectedYearKey]?.매출총이익 || 0;
+    const grossProfitPrev = incomeStatementData[prevYearKey]?.매출총이익 || 0;
+    const grossMarginCurr = salesCurr > 0 ? (grossProfitCurr / salesCurr * 100) : 0;
+    const grossMarginPrev = salesPrev > 0 ? (grossProfitPrev / salesPrev * 100) : 0;
+    const grossMarginChange = grossMarginCurr - grossMarginPrev;
+    
+    // 8) 인사이트 생성
+    const insights = [];
+    const risks = [];
+    const actions = [];
+    const improvementTargets = []; // 개선 타겟 배열 초기화
+    
+    // 수익성 인사이트
+    if (opMarginChange > 0) {
+      insights.push({
+        title: '영업이익률 개선',
+        desc: `${opMarginCurr.toFixed(1)}%로 ${Math.abs(opMarginChange).toFixed(1)}%p 상승. ${
+          salesGrowth < 0 ? '매출 감소에도 비용 관리 효과로 수익성 개선' : '매출 성장과 함께 수익성 동반 상승'
+        }`
+      });
+    } else if (opMarginChange < -1) {
+      risks.push({
+        title: '수익성 악화',
+        desc: `영업이익률 ${opMarginCurr.toFixed(1)}%로 ${Math.abs(opMarginChange).toFixed(1)}%p 하락. 비용 구조 점검 필요`
+      });
+    }
+    
+    // 매출총이익률 분석
+    if (grossMarginChange < -2) {
+      risks.push({
+        title: '매출총이익률 하락',
+        desc: `${grossMarginCurr.toFixed(1)}%로 ${Math.abs(grossMarginChange).toFixed(1)}%p 하락. 원가 상승 또는 가격 경쟁 심화`
+      });
+      actions.push({
+        title: '원가율 개선',
+        desc: `협력업체 협상력 강화, 소싱 다변화, 생산 효율 개선으로 원가율 2%p 절감 목표`
+      });
+    } else if (grossMarginChange > 2) {
+      insights.push({
+        title: '매출총이익률 개선',
+        desc: `${grossMarginCurr.toFixed(1)}%로 ${grossMarginChange.toFixed(1)}%p 상승. 원가 관리 및 제품믹스 최적화 효과`
+      });
+    }
+    
+    // 회전율 인사이트
+    if (inventoryDays > 0 && inventoryDays < 1000 && inventoryDays > 120) {
+      risks.push({
+        title: '재고회전율 저하',
+        desc: `재고회전일수 ${Math.round(inventoryDays)}일. 재고 적체로 인한 현금흐름 악화 및 평가손실 리스크`
+      });
+    } else if (inventoryDays > 0 && inventoryDays < 60) {
+      insights.push({
+        title: '재고 효율성 우수',
+        desc: `재고회전일수 ${Math.round(inventoryDays)}일. 빠른 재고 회전으로 운전자본 효율 극대화`
+      });
+    }
+    
+    if (arDays > 0 && arDays < 1000 && arDays > 60) {
+      risks.push({
+        title: '매출채권 회수 지연',
+        desc: `회수기간 ${Math.round(arDays)}일. 현금흐름 압박 및 대손 리스크 증가`
+      });
+      actions.push({
+        title: '채권 관리 강화',
+        desc: `거래처 신용평가 강화, 조기 회수 인센티브, 팩토링 활용으로 회수기간 45일 목표`
+      });
+    }
+    
+    if (cashConversionCycle > 0 && cashConversionCycle < 1000 && cashConversionCycle > 90) {
+      risks.push({
+        title: '현금순환주기 장기화',
+        desc: `${Math.round(cashConversionCycle)}일 소요. 운전자본 부담 및 자금 효율 저하`
+      });
+    }
+    
+    // 법인별 수익성 분석 (상세)
+    const topProfitEntity = entityProfitability.length > 0 ? entityProfitability[0] : null;
+    const lowProfitEntity = entityProfitability.find(e => e.margin < 15 && e.sales > 50000);
+    
+    // 최고 수익성 법인
+    if (topProfitEntity && topProfitEntity.margin > 25) {
+      insights.push({
+        title: `${topProfitEntity.entity} 수익성 우수`,
+        desc: `영업이익률 ${topProfitEntity.margin.toFixed(1)}%, 매출 ${Math.round(topProfitEntity.sales/100)}억원. 성공 모델로 다른 법인 벤치마킹`
+      });
+    }
+    
+    // 저수익 법인
+    if (lowProfitEntity && topProfitEntity) {
+      risks.push({
+        title: `${lowProfitEntity.entity} 수익성 저하`,
+        desc: `영업이익률 ${lowProfitEntity.margin.toFixed(1)}%, 매출 ${Math.round(lowProfitEntity.sales/100)}억원. ${topProfitEntity.entity}(${topProfitEntity.margin.toFixed(1)}%)와 ${Math.abs(lowProfitEntity.margin - topProfitEntity.margin).toFixed(1)}%p 격차`
+      });
+      actions.push({
+        title: `${lowProfitEntity.entity} 수익성 개선`,
+        desc: `${topProfitEntity.entity} 원가구조 벤치마킹, 비효율 비용 20% 절감, 고마진 제품 비중 확대`
+      });
+    }
+    
+    // 법인별 규모와 수익성 불균형
+    const totalSales = entityProfitability.reduce((sum, e) => sum + e.sales, 0);
+    const totalOpIncome = entityProfitability.reduce((sum, e) => sum + e.opIncome, 0);
+    const entityImbalance = entityProfitability.map(e => ({
+      ...e,
+      salesShare: totalSales > 0 ? (e.sales / totalSales * 100) : 0,
+      profitShare: totalOpIncome > 0 ? (e.opIncome / totalOpIncome * 100) : 0
+    })).filter(e => e.salesShare > 15 && e.profitShare < e.salesShare * 0.7);
+    
+    if (entityImbalance.length > 0) {
+      const target = entityImbalance[0];
+      risks.push({
+        title: `${target.entity} 수익 기여도 낮음`,
+        desc: `매출 비중 ${target.salesShare.toFixed(0)}%지만 이익 기여 ${target.profitShare.toFixed(0)}%. 구조조정 또는 수익성 개선 시급`
+      });
+    }
+    
+    // 판관비 분석 (구체화)
+    const highSGA = sgaBreakdown.filter(x => x.change > 15 && x.salesRatio > 10);
+    if (highSGA.length > 0) {
+      const top = highSGA[0];
+      risks.push({
+        title: `${top.item} 급증`,
+        desc: `${Math.round(top.curr/100)}억원으로 전년대비 ${top.change.toFixed(1)}% 증가 (+${Math.round((top.curr-top.prev)/100)}억원), 매출대비 ${top.salesRatio.toFixed(1)}%`
+      });
+      actions.push({
+        title: `${top.item} 최적화`,
+        desc: `${top.item === '광고선전비' ? '디지털 마케팅 전환, ROI 2배 개선' : top.item === '인건비' ? '인당 생산성 20% 향상, 아웃소싱 확대' : '업무 프로세스 자동화'}`
+      });
+      
+      const targetReduction = top.curr * 0.15; // 15% 절감 시
+      const roeImpact = totalEquityCurr > 0 ? (targetReduction*0.73 / totalEquityCurr * 100) : 0;
+      
+      improvementTargets.push({
+        area: `${top.item} 구조 혁신`,
+        current: `${Math.round(top.curr/100)}억원 (매출대비 ${top.salesRatio.toFixed(1)}%, 전년대비 +${top.change.toFixed(0)}%)`,
+        target: `${Math.round(top.curr*0.85/100)}억원 (매출대비 ${(top.salesRatio*0.85).toFixed(1)}%)`,
+        impact: `영업이익 +${Math.round(targetReduction/100)}억원 (+${(targetReduction/opIncomeCurr*100).toFixed(1)}%), 영업이익률 +${(targetReduction/salesCurr*100).toFixed(1)}%p, 당기순이익 +${Math.round(targetReduction*0.73/100)}억원, ROE +${roeImpact.toFixed(1)}%p`,
+        method: top.item === '광고선전비' 
+          ? `성과 기반 집행 체계 (매출 전환율 목표 달성 시 집행), 디지털 광고 비중 60%→80% 확대 (CPM 30% 절감), 대행사 수수료 재협상`
+          : top.item === '인건비'
+          ? `인당 매출액 목표 20% 상향, RPA·AI 도입으로 반복업무 자동화, 성과급 비중 확대 (고정급 억제), 비핵심 기능 아웃소싱`
+          : top.item === '수수료'
+          ? `물류·결제 수수료율 협상 (볼륨 기반 할인 확보), 직배송 비중 확대, 자체 풀필먼트 센터 구축 검토`
+          : `비용 항목별 ROI 분석, 제로베이스 예산 도입, 비핵심 지출 30% 감축`
+      });
+    }
+    
+    // 현금 및 유동성 분석
+    const cashRatio = totalAssetsCurr > 0 ? (cashCurr / totalAssetsCurr * 100) : 0;
+    if (cashGrowth > 50) {
+      insights.push({
+        title: '유동성 대폭 개선',
+        desc: `현금성자산 ${Math.round(cashCurr/100)}억원으로 ${cashGrowth.toFixed(0)}% 증가 (전년 +${Math.round((cashCurr-cashPrev)/100)}억원). 자산대비 ${cashRatio.toFixed(1)}%로 투자 여력 확보`
+      });
+      
+      // 잉여현금이 많으면 활용 방안 제시
+      if (cashCurr > totalAssetsCurr * 0.1) {
+        actions.push({
+          title: '잉여현금 전략적 활용',
+          desc: `${Math.round(cashCurr*0.4/100)}억원을 M&A 또는 신규 브랜드에 투자 시 ROE ${(cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1)}%p 추가 개선 가능`
+        });
+        
+        improvementTargets.push({
+          area: '잉여현금 전략적 재배치',
+          current: `현금성자산 ${Math.round(cashCurr/100)}억원 (자산대비 ${cashRatio.toFixed(1)}%)`,
+          target: `적정 현금 ${Math.round(cashCurr*0.6/100)}억원 유지 + 전략투자 ${Math.round(cashCurr*0.4/100)}억원`,
+          impact: `ROE 15% 투자처 발굴 시 연결 ROE +${(cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1)}%p, 주주가치 증대`,
+          method: `옵션1: 고수익 브랜드 M&A (목표 ROE 18%+), 옵션2: 배당성향 30%→50% 확대 + 자사주 매입 ${Math.round(cashCurr*0.15/100)}억원, 옵션3: 해외 거점 확대 투자 (동남아, 중동)`
+        });
+      }
+    } else if (cashCurr < totalAssetsCurr * 0.05) {
+      risks.push({
+        title: '유동성 부족',
+        desc: `현금성자산 ${Math.round(cashCurr/100)}억원, 자산대비 ${cashRatio.toFixed(1)}%. 단기 자금 압박 리스크`
+      });
+      actions.push({
+        title: '유동성 확보',
+        desc: `재고 감축, 매출채권 팩토링, 단기 여신 한도 확보로 ${Math.round(totalAssetsCurr*0.08/100)}억원 확보`
+      });
+    }
+    
+    // 자산 효율성 분석
+    const assetTurnover = totalAssetsCurr > 0 ? (salesCurr / totalAssetsCurr) : 0;
+    const assetTurnoverPrev = totalAssetsPrev > 0 ? (salesPrev / totalAssetsPrev) : 0;
+    if (assetTurnover < 0.5 && assetTurnover < assetTurnoverPrev) {
+      risks.push({
+        title: '자산 효율성 저하',
+        desc: `총자산회전율 ${assetTurnover.toFixed(2)}회로 전년(${assetTurnoverPrev.toFixed(2)}회) 대비 하락. 자산 대비 매출 창출력 감소`
+      });
+      actions.push({
+        title: '자산 효율 제고',
+        desc: `저효율 자산 매각, 유휴 부동산 활용, 브랜드 가치 극대화로 회전율 ${(assetTurnover*1.2).toFixed(2)}회 목표`
+      });
+    } else if (assetTurnover > assetTurnoverPrev && assetTurnover > 0.6) {
+      insights.push({
+        title: '자산 효율성 우수',
+        desc: `총자산회전율 ${assetTurnover.toFixed(2)}회로 개선. 효율적 자산 운용으로 수익성 극대화`
+      });
+    }
+    
+    // 재고 분석
+    if (inventoryGrowth > 30) {
+      risks.push({
+        title: '재고자산 급증',
+        desc: `${Math.round(inventoryCurr/100)}억원으로 ${inventoryGrowth.toFixed(0)}% 증가. 재고회전율 악화 및 평가손실 리스크`
+      });
+      actions.push({
+        title: '재고 효율화',
+        desc: `시즌 오프 프로모션 강화, 발주 최적화, VMI 도입으로 재고회전일수 30일 단축 목표`
+      });
+    }
+    
+    // 차입금 분석
+    if (totalBorrowing > 100000 && borrowingsByEntity.length > 0) {
+      const topDebtor = borrowingsByEntity[0];
+      risks.push({
+        title: `${topDebtor.entity} 차입금 부담`,
+        desc: `${Math.round(topDebtor.debt/100)}억원 (전체 ${(topDebtor.debt/totalBorrowing*100).toFixed(0)}%), 이자비용 및 환위험 노출`
+      });
+      actions.push({
+        title: '차입금 감축',
+        desc: `${topDebtor.entity} 영업현금 창출 강화, 운전자본 효율화로 연간 ${Math.round(topDebtor.debt*0.3/100)}억원 상환 목표`
+      });
+    }
+    
+    // ROE 분석
+    if (roeChange < -3) {
+      risks.push({
+        title: 'ROE 하락',
+        desc: `${roeCurr.toFixed(1)}%로 ${Math.abs(roeChange).toFixed(1)}%p 하락. 자본 효율성 저하`
+      });
+      actions.push({
+        title: 'ROE 제고',
+        desc: `순이익률 개선 + 자산회전율 향상으로 ROE 15% 달성. 저효율 자산 매각 검토`
+      });
+    }
+    
+    // 운전자본 분석
+    const wcSalesRatio = salesCurr > 0 ? (workingCapitalCurr / salesCurr * 100) : 0;
+    if (wcSalesRatio > 50) {
+      risks.push({
+        title: '운전자본 과다',
+        desc: `${Math.round(workingCapitalCurr/100)}억원, 매출대비 ${wcSalesRatio.toFixed(0)}%. 자금 효율 저하`
+      });
+      actions.push({
+        title: '운전자본 최적화',
+        desc: `매출채권 회수기간 단축, 재고 감축, 매입채무 조건 개선으로 ${Math.round(workingCapitalCurr*0.2/100)}억원 절감`
+      });
+    }
+    
+    // 매출 성장 인사이트
+    if (salesGrowth < -10) {
+      risks.push({
+        title: '매출 역성장',
+        desc: `전년대비 ${Math.abs(salesGrowth).toFixed(1)}% 감소. 시장 점유율 하락 및 수요 위축`
+      });
+      actions.push({
+        title: '매출 회복',
+        desc: `신규 채널 확대, 온라인 강화, 해외시장 공략으로 연간 ${Math.abs(salesGrowth/2).toFixed(0)}% 성장률 회복 목표`
+      });
+    } else if (salesGrowth > 15) {
+      insights.push({
+        title: '매출 고성장',
+        desc: `전년대비 ${salesGrowth.toFixed(1)}% 증가. 시장 점유율 확대 및 브랜드 경쟁력 강화`
+      });
+    }
+    
+    // 9) 연결관점 개선 타겟 분석
+    // 수익성 개선 포텐셜이 큰 영역 파악
+    
+    // 타겟 1: 저수익 고매출 법인 수익성 개선
+    const highSalesLowMargin = entityProfitability.filter(e => e.sales > 100000 && e.margin < 20);
+    if (highSalesLowMargin.length > 0) {
+      const target = highSalesLowMargin[0];
+      const potentialIncrease = (target.sales * 0.05); // 영업이익률 5%p 개선 시
+      const roeImpact = totalEquityCurr > 0 ? (potentialIncrease / totalEquityCurr * 100) : 0;
+      improvementTargets.push({
+        area: `${target.entity} 수익성 집중 개선`,
+        current: `영업이익률 ${target.margin.toFixed(1)}%, 매출 ${Math.round(target.sales/100)}억원`,
+        target: `영업이익률 ${(target.margin + 5).toFixed(1)}% 달성`,
+        impact: `연결 영업이익 +${Math.round(potentialIncrease/100)}억원 (+${(potentialIncrease/opIncomeCurr*100).toFixed(1)}%), 영업이익률 +${(potentialIncrease/salesCurr*100).toFixed(1)}%p, ROE +${roeImpact.toFixed(1)}%p`,
+        method: `원가율 2%p 절감 (소싱 최적화, 로스율 감소), 판관비 매출대비 3%p 절감 (마케팅 ROI 개선, 인력 효율화), 고마진 제품 비중 20%→35% 확대`
+      });
+    }
+    
+    // 타겟 2: 매출총이익률이 낮은 경우 원가 개선
+    if (grossMarginCurr < 60) {
+      const targetGrossMargin = 65;
+      const potentialIncrease = salesCurr * (targetGrossMargin - grossMarginCurr) / 100;
+      const roeImpact = totalEquityCurr > 0 ? (potentialIncrease * 0.7 / totalEquityCurr * 100) : 0; // 세후 70%
+      improvementTargets.push({
+        area: '연결 매출총이익률 제고',
+        current: `매출총이익률 ${grossMarginCurr.toFixed(1)}%`,
+        target: `매출총이익률 ${targetGrossMargin}% 달성`,
+        impact: `매출총이익 +${Math.round(potentialIncrease/100)}억원, 영업이익률 +${((potentialIncrease*0.8)/salesCurr*100).toFixed(1)}%p, ROE +${roeImpact.toFixed(1)}%p`,
+        method: `중국 제조원가 5% 절감 (자동화 투자, 불량률 감소), 물류비 10% 절감 (직배송 확대), 고마진 라인 강화 (MLB, 디스커버리)`
+      });
+    }
+    
+    // 판관비 효율화 타겟
+    const highSGAItem = sgaBreakdown.find(x => x.salesRatio > 12 && x.change > 5);
+    if (highSGAItem) {
+      const targetReduction = highSGAItem.curr * 0.15; // 15% 절감 시
+      improvementTargets.push({
+        area: `${highSGAItem.item} 효율화`,
+        current: `매출대비 ${highSGAItem.salesRatio.toFixed(1)}%`,
+        target: `매출대비 ${(highSGAItem.salesRatio * 0.85).toFixed(1)}%`,
+        impact: `연결 영업이익 +${Math.round(targetReduction/100)}억원 (+${(targetReduction/opIncomeCurr*100).toFixed(1)}%)`,
+        method: '지출 승인 프로세스 강화, 대행사 통합, 성과 기반 집행'
+      });
+    }
+    
+    // 재고 효율화 타겟
+    if (inventoryGrowth > 20) {
+      const targetReduction = inventoryCurr * 0.25; // 25% 감축 시
+      const interestSaving = targetReduction * 0.05; // 연 5% 이자 절감
+      improvementTargets.push({
+        area: '재고자산 최적화',
+        current: `${Math.round(inventoryCurr/100)}억원 (전년대비 +${inventoryGrowth.toFixed(0)}%)`,
+        target: `${Math.round(inventoryCurr*0.75/100)}억원 (25% 감축)`,
+        impact: `운전자본 ${Math.round(targetReduction/100)}억원 절감, 이자비용 -${Math.round(interestSaving/100)}억원, ROE +${(interestSaving/totalEquityCurr*100).toFixed(1)}%p`,
+        method: '시즌별 재고 회전율 목표 관리, 프로모션 타이밍 최적화, 느린 상품 조기 할인'
+      });
+    }
+    
+    // 차입금 감축 타겟 (구체화)
+    if (totalBorrowing > 100000 && borrowingsByEntity.length > 0) {
+      const topDebtor = borrowingsByEntity[0];
+      const targetReduction = totalBorrowing * 0.5; // 50% 감축 시
+      const interestRate = 0.045; // 연 4.5% 가정
+      const interestSaving = targetReduction * interestRate; // 연 이자 절감
+      const netIncomIncrease = interestSaving * 0.73; // 세후 효과 (법인세율 27%)
+      const roeImpact = totalEquityCurr > 0 ? (netIncomIncrease / totalEquityCurr * 100) : 0;
+      
+      improvementTargets.push({
+        area: '차입금 전략적 감축',
+        current: `총 ${Math.round(totalBorrowing/100)}억원 (${topDebtor.entity} ${Math.round(topDebtor.debt/100)}억원, 부채비율 ${topDebtor.debtRatio.toFixed(0)}%)`,
+        target: `${Math.round(totalBorrowing*0.5/100)}억원으로 감축 (${topDebtor.entity} 우선 상환)`,
+        impact: `이자비용 -${Math.round(interestSaving/100)}억원/년, 당기순이익 +${Math.round(netIncomIncrease/100)}억원, 순이익률 +${(netIncomIncrease/salesCurr*100).toFixed(1)}%p, ROE +${roeImpact.toFixed(1)}%p, 부채비율 ${(debtRatioCurr - totalBorrowing*0.5/totalEquityCurr*100).toFixed(0)}%로 개선`,
+        method: `${topDebtor.entity} 재고 감축으로 현금 ${Math.round(topDebtor.debt*0.3/100)}억원 확보 + 영업이익 개선 + 본사 여유자금 ${Math.round(cashCurr*0.3/100)}억원 지원 + 저효율 자산 매각`
+      });
+    }
+    
+    // 운전자본 효율화 (구체화)
+    const wcTurnover = (salesCurr > 0 && workingCapitalCurr > 0) ? (salesCurr / workingCapitalCurr) : 0;
+    if (wcTurnover > 0 && wcTurnover < 3 && workingCapitalCurr > 100000) {
+      const targetWC = workingCapitalCurr * 0.7; // 30% 개선 시
+      const freedCash = workingCapitalCurr - targetWC;
+      const interestSaving = freedCash * 0.04; // 연 4% 절감 효과
+      const roeImpact = totalEquityCurr > 0 ? (interestSaving*0.73 / totalEquityCurr * 100) : 0;
+      
+      const arDaysStr = (arDays > 0 && arDays < 1000) ? `${Math.round(arDays)}→${Math.round(arDays*0.8)}일` : '단축';
+      const inventoryDaysStr = (inventoryDays > 0 && inventoryDays < 1000) ? `${Math.round(inventoryDays)}→${Math.round(inventoryDays*0.75)}일` : '단축';
+      const apDaysStr = (apDays > 0 && apDays < 1000) ? `${Math.round(apDays)}→${Math.round(apDays*1.1)}일` : '개선';
+      const cccStr = (cashConversionCycle > 0 && cashConversionCycle < 1000) ? `${Math.round(cashConversionCycle)}일` : '-';
+      const targetCccStr = (cashConversionCycle > 0 && cashConversionCycle < 1000) ? `${Math.round(cashConversionCycle*0.7)}일` : '개선';
+      
+      improvementTargets.push({
+        area: '운전자본 순환 효율화',
+        current: `${Math.round(workingCapitalCurr/100)}억원 (회전율 ${wcTurnover.toFixed(1)}회, CCC ${cccStr})`,
+        target: `${Math.round(targetWC/100)}억원 (회전율 ${(wcTurnover*1.43).toFixed(1)}회, CCC ${targetCccStr})`,
+        impact: `현금 ${Math.round(freedCash/100)}억원 확보, 금융비용 -${Math.round(interestSaving/100)}억원/년, 유동비율 개선, ROE +${roeImpact.toFixed(1)}%p`,
+        method: `매출채권: 회수기간 ${arDaysStr} (조기결제 할인, 신용관리), 재고: 회전일수 ${inventoryDaysStr} (재고 KPI 강화), 매입채무: ${apDaysStr} (지급조건 협상)`
+      });
+    }
+    
+    // 타겟 3: 법인별 불균형 해소
+    if (entityImbalance.length > 0 && entityProfitability.length > 0) {
+      const target = entityImbalance[0];
+      const profitGap = target.salesShare - target.profitShare;
+      const potentialIncrease = opIncomeCurr * (profitGap / 100);
+      const targetMargin = totalOpIncome > 0 ? (totalOpIncome / totalSales * 100) : 0;
+      
+      improvementTargets.push({
+        area: `${target.entity} 수익구조 정상화`,
+        current: `매출비중 ${target.salesShare.toFixed(0)}% vs 이익비중 ${target.profitShare.toFixed(0)}% (${profitGap.toFixed(0)}%p 괴리)`,
+        target: `이익 기여도를 매출 비중 수준으로 개선 (영업이익률 ${target.margin.toFixed(1)}%→${targetMargin.toFixed(1)}%)`,
+        impact: `연결 영업이익 +${Math.round(potentialIncrease/100)}억원, 영업이익률 +${(potentialIncrease/salesCurr*100).toFixed(1)}%p, ROE +${(potentialIncrease*0.73/totalEquityCurr*100).toFixed(1)}%p`,
+        method: `저마진 제품 단종/가격 인상, 고마진 법인(${entityProfitability[0].entity})의 운영 노하우 이전, 고정비 구조조정, 브랜드 포트폴리오 재편`
+      });
+    }
+    
+    // 우선순위 정렬 (영향도 큰 순)
+    return {
+      keyMetrics: {
+        opMargin: { curr: opMarginCurr, prev: opMarginPrev, change: opMarginChange },
+        netMargin: { curr: netMarginCurr, prev: netMarginPrev, change: netMarginChange },
+        debtRatio: { curr: debtRatioCurr, prev: debtRatioPrev, status: debtRatioCurr < 100 ? '안정' : '주의' },
+        roe: { curr: roeCurr, prev: roePrev, change: roeChange }
+      },
+      insights: insights.slice(0, 3),
+      risks: risks.slice(0, 3),
+      actions: actions.slice(0, 3),
+      improvementTargets: improvementTargets.slice(0, 4) // 상위 4개 개선 타겟
+    };
+  };
+
+  // ============================================
   // 전체요약 탭 렌더링
   // ============================================
   const renderSummaryTab = () => {
@@ -836,10 +1522,10 @@ export default function FnFQ4Dashboard() {
           
           {/* 전년 수치 및 차액 (한 줄) */}
           <div className="text-xs text-zinc-600 mb-3">
-            전년 {formattedPrev.number.replace('억원', '억')}
+            전년 {formattedPrev.number.replace('억원', '억')}억원
             {diff !== 0 && (
               <span className={`ml-1 font-medium ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {diff >= 0 ? '+' : ''}{formattedDiff.number.replace('억원', '억')}
+                {diff >= 0 ? '+' : ''}{formattedDiff.number.replace('억원', '억')}억원
               </span>
             )}
           </div>
@@ -895,127 +1581,239 @@ export default function FnFQ4Dashboard() {
             AI 분석
           </h3>
           <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-lg p-5 text-white shadow-lg">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-md">
-                <span className="text-white text-xs font-bold">AI</span>
-              </div>
-              <div>
-                <div className="text-sm font-semibold">F&F 2025년 연간 재무 종합 분석</div>
-                <div className="text-xs text-zinc-400">수익성 · 안정성 · 리스크 · 액션플랜</div>
-              </div>
-            </div>
-            
-            {/* 핵심 지표 요약 */}
-            <div className="grid grid-cols-4 gap-2 mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
-              <div className="text-center">
-                <div className="text-[10px] text-zinc-400 mb-0.5">영업이익률</div>
-                <div className="text-sm font-bold text-emerald-400">24.7%</div>
-                <div className="text-[10px] text-emerald-400">+0.9%p</div>
-              </div>
-              <div className="text-center border-l border-white/10">
-                <div className="text-[10px] text-zinc-400 mb-0.5">순이익률</div>
-                <div className="text-sm font-bold text-blue-400">18.1%</div>
-                <div className="text-[10px] text-rose-400">-0.7%p</div>
-              </div>
-              <div className="text-center border-l border-white/10">
-                <div className="text-[10px] text-zinc-400 mb-0.5">부채비율</div>
-                <div className="text-sm font-bold text-amber-400">48.0%</div>
-                <div className="text-[10px] text-emerald-400">안정</div>
-              </div>
-              <div className="text-center border-l border-white/10">
-                <div className="text-[10px] text-zinc-400 mb-0.5">ROE</div>
-                <div className="text-sm font-bold text-violet-400">12.9%</div>
-                <div className="text-[10px] text-rose-400">-5.7%p</div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {/* 주요 인사이트 */}
-              <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  <span className="text-xs font-semibold text-emerald-400">주요 인사이트</span>
-                </div>
-                <ul className="text-xs text-zinc-300 space-y-1.5">
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <span><strong className="text-white">수익성 개선:</strong> 매출 28% 감소에도 영업이익률 24.7%로 0.9%p 상승, 비용 효율화 성공</span>
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <span><strong className="text-white">현금창출력 강화:</strong> 현금성자산 2,072억원으로 73% 증가, 유동성 대폭 개선</span>
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <span><strong className="text-white">무차입 경영:</strong> 국내법인 차입금 전액 상환, 재무건전성 강화</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* 리스크 분석 */}
-              <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-2 h-2 rounded-full bg-rose-400"></span>
-                  <span className="text-xs font-semibold text-rose-400">리스크 분석</span>
-                </div>
-                <ul className="text-xs text-zinc-300 space-y-1.5">
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-rose-400 mt-0.5">⚠</span>
-                    <span><strong className="text-white">매출 역성장:</strong> 전년대비 28.3% 감소, 중국·국내 모두 부진. 소비 심리 위축 영향</span>
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-rose-400 mt-0.5">⚠</span>
-                    <span><strong className="text-white">재고 부담:</strong> 재고자산 42.9% 급증(5,707억원), 재고회전율 악화 우려</span>
-                  </li>
-                  <li className="flex items-start gap-1.5">
-                    <span className="text-rose-400 mt-0.5">⚠</span>
-                    <span><strong className="text-white">중국 리스크:</strong> 중국법인 차입금 1,606억원, 환율 및 정책 변동성 노출</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* 액션 플랜 */}
-            <div className="p-3 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-lg border border-blue-400/30">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-violet-400"></span>
-                <span className="text-xs font-semibold text-violet-400">전략적 액션 플랜</span>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-2 bg-white/5 rounded">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-blue-400 text-sm">📈</span>
-                    <span className="text-[11px] font-semibold text-blue-400">성장 전략</span>
+            {(() => {
+              try {
+                const analysis = generateAIAnalysis();
+                if (!analysis || !analysis.keyMetrics) {
+                  return <div className="text-xs text-zinc-400">데이터를 불러오는 중...</div>;
+                }
+                const { keyMetrics, insights = [], risks = [], actions = [], improvementTargets = [] } = analysis;
+              
+              return (
+                <>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-md">
+                      <span className="text-white text-xs font-bold">AI</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold">F&F {selectedPeriod ? selectedPeriod.split('_')[0] : '2025'}년 재무 종합 분석</div>
+                      <div className="text-xs text-zinc-400">수익성 · 안정성 · 리스크 · 액션플랜</div>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-zinc-300 leading-relaxed">
-                    MLB 브랜드 글로벌 확장 가속화, 동남아·유럽 시장 진출 통한 중국 의존도 분산
-                  </p>
-                </div>
-                <div className="p-2 bg-white/5 rounded">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-amber-400 text-sm">📦</span>
-                    <span className="text-[11px] font-semibold text-amber-400">운영 효율화</span>
+                  
+                  {/* 핵심 지표 요약 (동적) */}
+                  <div className="grid grid-cols-4 gap-2 mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                    <div className="text-center">
+                      <div className="text-[10px] text-zinc-400 mb-0.5">영업이익률</div>
+                      <div className={`text-sm font-bold ${keyMetrics.opMargin.change >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {keyMetrics.opMargin.curr.toFixed(1)}%
+                      </div>
+                      <div className={`text-[10px] ${keyMetrics.opMargin.change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {keyMetrics.opMargin.change >= 0 ? '+' : ''}{keyMetrics.opMargin.change.toFixed(1)}%p
+                      </div>
+                    </div>
+                    <div className="text-center border-l border-white/10">
+                      <div className="text-[10px] text-zinc-400 mb-0.5">순이익률</div>
+                      <div className={`text-sm font-bold ${keyMetrics.netMargin.change >= 0 ? 'text-emerald-400' : 'text-blue-400'}`}>
+                        {keyMetrics.netMargin.curr.toFixed(1)}%
+                      </div>
+                      <div className={`text-[10px] ${keyMetrics.netMargin.change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {keyMetrics.netMargin.change >= 0 ? '+' : ''}{keyMetrics.netMargin.change.toFixed(1)}%p
+                      </div>
+                    </div>
+                    <div className="text-center border-l border-white/10">
+                      <div className="text-[10px] text-zinc-400 mb-0.5">부채비율</div>
+                      <div className={`text-sm font-bold ${keyMetrics.debtRatio.curr < 100 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {keyMetrics.debtRatio.curr.toFixed(1)}%
+                      </div>
+                      <div className="text-[10px] text-emerald-400">{keyMetrics.debtRatio.status}</div>
+                    </div>
+                    <div className="text-center border-l border-white/10">
+                      <div className="text-[10px] text-zinc-400 mb-0.5">ROE</div>
+                      <div className={`text-sm font-bold ${keyMetrics.roe.change >= 0 ? 'text-emerald-400' : 'text-violet-400'}`}>
+                        {keyMetrics.roe.curr.toFixed(1)}%
+                      </div>
+                      <div className={`text-[10px] ${keyMetrics.roe.change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {keyMetrics.roe.change >= 0 ? '+' : ''}{keyMetrics.roe.change.toFixed(1)}%p
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-zinc-300 leading-relaxed">
-                    재고회전율 개선 위한 프로모션 확대, 시즌별 발주량 최적화 및 SCM 고도화
-                  </p>
-                </div>
-                <div className="p-2 bg-white/5 rounded">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-emerald-400 text-sm">💰</span>
-                    <span className="text-[11px] font-semibold text-emerald-400">자본 활용</span>
-                  </div>
-                  <p className="text-[10px] text-zinc-300 leading-relaxed">
-                    풍부한 현금(2,072억)을 활용한 신규 브랜드 인수 또는 주주환원 정책 강화 검토
-                  </p>
-                </div>
-              </div>
-            </div>
 
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-              <span className="text-[10px] text-zinc-500">AI 분석은 참고용이며 투자 조언이 아닙니다</span>
-              <span className="text-[10px] text-zinc-500">2025년 연간 실적 기준</span>
-            </div>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {/* 주요 인사이트 (동적) */}
+                    <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span className="text-xs font-semibold text-emerald-400">주요 인사이트</span>
+                      </div>
+                      {insights.length > 0 ? (
+                        <ul className="text-xs text-zinc-300 space-y-1.5">
+                          {insights.map((insight, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5">
+                              <span className="text-emerald-400 mt-0.5">•</span>
+                              <span><strong className="text-white">{insight.title}:</strong> {insight.desc}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-zinc-400 italic">긍정적 인사이트를 발견하지 못했습니다.</p>
+                      )}
+                    </div>
+
+                    {/* 리스크 분석 (동적) */}
+                    <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+                        <span className="text-xs font-semibold text-rose-400">리스크 분석</span>
+                      </div>
+                      {risks.length > 0 ? (
+                        <ul className="text-xs text-zinc-300 space-y-1.5">
+                          {risks.map((risk, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5">
+                              <span className="text-rose-400 mt-0.5">⚠</span>
+                              <span><strong className="text-white">{risk.title}:</strong> {risk.desc}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-zinc-400 italic">주요 리스크가 발견되지 않았습니다.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 액션 플랜 (동적) */}
+                  <div className="p-3 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-lg border border-blue-400/30 mb-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-violet-400"></span>
+                      <span className="text-xs font-semibold text-violet-400">전략적 액션 플랜</span>
+                    </div>
+                    {actions.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-3">
+                        {actions.map((action, idx) => (
+                          <div key={idx} className="p-2 bg-white/5 rounded">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="text-blue-400 text-sm">
+                                {idx === 0 ? '🎯' : idx === 1 ? '⚡' : '💡'}
+                              </span>
+                              <span className="text-[11px] font-semibold text-blue-400">{action.title}</span>
+                            </div>
+                            <p className="text-[10px] text-zinc-300 leading-relaxed">
+                              {action.desc}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-zinc-400 italic">전략적 액션이 필요하지 않습니다.</p>
+                    )}
+                  </div>
+
+                  {/* 연결관점 개선 타겟 (신규) */}
+                  {improvementTargets && improvementTargets.length > 0 && (
+                    <div className="p-4 bg-gradient-to-br from-violet-500/10 to-blue-500/10 rounded-lg border border-violet-400/20">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="w-2 h-2 rounded-full bg-violet-400"></span>
+                        <span className="text-xs font-semibold text-violet-400">연결관점 수익성·안정성 개선 타겟</span>
+                        <span className="text-[10px] text-zinc-400 ml-auto">우선순위 순</span>
+                      </div>
+                      <div className="space-y-2.5">
+                        {improvementTargets.map((target, idx) => (
+                          <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
+                            <div className="flex items-start gap-2 mb-2">
+                              <div className="flex-shrink-0 w-5 h-5 rounded bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white text-[10px] font-bold">
+                                {idx + 1}
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-xs font-semibold text-white mb-1">{target.area}</div>
+                                <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
+                                  <div className="p-1.5 bg-white/5 rounded">
+                                    <span className="text-zinc-400">현재: </span>
+                                    <span className="text-zinc-200">{target.current}</span>
+                                  </div>
+                                  <div className="p-1.5 bg-white/5 rounded">
+                                    <span className="text-zinc-400">목표: </span>
+                                    <span className="text-emerald-400 font-semibold">{target.target}</span>
+                                  </div>
+                                </div>
+                                <div className="p-2 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded border border-emerald-400/20 mb-1.5">
+                                  <div className="text-[10px] text-emerald-400 font-semibold mb-0.5">📊 예상 효과</div>
+                                  <div className="text-[10px] text-zinc-200">{target.impact}</div>
+                                </div>
+                                <div className="p-2 bg-white/5 rounded">
+                                  <div className="text-[10px] text-blue-400 font-semibold mb-0.5">🔧 실행 방안</div>
+                                  <div className="text-[10px] text-zinc-300 leading-relaxed">{target.method}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* 종합 개선 효과 */}
+                      {improvementTargets.length > 1 && (() => {
+                        // 전체 개선 효과 계산
+                        const totalOpIncomeIncrease = improvementTargets.reduce((sum, t) => {
+                          const match = t.impact.match(/영업이익 \+(\d+)억원/);
+                          return sum + (match ? parseInt(match[1]) : 0);
+                        }, 0);
+                        const totalRoeIncrease = improvementTargets.reduce((sum, t) => {
+                          const match = t.impact.match(/ROE \+(\d+\.?\d*)%p/);
+                          return sum + (match ? parseFloat(match[1]) : 0);
+                        }, 0);
+                        const currentOpMargin = keyMetrics.opMargin.curr;
+                        const currentRoe = keyMetrics.roe.curr;
+                        const targetOpMargin = currentOpMargin + (totalOpIncomeIncrease * 100 / (incomeStatementData[getPeriodKey(selectedPeriod, 'year')]?.매출액 || 1));
+                        const targetRoe = currentRoe + totalRoeIncrease;
+                        
+                        return (
+                          <div className="mt-3 p-3 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-lg border border-emerald-400/30">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-emerald-400 text-sm">✨</span>
+                              <span className="text-[11px] font-semibold text-emerald-400">전체 실행 시 예상 효과</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                              <div className="p-2 bg-white/5 rounded">
+                                <div className="text-[10px] text-zinc-400 mb-0.5">영업이익 증가</div>
+                                <div className="text-xs font-bold text-emerald-400">+{totalOpIncomeIncrease}억원</div>
+                                <div className="text-[10px] text-zinc-300">
+                                  {currentOpMargin.toFixed(1)}% → {targetOpMargin.toFixed(1)}% (+{(targetOpMargin - currentOpMargin).toFixed(1)}%p)
+                                </div>
+                              </div>
+                              <div className="p-2 bg-white/5 rounded">
+                                <div className="text-[10px] text-zinc-400 mb-0.5">ROE 개선</div>
+                                <div className="text-xs font-bold text-blue-400">+{totalRoeIncrease.toFixed(1)}%p</div>
+                                <div className="text-[10px] text-zinc-300">
+                                  {currentRoe.toFixed(1)}% → {targetRoe.toFixed(1)}%
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-[10px] text-zinc-200 leading-relaxed">
+                              {improvementTargets.length}개 타겟 순차 실행으로 {selectedPeriod && selectedPeriod.split('_')[0] === '2025' ? '2026' : (selectedPeriod ? (Number(selectedPeriod.split('_')[0]) + 1) : '내년')}년 
+                              업계 최고 수준의 재무구조 달성 가능. 
+                              우선순위: ① 재고 효율화 (즉시 효과) → ② 수익성 개선 (6개월) → ③ 차입금 감축 (12개월)
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+                    <span className="text-[10px] text-zinc-500">AI 분석은 참고용이며 투자 조언이 아닙니다</span>
+                    <span className="text-[10px] text-zinc-500">{selectedPeriod ? `${selectedPeriod.split('_')[0]}년 ${selectedPeriod.split('_')[1]} 기준` : '데이터 기준'}</span>
+                  </div>
+                </>
+              );
+              } catch (error) {
+                console.error('AI 분석 오류:', error);
+                return (
+                  <div className="p-4 text-center">
+                    <div className="text-sm text-rose-400 mb-2">⚠️ 분석 중 오류가 발생했습니다</div>
+                    <div className="text-xs text-zinc-400">{error.message || '알 수 없는 오류'}</div>
+                  </div>
+                );
+              }
+            })()}
           </div>
         </div>
       </div>
@@ -1042,192 +1840,9 @@ export default function FnFQ4Dashboard() {
       return (diff >= 0 ? '+' : '') + diff.toFixed(1) + '%p';
     };
 
-    // 법인별 데이터 (선택된 과목에 따라) - 분기 및 누적
-    // 주의: 법인별 데이터는 연결조정 전 법인별 합산 기준 (연간 누적)
-    // entity_is_data.json에서 변환: China -> 중국, Sergio + 기타 -> 기타
-    const entityData = {
-      '매출액': {
-        '2024_1Q': { 'OC(국내)': 388852, '중국': 238976, '홍콩': 22211, '기타': 9926 },
-        '2024_1Q_Year': { 'OC(국내)': 388852, '중국': 238976, '홍콩': 22211, '기타': 9926 },
-        '2024_2Q': { 'OC(국내)': 275632, '중국': 154544, '홍콩': 16965, '기타': 11200 },
-        '2024_2Q_Year': { 'OC(국내)': 664484, '중국': 393520, '홍콩': 39176, '기타': 21126 },
-        '2024_3Q': { 'OC(국내)': 417280, '중국': 250154, '홍콩': 15559, '기타': 17473 },
-        '2024_3Q_Year': { 'OC(국내)': 1081765, '중국': 643675, '홍콩': 54736, '기타': 38599 },
-        '2024_4Q': { 'OC(국내)': 436230, '중국': 214166, '홍콩': 20299, '기타': 11221 },
-        '2024_Year': { 'OC(국내)': 1517994, '중국': 857840, '홍콩': 75035, '기타': 49820 },
-        '2025_1Q': { 'OC(국내)': 396770, '중국': 258540, '홍콩': 20663, '기타': 9432 },
-        '2025_1Q_Year': { 'OC(국내)': 396770, '중국': 258540, '홍콩': 20663, '기타': 9432 },
-        '2025_2Q': { 'OC(국내)': 307393, '중국': 170703, '홍콩': 15742, '기타': 10275 },
-        '2025_2Q_Year': { 'OC(국내)': 704163, '중국': 429243, '홍콩': 36405, '기타': 19708 },
-        '2025_3Q': { 'OC(국내)': 510671, '중국': 283919, '홍콩': 16908, '기타': 18838 },
-        '2025_3Q_Year': { 'OC(국내)': 1214834, '중국': 713162, '홍콩': 53313, '기타': 38547 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 1214834, '중국': 713162, '홍콩': 53313, '기타': 38547 },
-      },
-      '매출원가': {
-        '2024_1Q': { 'OC(국내)': 147628, '중국': 173679, '홍콩': 9231, '기타': 4830 },
-        '2024_1Q_Year': { 'OC(국내)': 147628, '중국': 173679, '홍콩': 9231, '기타': 4830 },
-        '2024_2Q': { 'OC(국내)': 89806, '중국': 103635, '홍콩': 7228, '기타': 5609 },
-        '2024_2Q_Year': { 'OC(국내)': 237433, '중국': 277315, '홍콩': 16460, '기타': 10439 },
-        '2024_3Q': { 'OC(국내)': 158791, '중국': 198826, '홍콩': 7135, '기타': 15991 },
-        '2024_3Q_Year': { 'OC(국내)': 396225, '중국': 476141, '홍콩': 23595, '기타': 26430 },
-        '2024_4Q': { 'OC(국내)': 147388, '중국': 188025, '홍콩': 8472, '기타': 9945 },
-        '2024_Year': { 'OC(국내)': 543613, '중국': 664166, '홍콩': 32067, '기타': 36374 },
-        '2025_1Q': { 'OC(국내)': 145093, '중국': 203778, '홍콩': 9671, '기타': 3643 },
-        '2025_1Q_Year': { 'OC(국내)': 145093, '중국': 203778, '홍콩': 9671, '기타': 3643 },
-        '2025_2Q': { 'OC(국내)': 102778, '중국': 135222, '홍콩': 6988, '기타': 4565 },
-        '2025_2Q_Year': { 'OC(국내)': 247871, '중국': 339000, '홍콩': 16659, '기타': 8208 },
-        '2025_3Q': { 'OC(국내)': 202041, '중국': 208506, '홍콩': 8019, '기타': 7562 },
-        '2025_3Q_Year': { 'OC(국내)': 449912, '중국': 547506, '홍콩': 24679, '기타': 15770 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 449912, '중국': 547506, '홍콩': 24679, '기타': 15770 },
-      },
-      '매출총이익': {
-        '2024_1Q': { 'OC(국내)': 241224, '중국': 65297, '홍콩': 12980, '기타': 5096 },
-        '2024_1Q_Year': { 'OC(국내)': 241224, '중국': 65297, '홍콩': 12980, '기타': 5096 },
-        '2024_2Q': { 'OC(국내)': 185827, '중국': 50908, '홍콩': 9737, '기타': 5591 },
-        '2024_2Q_Year': { 'OC(국내)': 427051, '중국': 116206, '홍콩': 22717, '기타': 10687 },
-        '2024_3Q': { 'OC(국내)': 258489, '중국': 51328, '홍콩': 8424, '기타': 1481 },
-        '2024_3Q_Year': { 'OC(국내)': 685540, '중국': 167533, '홍콩': 31141, '기타': 12168 },
-        '2024_4Q': { 'OC(국내)': 288842, '중국': 26141, '홍콩': 11827, '기타': 1276 },
-        '2024_Year': { 'OC(국내)': 974382, '중국': 193674, '홍콩': 42968, '기타': 13445 },
-        '2025_1Q': { 'OC(국내)': 251677, '중국': 54762, '홍콩': 10992, '기타': 5789 },
-        '2025_1Q_Year': { 'OC(국내)': 251677, '중국': 54762, '홍콩': 10992, '기타': 5789 },
-        '2025_2Q': { 'OC(국내)': 204615, '중국': 35481, '홍콩': 8754, '기타': 5712 },
-        '2025_2Q_Year': { 'OC(국내)': 456292, '중국': 90244, '홍콩': 19746, '기타': 11501 },
-        '2025_3Q': { 'OC(국내)': 308630, '중국': 75413, '홍콩': 8889, '기타': 11276 },
-        '2025_3Q_Year': { 'OC(국내)': 764922, '중국': 165656, '홍콩': 28634, '기타': 22777 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 764922, '중국': 165656, '홍콩': 28634, '기타': 22777 },
-      },
-      '인건비': {
-        '2024_1Q': { 'OC(국내)': 9937, '중국': 6513, '홍콩': 1928, '기타': 1229 },
-        '2024_1Q_Year': { 'OC(국내)': 9937, '중국': 6513, '홍콩': 1928, '기타': 1229 },
-        '2024_2Q': { 'OC(국내)': 11939, '중국': 6389, '홍콩': 1977, '기타': 1627 },
-        '2024_2Q_Year': { 'OC(국내)': 21876, '중국': 12901, '홍콩': 3906, '기타': 2856 },
-        '2024_3Q': { 'OC(국내)': 10188, '중국': 6043, '홍콩': 1724, '기타': 1893 },
-        '2024_3Q_Year': { 'OC(국내)': 32064, '중국': 18944, '홍콩': 5630, '기타': 4749 },
-        '2024_4Q': { 'OC(국내)': 11627, '중국': 7185, '홍콩': 2181, '기타': 1570 },
-        '2024_Year': { 'OC(국내)': 43692, '중국': 26130, '홍콩': 7811, '기타': 6319 },
-        '2025_1Q': { 'OC(국내)': 9755, '중국': 7851, '홍콩': 2410, '기타': 1515 },
-        '2025_1Q_Year': { 'OC(국내)': 9755, '중국': 7851, '홍콩': 2410, '기타': 1515 },
-        '2025_2Q': { 'OC(국내)': 10693, '중국': 7020, '홍콩': 1718, '기타': 1305 },
-        '2025_2Q_Year': { 'OC(국내)': 20448, '중국': 14870, '홍콩': 4128, '기타': 2819 },
-        '2025_3Q': { 'OC(국내)': 9633, '중국': 6734, '홍콩': 2156, '기타': 1610 },
-        '2025_3Q_Year': { 'OC(국내)': 30082, '중국': 21604, '홍콩': 6284, '기타': 4429 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 30082, '중국': 21604, '홍콩': 6284, '기타': 4429 },
-      },
-      '광고선전비': {
-        '2024_1Q': { 'OC(국내)': 10689, '중국': 12045, '홍콩': 422, '기타': 940 },
-        '2024_1Q_Year': { 'OC(국내)': 10689, '중국': 12045, '홍콩': 422, '기타': 940 },
-        '2024_2Q': { 'OC(국내)': 9145, '중국': 5745, '홍콩': 635, '기타': 1430 },
-        '2024_2Q_Year': { 'OC(국내)': 19835, '중국': 17790, '홍콩': 1057, '기타': 2371 },
-        '2024_3Q': { 'OC(국내)': 7102, '중국': 10839, '홍콩': 415, '기타': 1546 },
-        '2024_3Q_Year': { 'OC(국내)': 26937, '중국': 28628, '홍콩': 1472, '기타': 3917 },
-        '2024_4Q': { 'OC(국내)': 13418, '중국': 16640, '홍콩': 542, '기타': 1579 },
-        '2024_Year': { 'OC(국내)': 40355, '중국': 45269, '홍콩': 2014, '기타': 5496 },
-        '2025_1Q': { 'OC(국내)': 8143, '중국': 14554, '홍콩': 534, '기타': 1379 },
-        '2025_1Q_Year': { 'OC(국내)': 8143, '중국': 14554, '홍콩': 534, '기타': 1379 },
-        '2025_2Q': { 'OC(국내)': 8488, '중국': 9119, '홍콩': 554, '기타': 1386 },
-        '2025_2Q_Year': { 'OC(국내)': 16631, '중국': 23672, '홍콩': 1088, '기타': 2765 },
-        '2025_3Q': { 'OC(국내)': 6683, '중국': 16328, '홍콩': 585, '기타': 1462 },
-        '2025_3Q_Year': { 'OC(국내)': 23314, '중국': 40000, '홍콩': 1673, '기타': 4227 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 23314, '중국': 40000, '홍콩': 1673, '기타': 4227 },
-      },
-      '수수료': {
-        '2024_1Q': { 'OC(국내)': 103398, '중국': 11140, '홍콩': 4655, '기타': 2205 },
-        '2024_1Q_Year': { 'OC(국내)': 103398, '중국': 11140, '홍콩': 4655, '기타': 2205 },
-        '2024_2Q': { 'OC(국내)': 89436, '중국': 8168, '홍콩': 1479, '기타': 2829 },
-        '2024_2Q_Year': { 'OC(국내)': 192834, '중국': 19308, '홍콩': 6133, '기타': 5035 },
-        '2024_3Q': { 'OC(국내)': 82954, '중국': 8951, '홍콩': 811, '기타': 2866 },
-        '2024_3Q_Year': { 'OC(국내)': 275788, '중국': 28260, '홍콩': 6944, '기타': 7900 },
-        '2024_4Q': { 'OC(국내)': 121114, '중국': 13237, '홍콩': 1689, '기타': -469 },
-        '2024_Year': { 'OC(국내)': 396902, '중국': 41497, '홍콩': 8633, '기타': 7432 },
-        '2025_1Q': { 'OC(국내)': 98102, '중국': 13152, '홍콩': 2341, '기타': 1523 },
-        '2025_1Q_Year': { 'OC(국내)': 98102, '중국': 13152, '홍콩': 2341, '기타': 1523 },
-        '2025_2Q': { 'OC(국내)': 82021, '중국': 10209, '홍콩': 1841, '기타': 1844 },
-        '2025_2Q_Year': { 'OC(국내)': 180123, '중국': 23360, '홍콩': 4182, '기타': 3367 },
-        '2025_3Q': { 'OC(국내)': 78829, '중국': 11034, '홍콩': 2221, '기타': 1788 },
-        '2025_3Q_Year': { 'OC(국내)': 258952, '중국': 34395, '홍콩': 6403, '기타': 5156 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 258952, '중국': 34395, '홍콩': 6403, '기타': 5156 },
-      },
-      '감가상각비': {
-        '2024_1Q': { 'OC(국내)': 10414, '중국': 5333, '홍콩': 3793, '기타': 327 },
-        '2024_1Q_Year': { 'OC(국내)': 10414, '중국': 5333, '홍콩': 3793, '기타': 327 },
-        '2024_2Q': { 'OC(국내)': 10778, '중국': 6017, '홍콩': 3760, '기타': 262 },
-        '2024_2Q_Year': { 'OC(국내)': 21192, '중국': 11350, '홍콩': 7552, '기타': 590 },
-        '2024_3Q': { 'OC(국내)': 11822, '중국': 6248, '홍콩': 3540, '기타': 313 },
-        '2024_3Q_Year': { 'OC(국내)': 33014, '중국': 17598, '홍콩': 11093, '기타': 902 },
-        '2024_4Q': { 'OC(국내)': 12447, '중국': 6712, '홍콩': 3264, '기타': 282 },
-        '2024_Year': { 'OC(국내)': 45461, '중국': 24311, '홍콩': 14357, '기타': 1184 },
-        '2025_1Q': { 'OC(국내)': 12795, '중국': 7629, '홍콩': 3123, '기타': 284 },
-        '2025_1Q_Year': { 'OC(국내)': 12795, '중국': 7629, '홍콩': 3123, '기타': 284 },
-        '2025_2Q': { 'OC(국내)': 13173, '중국': 6121, '홍콩': 1876, '기타': 292 },
-        '2025_2Q_Year': { 'OC(국내)': 25968, '중국': 13750, '홍콩': 5000, '기타': 576 },
-        '2025_3Q': { 'OC(국내)': 12850, '중국': 5468, '홍콩': 3009, '기타': 290 },
-        '2025_3Q_Year': { 'OC(국내)': 38819, '중국': 19219, '홍콩': 8009, '기타': 867 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 38819, '중국': 19219, '홍콩': 8009, '기타': 867 },
-      },
-      '기타판관비': {
-        '2024_1Q': { 'OC(국내)': 11331, '중국': 5585, '홍콩': 1532, '기타': 978 },
-        '2024_1Q_Year': { 'OC(국내)': 11331, '중국': 5585, '홍콩': 1532, '기타': 978 },
-        '2024_2Q': { 'OC(국내)': 10450, '중국': 3883, '홍콩': 1390, '기타': 973 },
-        '2024_2Q_Year': { 'OC(국내)': 21781, '중국': 9469, '홍콩': 2921, '기타': 1952 },
-        '2024_3Q': { 'OC(국내)': 9320, '중국': 5952, '홍콩': 1478, '기타': 1074 },
-        '2024_3Q_Year': { 'OC(국내)': 31101, '중국': 15420, '홍콩': 4400, '기타': 3025 },
-        '2024_4Q': { 'OC(국내)': 14464, '중국': 4950, '홍콩': 2397, '기타': 1893 },
-        '2024_Year': { 'OC(국내)': 45565, '중국': 20370, '홍콩': 6797, '기타': 4918 },
-        '2025_1Q': { 'OC(국내)': 10904, '중국': 5466, '홍콩': 2581, '기타': 1618 },
-        '2025_1Q_Year': { 'OC(국내)': 10904, '중국': 5466, '홍콩': 2581, '기타': 1618 },
-        '2025_2Q': { 'OC(국내)': 9640, '중국': 3353, '홍콩': 2577, '기타': 1649 },
-        '2025_2Q_Year': { 'OC(국내)': 20544, '중국': 8820, '홍콩': 5158, '기타': 3267 },
-        '2025_3Q': { 'OC(국내)': 8066, '중국': 5795, '홍콩': 2164, '기타': 3459 },
-        '2025_3Q_Year': { 'OC(국내)': 28610, '중국': 14615, '홍콩': 7323, '기타': 6726 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 28610, '중국': 14615, '홍콩': 7323, '기타': 6726 },
-      },
-      '영업이익': {
-        '2024_1Q': { 'OC(국내)': 95454, '중국': 24682, '홍콩': 650, '기타': -583 },
-        '2024_1Q_Year': { 'OC(국내)': 95454, '중국': 24682, '홍콩': 650, '기타': -583 },
-        '2024_2Q': { 'OC(국내)': 54079, '중국': 20706, '홍콩': 497, '기타': -1531 },
-        '2024_2Q_Year': { 'OC(국내)': 149533, '중국': 45387, '홍콩': 1147, '기타': -2114 },
-        '2024_3Q': { 'OC(국내)': 137103, '중국': 13296, '홍콩': 455, '기타': -6210 },
-        '2024_3Q_Year': { 'OC(국내)': 286636, '중국': 58683, '홍콩': 1602, '기타': -8324 },
-        '2024_4Q': { 'OC(국내)': 115771, '중국': -22584, '홍콩': 1754, '기타': -3579 },
-        '2024_Year': { 'OC(국내)': 402407, '중국': 36099, '홍콩': 3357, '기타': -11903 },
-        '2025_1Q': { 'OC(국내)': 111978, '중국': 6110, '홍콩': 3, '기타': -529 },
-        '2025_1Q_Year': { 'OC(국내)': 111978, '중국': 6110, '홍콩': 3, '기타': -529 },
-        '2025_2Q': { 'OC(국내)': 80600, '중국': -340, '홍콩': 187, '기타': -765 },
-        '2025_2Q_Year': { 'OC(국내)': 192577, '중국': 5770, '홍콩': 190, '기타': -1294 },
-        '2025_3Q': { 'OC(국내)': 192568, '중국': 30053, '홍콩': -1246, '기타': 2667 },
-        '2025_3Q_Year': { 'OC(국내)': 385145, '중국': 35823, '홍콩': -1056, '기타': 1372 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 385145, '중국': 35823, '홍콩': -1056, '기타': 1372 },
-      },
-      '당기순이익': {
-        '2024_1Q': { 'OC(국내)': 72187, '중국': 18059, '홍콩': 319, '기타': -820 },
-        '2024_1Q_Year': { 'OC(국내)': 72187, '중국': 18059, '홍콩': 319, '기타': -820 },
-        '2024_2Q': { 'OC(국내)': 48504, '중국': 15349, '홍콩': 267, '기타': -2445 },
-        '2024_2Q_Year': { 'OC(국내)': 120691, '중국': 33409, '홍콩': 586, '기타': -3265 },
-        '2024_3Q': { 'OC(국내)': 105886, '중국': 9479, '홍콩': 2, '기타': -9957 },
-        '2024_3Q_Year': { 'OC(국내)': 226577, '중국': 42887, '홍콩': 588, '기타': -13222 },
-        '2024_4Q': { 'OC(국내)': 96955, '중국': -17665, '홍콩': 1540, '기타': -9135 },
-        '2024_Year': { 'OC(국내)': 323532, '중국': 25222, '홍콩': 2128, '기타': -22358 },
-        '2025_1Q': { 'OC(국내)': 79838, '중국': 3693, '홍콩': -173, '기타': -4775 },
-        '2025_1Q_Year': { 'OC(국내)': 79838, '중국': 3693, '홍콩': -173, '기타': -4775 },
-        '2025_2Q': { 'OC(국내)': 64206, '중국': -1457, '홍콩': 397, '기타': -4516 },
-        '2025_2Q_Year': { 'OC(국내)': 144044, '중국': 2236, '홍콩': 224, '기타': -9292 },
-        '2025_3Q': { 'OC(국내)': 150942, '중국': 21686, '홍콩': -1312, '기타': -259 },
-        '2025_3Q_Year': { 'OC(국내)': 294987, '중국': 23922, '홍콩': -1087, '기타': -9551 },
-        '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, '기타': 0 },
-        '2025_Year': { 'OC(국내)': 294987, '중국': 23922, '홍콩': -1087, '기타': -9551 },
-      },
-    };
-
+    // 법인별 데이터는 컴포넌트 상위 레벨에서 정의됨 (entityData)
+    // 아래 중복 정의는 제거됨 - 상위 레벨의 entityData 사용
+    
     // 현재 모드에 따른 기간 설정 (선택된 기간 기준)
     const getCurrentPeriodKey = () => {
       if (incomeViewMode === 'quarter') {
@@ -1540,11 +2155,30 @@ export default function FnFQ4Dashboard() {
               rateDiff = (parseFloat(currRate) - parseFloat(prevRate)).toFixed(1);
             }
             
+            // 조단위 포맷 함수 (억원 단위 입력) - 숫자와 단위 분리 반환
+            const formatTrilBilSummary = (valueInBil) => {
+              if (valueInBil === 0 || valueInBil === undefined || valueInBil === null) return { number: '-', unit: '' };
+              const absValue = Math.abs(valueInBil);
+              const sign = valueInBil < 0 ? '-' : '';
+              
+              if (absValue >= 10000) {
+                const tril = Math.floor(absValue / 10000);
+                const bil = Math.round(absValue % 10000);
+                return { number: `${sign}${tril}조 ${formatNumber(bil)}`, unit: '억원' };
+              }
+              return { number: `${sign}${formatNumber(Math.round(absValue))}`, unit: '억원' };
+            };
+            
+            const formatted = formatTrilBilSummary(currBil);
+            const formattedPrev = formatTrilBilSummary(prevBil);
+            const formattedDiff = formatTrilBilSummary(diffBil);
+            
             return (
               <div 
                 key={idx}
-                className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-all duration-200"
+                className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200"
               >
+                {/* 헤더: 제목과 증감률 박스 */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{card.title}</span>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
@@ -1554,30 +2188,34 @@ export default function FnFQ4Dashboard() {
                   </span>
                 </div>
                 
-                {/* 금액 (억원 단위 + 조단위 표기) */}
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-zinc-900 tracking-tight">{formatTrilBil(currBil)}</span>
-                  <span className="text-sm font-normal text-zinc-400">억원</span>
+                {/* 당년 수치 */}
+                <div className="flex items-baseline gap-1 mb-3">
+                  <span className="text-2xl font-bold text-zinc-900">{formatted.number}</span>
+                  <span className="text-sm font-normal text-zinc-400">{formatted.unit}</span>
                 </div>
                 
-                {/* 전년동기 & 증감 */}
-                <div className="flex items-center gap-2 mt-1 text-xs">
-                  <span className="text-zinc-400">전년 {formatTrilBil(prevBil)}억</span>
-                  <span className={`font-semibold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {diffBil >= 0 ? '+' : ''}{formatTrilBil(diffBil)}억
-                  </span>
+                {/* 전년 수치 및 차액 (한 줄) */}
+                <div className="text-xs text-zinc-600 mb-3">
+                  전년 {formattedPrev.number.replace('억원', '억')}억원
+                  {diffBil !== 0 && (
+                    <span className={`ml-1 font-medium ${diffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {diffBil >= 0 ? '+' : ''}{formattedDiff.number.replace('억원', '억')}억원
+                    </span>
+                  )}
                 </div>
                 
                 {/* 비율 (해당되는 경우) */}
                 {card.hasRate && (
-                  <div className="mt-3 pt-3 border-t border-zinc-100">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-zinc-400">{card.rateLabel}</span>
+                  <div className="pt-3 border-t border-zinc-100">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-zinc-400">{card.rateLabel}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-bold text-zinc-900">{currRate}%</span>
-                        <span className={`text-xs font-semibold ${parseFloat(rateDiff) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {parseFloat(rateDiff) >= 0 ? '+' : ''}{rateDiff}%p
-                        </span>
+                        <span className="text-zinc-900 font-semibold">{currRate}%</span>
+                        {rateDiff !== null && parseFloat(rateDiff) !== 0 && (
+                          <span className={`text-xs font-medium ${parseFloat(rateDiff) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {parseFloat(rateDiff) >= 0 ? '+' : ''}{rateDiff}%p
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2031,86 +2669,158 @@ export default function FnFQ4Dashboard() {
       { key: '자본총계', label: '자본총계', bold: true, highlight: 'green' },
     ];
 
-    // 법인별 데이터 (재무상태표용) - 엑셀에서 추출한 실제 데이터
+    // 법인별 데이터 (재무상태표용) - CSV에서 추출한 실제 데이터
     const entityBSData = {
+      '2024_1Q': {
+        현금성자산: { 'OC(국내)': 291693, 중국: 12162, 홍콩: 4132, ST미국: 22754 },
+        매출채권: { 'OC(국내)': 109224, 중국: 7225, 홍콩: 3399, ST미국: 3441 },
+        재고자산: { 'OC(국내)': 232095, 중국: 136110, 홍콩: 33179, ST미국: 4244 },
+        유무형자산: { 'OC(국내)': 197870, 중국: 9894, 홍콩: 3591, ST미국: 64546 },
+        사용권자산: { 'OC(국내)': 182423, 중국: 62091, 홍콩: 36179, ST미국: 2573 },
+        차입금: { 'OC(국내)': 0, 중국: 72442, 홍콩: 0, ST미국: 9051 },
+        매입채무: { 'OC(국내)': 69104, 중국: 5104, 홍콩: 45034, ST미국: 1191 },
+        자산총계: { 'OC(국내)': 1765417, 중국: 271920, 홍콩: 64615, ST미국: 99288 },
+        부채총계: { 'OC(국내)': 492867, 중국: 201248, 홍콩: 64061, ST미국: 14432 },
+        자본총계: { 'OC(국내)': 1272550, 중국: 70672, 홍콩: 554, ST미국: 84856 },
+      },
+      '2024_2Q': {
+        현금성자산: { 'OC(국내)': 161519, 중국: 27175, 홍콩: 3743, ST미국: 23099 },
+        매출채권: { 'OC(국내)': 91507, 중국: 7183, 홍콩: 2816, ST미국: 5174 },
+        재고자산: { 'OC(국내)': 207444, 중국: 115040, 홍콩: 30582, ST미국: 4806 },
+        유무형자산: { 'OC(국내)': 251498, 중국: 10189, 홍콩: 3419, ST미국: 66586 },
+        사용권자산: { 'OC(국내)': 181318, 중국: 73343, 홍콩: 35860, ST미국: 2654 },
+        차입금: { 'OC(국내)': 0, 중국: 0, 홍콩: 0, ST미국: 9440 },
+        매입채무: { 'OC(국내)': 48681, 중국: 1415, 홍콩: 42027, ST미국: 3799 },
+        자산총계: { 'OC(국내)': 1636710, 중국: 243233, 홍콩: 59168, ST미국: 105286 },
+        부채총계: { 'OC(국내)': 330928, 중국: 155343, 홍콩: 58441, ST미국: 17169 },
+        자본총계: { 'OC(국내)': 1305782, 중국: 87890, 홍콩: 727, ST미국: 88118 },
+      },
+      '2024_3Q': {
+        현금성자산: { 'OC(국내)': 142325, 중국: 24304, 홍콩: 3061, ST미국: 19294 },
+        매출채권: { 'OC(국내)': 137912, 중국: 81857, 홍콩: 2230, ST미국: 6587 },
+        재고자산: { 'OC(국내)': 247068, 중국: 174481, 홍콩: 34086, ST미국: 5150 },
+        유무형자산: { 'OC(국내)': 345549, 중국: 9901, 홍콩: 2659, ST미국: 63244 },
+        사용권자산: { 'OC(국내)': 185625, 중국: 77192, 홍콩: 36969, ST미국: 2521 },
+        차입금: { 'OC(국내)': 0, 중국: 86820, 홍콩: 0, ST미국: 10398 },
+        매입채무: { 'OC(국내)': 115166, 중국: 63397, 홍콩: 43473, ST미국: 1942 },
+        자산총계: { 'OC(국내)': 1806476, 중국: 363370, 홍콩: 59839, ST미국: 97845 },
+        부채총계: { 'OC(국내)': 397220, 중국: 266874, 홍콩: 59025, ST미국: 16360 },
+        자본총계: { 'OC(국내)': 1409256, 중국: 96496, 홍콩: 814, ST미국: 81486 },
+      },
       '2024_4Q': {
         현금성자산: { 'OC(국내)': 61500, 중국: 29229, 홍콩: 6073, ST미국: 22881 },
         매출채권: { 'OC(국내)': 134453, 중국: 40081, 홍콩: 3967, ST미국: 7463 },
         재고자산: { 'OC(국내)': 214281, 중국: 141223, 홍콩: 35205, ST미국: 8723 },
         유무형자산: { 'OC(국내)': 609769, 중국: 10416, 홍콩: 2479, ST미국: 70443 },
-        사용권자산: { 'OC(국내)': 146365, 중국: 47203, 홍콩: 11426, ST미국: 1315 },
-        차입금: { 'OC(국내)': 45000, 중국: 100635, 홍콩: 0, ST미국: 0 },
+        사용권자산: { 'OC(국내)': 183782, 중국: 93085, 홍콩: 43127, ST미국: 2809 },
+        차입금: { 'OC(국내)': 45000, 중국: 100635, 홍콩: 0, ST미국: 16128 },
         매입채무: { 'OC(국내)': 79795, 중국: 17885, 홍콩: 47089, ST미국: 6030 },
         자산총계: { 'OC(국내)': 1923504, 중국: 336611, 홍콩: 67244, ST미국: 112329 },
         부채총계: { 'OC(국내)': 429786, 중국: 252897, 홍콩: 64912, ST미국: 26968 },
         자본총계: { 'OC(국내)': 1493718, 중국: 83714, 홍콩: 2333, ST미국: 85361 },
+      },
+      '2025_1Q': {
+        현금성자산: { 'OC(국내)': 79496, 중국: 60404, 홍콩: 7022, ST미국: 16283 },
+        매출채권: { 'OC(국내)': 123193, 중국: 20896, 홍콩: 2465, ST미국: 8621 },
+        재고자산: { 'OC(국내)': 214607, 중국: 123617, 홍콩: 33553, ST미국: 9993 },
+        유무형자산: { 'OC(국내)': 611019, 중국: 9130, 홍콩: 1887, ST미국: 70268 },
+        사용권자산: { 'OC(국내)': 187827, 중국: 64626, 홍콩: 28845, ST미국: 1788 },
+        차입금: { 'OC(국내)': 20000, 중국: 56470, 홍콩: 0, ST미국: 19935 },
+        매입채무: { 'OC(국내)': 69813, 중국: 28622, 홍콩: 44833, ST미국: 3153 },
+        자산총계: { 'OC(국내)': 1944504, 중국: 290073, 홍콩: 65030, ST미국: 108362 },
+        부채총계: { 'OC(국내)': 435129, 중국: 202453, 홍콩: 62976, ST미국: 27826 },
+        자본총계: { 'OC(국내)': 1509375, 중국: 87621, 홍콩: 2054, ST미국: 80536 },
+      },
+      '2025_2Q': {
+        현금성자산: { 'OC(국내)': 88735, 중국: 20311, 홍콩: 4732, ST미국: 12241 },
+        매출채권: { 'OC(국내)': 81953, 중국: 8793, 홍콩: 3324, ST미국: 7117 },
+        재고자산: { 'OC(국내)': 199308, 중국: 113822, 홍콩: 29260, ST미국: 9317 },
+        유무형자산: { 'OC(국내)': 607960, 중국: 7699, 홍콩: 2490, ST미국: 64980 },
+        사용권자산: { 'OC(국내)': 188380, 중국: 54824, 홍콩: 25337, ST미국: 1653 },
+        차입금: { 'OC(국내)': 0, 중국: 32157, 홍콩: 0, ST미국: 18641 },
+        매입채무: { 'OC(국내)': 53644, 중국: 10263, 홍콩: 39679, ST미국: 3362 },
+        자산총계: { 'OC(국내)': 1891404, 중국: 231683, 홍콩: 56311, ST미국: 99662 },
+        부채총계: { 'OC(국내)': 318573, 중국: 150855, 홍콩: 52987, ST미국: 25993 },
+        자본총계: { 'OC(국내)': 1572831, 중국: 80828, 홍콩: 3324, ST미국: 73668 },
+      },
+      '2025_3Q': {
+        현금성자산: { 'OC(국내)': 182075, 중국: 9318, 홍콩: 4446, ST미국: 11400 },
+        매출채권: { 'OC(국내)': 205309, 중국: 97531, 홍콩: 2871, ST미국: 16277 },
+        재고자산: { 'OC(국내)': 242024, 중국: 281973, 홍콩: 34165, ST미국: 12558 },
+        유무형자산: { 'OC(국내)': 605413, 중국: 8114, 홍콩: 3290, ST미국: 67161 },
+        사용권자산: { 'OC(국내)': 186612, 중국: 56782, 홍콩: 37937, ST미국: 1709 },
+        차입금: { 'OC(국내)': 0, 중국: 160605, 홍콩: 0, ST미국: 25140 },
+        매입채무: { 'OC(국내)': 139941, 중국: 131315, 홍콩: 47089, ST미국: 3739 },
+        자산총계: { 'OC(국내)': 2145196, 중국: 495765, 홍콩: 71221, ST미국: 111397 },
+        부채총계: { 'OC(국내)': 423707, 중국: 389821, 홍콩: 69512, ST미국: 32762 },
+        자본총계: { 'OC(국내)': 1721489, 중국: 105943, 홍콩: 1710, ST미국: 78635 },
       },
     };
 
     // 분기별 법인별 추이 데이터 (24.1Q ~ 25.4Q)
     const quarterlyEntityData = {
       현금성자산: [
-        { quarter: '24.1Q', 'OC(국내)': 85000, 중국: 35000, 기타: 25000 },
-        { quarter: '24.2Q', 'OC(국내)': 78000, 중국: 32000, 기타: 28000 },
-        { quarter: '24.3Q', 'OC(국내)': 72000, 중국: 30000, 기타: 26000 },
-        { quarter: '24.4Q', 'OC(국내)': 61500, 중국: 29229, 기타: 28954 },
-        { quarter: '25.1Q', 'OC(국내)': 95000, 중국: 25000, 기타: 22000 },
-        { quarter: '25.2Q', 'OC(국내)': 120000, 중국: 18000, 기타: 20000 },
-        { quarter: '25.3Q', 'OC(국내)': 150000, 중국: 12000, 기타: 18000 },
+        { quarter: '24.1Q', 'OC(국내)': 291693, 중국: 12162, 기타: 30852 },
+        { quarter: '24.2Q', 'OC(국내)': 161519, 중국: 27175, 기타: 31918 },
+        { quarter: '24.3Q', 'OC(국내)': 142325, 중국: 24304, 기타: 27134 },
+        { quarter: '24.4Q', 'OC(국내)': 61500, 중국: 29229, 기타: 32444 },
+        { quarter: '25.1Q', 'OC(국내)': 79496, 중국: 60404, 기타: 24144 },
+        { quarter: '25.2Q', 'OC(국내)': 88735, 중국: 20311, 기타: 17394 },
+        { quarter: '25.3Q', 'OC(국내)': 182075, 중국: 9318, 기타: 16892 },
       ],
       매출채권: [
-        { quarter: '24.1Q', 'OC(국내)': 120000, 중국: 35000, 기타: 10000 },
-        { quarter: '24.2Q', 'OC(국내)': 125000, 중국: 38000, 기타: 11000 },
-        { quarter: '24.3Q', 'OC(국내)': 130000, 중국: 39000, 기타: 11200 },
-        { quarter: '24.4Q', 'OC(국내)': 134453, 중국: 40081, 기타: 11430 },
-        { quarter: '25.1Q', 'OC(국내)': 145000, 중국: 55000, 기타: 14000 },
-        { quarter: '25.2Q', 'OC(국내)': 165000, 중국: 70000, 기타: 16000 },
-        { quarter: '25.3Q', 'OC(국내)': 185000, 중국: 85000, 기타: 18000 },
+        { quarter: '24.1Q', 'OC(국내)': 109224, 중국: 7225, 기타: 11233 },
+        { quarter: '24.2Q', 'OC(국내)': 91507, 중국: 7183, 기타: 11546 },
+        { quarter: '24.3Q', 'OC(국내)': 137912, 중국: 81857, 기타: 15304 },
+        { quarter: '24.4Q', 'OC(국내)': 134453, 중국: 40081, 기타: 18050 },
+        { quarter: '25.1Q', 'OC(국내)': 123193, 중국: 20896, 기타: 11603 },
+        { quarter: '25.2Q', 'OC(국내)': 81953, 중국: 8793, 기타: 11029 },
+        { quarter: '25.3Q', 'OC(국내)': 205309, 중국: 97531, 기타: 19691 },
       ],
       재고자산: [
-        { quarter: '24.1Q', 'OC(국내)': 180000, 중국: 100000, 기타: 38000 },
-        { quarter: '24.2Q', 'OC(국내)': 190000, 중국: 115000, 기타: 40000 },
-        { quarter: '24.3Q', 'OC(국내)': 200000, 중국: 128000, 기타: 42000 },
+        { quarter: '24.1Q', 'OC(국내)': 232095, 중국: 136110, 기타: 37423 },
+        { quarter: '24.2Q', 'OC(국내)': 207444, 중국: 115040, 기타: 35388 },
+        { quarter: '24.3Q', 'OC(국내)': 247068, 중국: 174481, 기타: 39236 },
         { quarter: '24.4Q', 'OC(국내)': 214281, 중국: 141223, 기타: 43928 },
-        { quarter: '25.1Q', 'OC(국내)': 220000, 중국: 180000, 기타: 44000 },
-        { quarter: '25.2Q', 'OC(국내)': 228000, 중국: 220000, 기타: 45000 },
-        { quarter: '25.3Q', 'OC(국내)': 235000, 중국: 250000, 기타: 46000 },
+        { quarter: '25.1Q', 'OC(국내)': 214607, 중국: 123617, 기타: 43546 },
+        { quarter: '25.2Q', 'OC(국내)': 199308, 중국: 113822, 기타: 38577 },
+        { quarter: '25.3Q', 'OC(국내)': 242024, 중국: 281973, 기타: 46723 },
       ],
       유무형자산: [
-        { quarter: '24.1Q', 'OC(국내)': 620000, 중국: 12000, 기타: 74000 },
-        { quarter: '24.2Q', 'OC(국내)': 618000, 중국: 11500, 기타: 73500 },
-        { quarter: '24.3Q', 'OC(국내)': 614000, 중국: 11000, 기타: 73000 },
-        { quarter: '24.4Q', 'OC(국내)': 609769, 중국: 10416, 기타: 72922 },
-        { quarter: '25.1Q', 'OC(국내)': 608000, 중국: 9800, 기타: 72000 },
-        { quarter: '25.2Q', 'OC(국내)': 607000, 중국: 9200, 기타: 71000 },
-        { quarter: '25.3Q', 'OC(국내)': 606000, 중국: 8600, 기타: 70500 },
+        { quarter: '24.1Q', 'OC(국내)': 197870, 중국: 9894, 기타: 68713 },
+        { quarter: '24.2Q', 'OC(국내)': 251498, 중국: 10189, 기타: 70542 },
+        { quarter: '24.3Q', 'OC(국내)': 345549, 중국: 9901, 기타: 66407 },
+        { quarter: '24.4Q', 'OC(국내)': 609769, 중국: 10416, 기타: 73425 },
+        { quarter: '25.1Q', 'OC(국내)': 611019, 중국: 9130, 기타: 72558 },
+        { quarter: '25.2Q', 'OC(국내)': 607960, 중국: 7699, 기타: 67842 },
+        { quarter: '25.3Q', 'OC(국내)': 605413, 중국: 8114, 기타: 71004 },
       ],
       사용권자산: [
-        { quarter: '24.1Q', 'OC(국내)': 155000, 중국: 52000, 기타: 14000 },
-        { quarter: '24.2Q', 'OC(국내)': 152000, 중국: 50000, 기타: 13500 },
-        { quarter: '24.3Q', 'OC(국내)': 149000, 중국: 48500, 기타: 13000 },
-        { quarter: '24.4Q', 'OC(국내)': 146365, 중국: 47203, 기타: 12741 },
-        { quarter: '25.1Q', 'OC(국내)': 143000, 중국: 42000, 기타: 15000 },
-        { quarter: '25.2Q', 'OC(국내)': 140000, 중국: 38000, 기타: 17000 },
-        { quarter: '25.3Q', 'OC(국내)': 138000, 중국: 34000, 기타: 18500 },
+        { quarter: '24.1Q', 'OC(국내)': 182423, 중국: 62091, 기타: 41112 },
+        { quarter: '24.2Q', 'OC(국내)': 181318, 중국: 73343, 기타: 40874 },
+        { quarter: '24.3Q', 'OC(국내)': 185625, 중국: 77192, 기타: 42094 },
+        { quarter: '24.4Q', 'OC(국내)': 183782, 중국: 93085, 기타: 48578 },
+        { quarter: '25.1Q', 'OC(국내)': 187827, 중국: 64626, 기타: 33029 },
+        { quarter: '25.2Q', 'OC(국내)': 188380, 중국: 54824, 기타: 29404 },
+        { quarter: '25.3Q', 'OC(국내)': 186612, 중국: 56782, 기타: 42060 },
       ],
       차입금: [
-        { quarter: '24.1Q', 'OC(국내)': 60000, 중국: 80000, 기타: 0 },
-        { quarter: '24.2Q', 'OC(국내)': 55000, 중국: 88000, 기타: 0 },
-        { quarter: '24.3Q', 'OC(국내)': 50000, 중국: 95000, 기타: 0 },
-        { quarter: '24.4Q', 'OC(국내)': 45000, 중국: 100635, 기타: 0 },
-        { quarter: '25.1Q', 'OC(국내)': 30000, 중국: 120000, 기타: 0 },
-        { quarter: '25.2Q', 'OC(국내)': 15000, 중국: 140000, 기타: 0 },
-        { quarter: '25.3Q', 'OC(국내)': 5000, 중국: 150000, 기타: 0 },
+        { quarter: '24.1Q', 'OC(국내)': 0, 중국: 72442, 기타: 19871 },
+        { quarter: '24.2Q', 'OC(국내)': 0, 중국: 0, 기타: 20260 },
+        { quarter: '24.3Q', 'OC(국내)': 0, 중국: 86820, 기타: 26418 },
+        { quarter: '24.4Q', 'OC(국내)': 45000, 중국: 100635, 기타: 33248 },
+        { quarter: '25.1Q', 'OC(국내)': 20000, 중국: 56470, 기타: 40635 },
+        { quarter: '25.2Q', 'OC(국내)': 0, 중국: 32157, 기타: 41841 },
+        { quarter: '25.3Q', 'OC(국내)': 0, 중국: 160605, 기타: 49840 },
       ],
       매입채무: [
-        { quarter: '24.1Q', 'OC(국내)': 65000, 중국: 12000, 기타: 48000 },
-        { quarter: '24.2Q', 'OC(국내)': 70000, 중국: 14000, 기타: 50000 },
-        { quarter: '24.3Q', 'OC(국내)': 75000, 중국: 16000, 기타: 52000 },
-        { quarter: '24.4Q', 'OC(국내)': 79795, 중국: 17885, 기타: 53119 },
-        { quarter: '25.1Q', 'OC(국내)': 95000, 중국: 50000, 기타: 52000 },
-        { quarter: '25.2Q', 'OC(국내)': 110000, 중국: 80000, 기타: 51500 },
-        { quarter: '25.3Q', 'OC(국내)': 125000, 중국: 105000, 기타: 51000 },
+        { quarter: '24.1Q', 'OC(국내)': 69104, 중국: 5104, 기타: 46999 },
+        { quarter: '24.2Q', 'OC(국내)': 48681, 중국: 1415, 기타: 46111 },
+        { quarter: '24.3Q', 'OC(국내)': 115166, 중국: 63397, 기타: 45417 },
+        { quarter: '24.4Q', 'OC(국내)': 79795, 중국: 17885, 기타: 53121 },
+        { quarter: '25.1Q', 'OC(국내)': 69813, 중국: 28622, 기타: 47991 },
+        { quarter: '25.2Q', 'OC(국내)': 53644, 중국: 10263, 기타: 43041 },
+        { quarter: '25.3Q', 'OC(국내)': 139941, 중국: 131315, 기타: 50833 },
       ],
     };
 
