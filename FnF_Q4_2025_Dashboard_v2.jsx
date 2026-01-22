@@ -1915,26 +1915,26 @@ export default function FnFQ4Dashboard() {
                   <div className="p-3 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-lg border border-blue-400/30 mb-3">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="w-2 h-2 rounded-full bg-violet-400"></span>
-                      <span className="text-xs font-semibold text-violet-400">전략적 액션 플랜</span>
+                      <span className="text-sm font-semibold text-violet-400">전략적 액션 플랜</span>
                     </div>
                     {actions.length > 0 ? (
                       <div className="grid grid-cols-3 gap-3">
                         {actions.map((action, idx) => (
                           <div key={idx} className="p-2 bg-white/5 rounded">
                             <div className="flex items-center gap-1.5 mb-1">
-                              <span className="text-blue-400 text-sm">
+                              <span className="text-blue-400 text-base">
                                 {idx === 0 ? '🎯' : idx === 1 ? '⚡' : '💡'}
                               </span>
-                              <span className="text-[11px] font-semibold text-blue-400">{action.title}</span>
+                              <span className="text-sm font-semibold text-blue-400">{action.title}</span>
                             </div>
-                            <p className="text-[10px] text-zinc-300 leading-relaxed">
+                            <p className="text-xs text-zinc-300 leading-relaxed">
                               {action.desc}
                             </p>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-zinc-400 italic">전략적 액션이 필요하지 않습니다.</p>
+                      <p className="text-sm text-zinc-400 italic">전략적 액션이 필요하지 않습니다.</p>
                     )}
                   </div>
 
@@ -1943,19 +1943,19 @@ export default function FnFQ4Dashboard() {
                     <div className="p-4 bg-gradient-to-br from-violet-500/10 to-blue-500/10 rounded-lg border border-violet-400/20">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="w-2 h-2 rounded-full bg-violet-400"></span>
-                        <span className="text-xs font-semibold text-violet-400">연결관점 수익성·안정성 개선 타겟</span>
-                        <span className="text-[10px] text-zinc-400 ml-auto">우선순위 순</span>
+                        <span className="text-sm font-semibold text-violet-400">연결관점 수익성·안정성 개선 타겟</span>
+                        <span className="text-xs text-zinc-400 ml-auto">우선순위 순</span>
                       </div>
                       <div className="space-y-2.5">
                         {improvementTargets.map((target, idx) => (
                           <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
                             <div className="flex items-start gap-2 mb-2">
-                              <div className="flex-shrink-0 w-5 h-5 rounded bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white text-[10px] font-bold">
+                              <div className="flex-shrink-0 w-6 h-6 rounded bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
                                 {idx + 1}
                               </div>
                               <div className="flex-1">
-                                <div className="text-xs font-semibold text-white mb-1">{target.area}</div>
-                                <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
+                                <div className="text-sm font-semibold text-white mb-1">{target.area}</div>
+                                <div className="grid grid-cols-2 gap-2 text-xs mb-2">
                                   <div className="p-1.5 bg-white/5 rounded">
                                     <span className="text-zinc-400">현재: </span>
                                     <span className="text-zinc-200">{target.current}</span>
@@ -1966,12 +1966,12 @@ export default function FnFQ4Dashboard() {
                                   </div>
                                 </div>
                                 <div className="p-2 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded border border-emerald-400/20 mb-1.5">
-                                  <div className="text-[10px] text-emerald-400 font-semibold mb-0.5">📊 예상 효과</div>
-                                  <div className="text-[10px] text-zinc-200">{target.impact}</div>
+                                  <div className="text-xs text-emerald-400 font-semibold mb-0.5">📊 예상 효과</div>
+                                  <div className="text-xs text-zinc-200">{target.impact}</div>
                                 </div>
                                 <div className="p-2 bg-white/5 rounded">
-                                  <div className="text-[10px] text-blue-400 font-semibold mb-0.5">🔧 실행 방안</div>
-                                  <div className="text-[10px] text-zinc-300 leading-relaxed">{target.method}</div>
+                                  <div className="text-xs text-blue-400 font-semibold mb-0.5">🔧 실행 방안</div>
+                                  <div className="text-xs text-zinc-300 leading-relaxed">{target.method}</div>
                                 </div>
                               </div>
                             </div>
@@ -1998,26 +1998,26 @@ export default function FnFQ4Dashboard() {
                         return (
                           <div className="mt-3 p-3 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-lg border border-emerald-400/30">
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="text-emerald-400 text-sm">✨</span>
-                              <span className="text-[11px] font-semibold text-emerald-400">전체 실행 시 예상 효과</span>
+                              <span className="text-emerald-400 text-base">✨</span>
+                              <span className="text-sm font-semibold text-emerald-400">전체 실행 시 예상 효과</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2 mb-2">
                               <div className="p-2 bg-white/5 rounded">
-                                <div className="text-[10px] text-zinc-400 mb-0.5">영업이익 증가</div>
-                                <div className="text-xs font-bold text-emerald-400">+{totalOpIncomeIncrease}억원</div>
-                                <div className="text-[10px] text-zinc-300">
+                                <div className="text-xs text-zinc-400 mb-0.5">영업이익 증가</div>
+                                <div className="text-sm font-bold text-emerald-400">+{totalOpIncomeIncrease}억원</div>
+                                <div className="text-xs text-zinc-300">
                                   {currentOpMargin.toFixed(1)}% → {targetOpMargin.toFixed(1)}% (+{(targetOpMargin - currentOpMargin).toFixed(1)}%p)
                                 </div>
                               </div>
                               <div className="p-2 bg-white/5 rounded">
-                                <div className="text-[10px] text-zinc-400 mb-0.5">ROE 개선</div>
-                                <div className="text-xs font-bold text-blue-400">+{totalRoeIncrease.toFixed(1)}%p</div>
-                                <div className="text-[10px] text-zinc-300">
+                                <div className="text-xs text-zinc-400 mb-0.5">ROE 개선</div>
+                                <div className="text-sm font-bold text-blue-400">+{totalRoeIncrease.toFixed(1)}%p</div>
+                                <div className="text-xs text-zinc-300">
                                   {currentRoe.toFixed(1)}% → {targetRoe.toFixed(1)}%
                                 </div>
                               </div>
                             </div>
-                            <div className="text-[10px] text-zinc-200 leading-relaxed">
+                            <div className="text-xs text-zinc-200 leading-relaxed">
                               {improvementTargets.length}개 타겟 순차 실행으로 {selectedPeriod && selectedPeriod.split('_')[0] === '2025' ? '2026' : (selectedPeriod ? (Number(selectedPeriod.split('_')[0]) + 1) : '내년')}년 
                               업계 최고 수준의 재무구조 달성 가능. 
                               우선순위: ① 재고 효율화 (즉시 효과) → ② 수익성 개선 (6개월) → ③ 차입금 감축 (12개월)
@@ -3515,40 +3515,26 @@ export default function FnFQ4Dashboard() {
     <div className="min-h-screen bg-zinc-50">
       <div className="max-w-6xl mx-auto p-4">
         {/* 헤더 */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-zinc-900 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-base">F&F</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
-                <p className="text-sm text-zinc-500">
-                  {(() => {
-                    const [yearStr, qStr] = selectedPeriod.split('_');
-                    const quarterNum = (qStr || 'Q4').replace('Q', '');
-                    return `${yearStr} ${quarterNum}Q`;
-                  })()} 연결 재무제표
-                </p>
-              </div>
+        <div className="mb-12">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-zinc-900 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-base">F&F</span>
             </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-1.5 bg-zinc-900 text-white text-xs font-medium rounded border-none outline-none cursor-pointer hover:bg-zinc-800 transition-colors"
-              >
-                <option value="2025_Q1">FY2025 1Q</option>
-                <option value="2025_Q2">FY2025 2Q</option>
-                <option value="2025_Q3">FY2025 3Q</option>
-                <option value="2025_Q4">FY2025 4Q</option>
-              </select>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
+              <p className="text-sm text-zinc-500">
+                {(() => {
+                  const [yearStr, qStr] = selectedPeriod.split('_');
+                  const quarterNum = (qStr || 'Q4').replace('Q', '');
+                  return `${yearStr} ${quarterNum}Q`;
+                })()} 연결 재무제표
+              </p>
             </div>
           </div>
         </div>
 
-        {/* 탭 네비게이션 */}
-        <div className="mb-4">
+        {/* 탭 네비게이션 및 기간 선택 */}
+        <div className="mb-6 flex items-center justify-between">
           <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200">
             {tabs.map((tab) => (
               <button
@@ -3563,6 +3549,18 @@ export default function FnFQ4Dashboard() {
                 {tab.label}
               </button>
             ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="px-3 py-1.5 bg-zinc-900 text-white text-xs font-medium rounded border-none outline-none cursor-pointer hover:bg-zinc-800 transition-colors"
+            >
+              <option value="2025_Q1">FY2025 1Q</option>
+              <option value="2025_Q2">FY2025 2Q</option>
+              <option value="2025_Q3">FY2025 3Q</option>
+              <option value="2025_Q4">FY2025 4Q</option>
+            </select>
           </div>
         </div>
 
