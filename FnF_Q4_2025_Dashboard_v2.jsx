@@ -67,6 +67,7 @@ export default function FnFQ4Dashboard() {
   const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
   const [incomeEditData, setIncomeEditData] = useState({}); // 손익계산서 편집 데이터 {entity: {amount, rate, contribution}}
   const [bsEditData, setBsEditData] = useState({}); // 재무상태표 편집 데이터
+  const [bsCompareMode, setBsCompareMode] = useState('prevYearEnd'); // 'sameQuarter' (동분기) | 'prevYearEnd' (전기말)
 
   // ============================================
   // 기간 매핑 함수
@@ -116,10 +117,21 @@ export default function FnFQ4Dashboard() {
 
   // ============================================
   // 재무상태표 조회 기준(컴포넌트 전역)
-  // - 재무상태표는 선택 분기 기말 vs 전년 기말 비교
+  // - 동분기: 전년 동분기 비교 (예: 2024.3Q vs 2025.3Q)
+  // - 전기말: 전년 기말 비교 (예: 2024.4Q vs 2025.3Q)
   // ============================================
   const bsCurrentPeriod = getPeriodKey(selectedPeriod, 'quarter'); // 선택된 분기 기말
-  const bsPrevPeriod = '2024_4Q'; // 전년 기말 (고정)
+  // bsCompareMode에 따라 비교 기간 결정
+  const bsPrevPeriod = bsCompareMode === 'sameQuarter' 
+    ? getPeriodKey(selectedPeriod, 'prev_quarter') // 전년 동분기 (예: 2024_3Q)
+    : '2024_4Q'; // 전기말 (고정)
+  
+  // 비교 기간 라벨 생성 (UI 표시용)
+  const getBsPeriodLabel = (period) => {
+    if (!period) return '';
+    const [year, q] = period.split('_');
+    return `${year}.${q}`;
+  };
 
     // ============================================
   // 손익계산서 데이터 - 분기(3개월) + 누적(연간) 통합 (CSV 기반)
@@ -3456,7 +3468,7 @@ export default function FnFQ4Dashboard() {
                 
                 <div className="flex items-center gap-2 mt-1 text-xs">
                   <span className="text-zinc-400">
-                    전년 {card.isRatio ? `${prev}%` : `${card.useTril ? formatTrilBil(prev) : formatNumber(Math.round(prev))}${card.unit || ''}`}
+                    {getBsPeriodLabel(bsPrevPeriod)} {card.isRatio ? `${prev}%` : `${card.useTril ? formatTrilBil(prev) : formatNumber(Math.round(prev))}${card.unit || ''}`}
                   </span>
                   {!card.isRatio && (
                     <span className={`font-semibold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -3475,21 +3487,42 @@ export default function FnFQ4Dashboard() {
           <div className="flex-1 min-w-0">
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
-                <h3 className="text-sm font-semibold text-zinc-900">연결 재무상태표</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-sm font-semibold text-zinc-900">연결 재무상태표</h3>
+                  </div>
+                  {/* 동분기/전기말 선택 버튼 */}
+                  <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200">
+                    <button
+                      onClick={() => setBsCompareMode('sameQuarter')}
+                      className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${
+                        bsCompareMode === 'sameQuarter'
+                          ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-700'
+                      }`}
+                    >
+                      동분기
+                    </button>
+                    <button
+                      onClick={() => setBsCompareMode('prevYearEnd')}
+                      className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${
+                        bsCompareMode === 'prevYearEnd'
+                          ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-700'
+                      }`}
+                    >
+                      전기말
+                    </button>
+                  </div>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-zinc-50 border-b border-zinc-200">
                       <th className="text-left px-3 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[175px]">과목</th>
-                      <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">2024.4Q</th>
-                      <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">
-                        {(() => {
-                          const [yearStr, qStr] = selectedPeriod.split('_');
-                          const quarterNum = (qStr || 'Q4').replace('Q', '');
-                          return `${yearStr}.${quarterNum}Q`;
-                        })()}
-                      </th>
+                      <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(bsPrevPeriod)}</th>
+                      <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">{getBsPeriodLabel(bsCurrentPeriod)}</th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
                       <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
                     </tr>
@@ -3632,9 +3665,9 @@ export default function FnFQ4Dashboard() {
               
               {/* 도넛 차트 영역 */}
               <div className="flex justify-around mt-4">
-                {/* 2024년 도넛 */}
+                {/* 비교 기준 기간 도넛 */}
                 <div className="text-center">
-                  <p className="text-xs font-medium text-zinc-500 mb-2">2024.4Q</p>
+                  <p className="text-xs font-medium text-zinc-500 mb-2">{getBsPeriodLabel(bsPrevPeriod)}</p>
                   <div style={{ width: 120, height: 120 }}>
                     {donutData2024.length > 0 ? (
                       <PieChart width={120} height={120}>
@@ -3709,8 +3742,8 @@ export default function FnFQ4Dashboard() {
                 <thead>
                   <tr className="bg-zinc-50 border-b border-zinc-200">
                     <th className="text-left px-3 py-2 font-semibold text-zinc-600 min-w-[80px] whitespace-nowrap">법인</th>
-                    <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[85px]">2024</th>
-                    <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[85px]">2025</th>
+                    <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[85px]">{getBsPeriodLabel(bsPrevPeriod)}</th>
+                    <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[85px]">{getBsPeriodLabel(bsCurrentPeriod)}</th>
                     <th className="text-right px-2 py-2 font-semibold text-zinc-600 min-w-[55px]">비중</th>
                     <th className="text-right px-3 py-2 font-semibold text-zinc-600 min-w-[70px] whitespace-nowrap">YoY</th>
                   </tr>
