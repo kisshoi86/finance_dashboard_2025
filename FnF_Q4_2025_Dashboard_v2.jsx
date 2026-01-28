@@ -1152,21 +1152,9 @@ export default function FnFQ4Dashboard() {
     }
     const selectedYearKey = getPeriodKey(selectedPeriod, 'year');
     const prevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year';
-    // 재무상태표는 분기별 데이터이므로 quarter 키 사용
-    let currentPeriod = getPeriodKey(selectedPeriod, 'quarter'); // '2025_Q4' -> '2025_4Q'
-    let prevPeriod = getPeriodKey(selectedPeriod, 'prev') || '2024_4Q';
-    
-    // 재무상태표 데이터가 없으면 최신 분기 데이터 사용 (fallback)
-    if (!balanceSheetData[currentPeriod]) {
-      // 2025_4Q가 없으면 2025_3Q 사용
-      if (currentPeriod === '2025_4Q') {
-        currentPeriod = '2025_3Q';
-      }
-    }
-    if (!balanceSheetData[prevPeriod]) {
-      // 전 분기 데이터가 없으면 전년 동기 사용
-      prevPeriod = getPeriodKey(selectedPeriod, 'prev_quarter') || '2024_4Q';
-    }
+    // 재무상태표는 분기별 데이터이므로 quarter 키 사용 (bsCurrentPeriod와 동일하게)
+    const currentPeriod = bsCurrentPeriod; // 전역 변수 사용으로 일관성 확보
+    const prevPeriod = bsPrevPeriod; // 전역 변수 사용으로 일관성 확보
     
     // 1) 핵심 지표 계산
     const salesCurr = incomeStatementData[selectedYearKey]?.매출액 || 0;
@@ -1532,17 +1520,67 @@ export default function FnFQ4Dashboard() {
       });
     }
     
-    // 차입금 분석
+    // 차입금 분석 (강화)
     if (totalBorrowing > 100000 && borrowingsByEntity.length > 0) {
       const topDebtor = borrowingsByEntity[0];
       risks.push({
         title: `${topDebtor.entity} 차입금 부담`,
-        desc: `${Math.round(topDebtor.debt/100)}억원 (전체 ${(topDebtor.debt/totalBorrowing*100).toFixed(0)}%), 이자비용 및 환위험 노출`
+        desc: `${Math.round(topDebtor.debt/100)}억원 (전체 ${(topDebtor.debt/totalBorrowing*100).toFixed(0)}%), 이자비용 연 ${Math.round(topDebtor.debt*0.045/100)}억원 추정, 환위험 노출`
       });
       actions.push({
         title: '차입금 감축',
         desc: `${topDebtor.entity} 영업현금 창출 강화, 운전자본 효율화로 연간 ${Math.round(topDebtor.debt*0.3/100)}억원 상환 목표`
       });
+    }
+    
+    // 법인별 재무건전성 분석 (2025 4Q 데이터 반영)
+    const entityFinancialHealth = ['OC(국내)', '중국', '홍콩', 'ST미국'].map(entity => {
+      const assets = (entityBSData && entityBSData[entityBSPeriod] && entityBSData[entityBSPeriod].자산총계) 
+        ? (entityBSData[entityBSPeriod].자산총계[entity] || 0) : 0;
+      const debt = (entityBSData && entityBSData[entityBSPeriod] && entityBSData[entityBSPeriod].부채총계) 
+        ? (entityBSData[entityBSPeriod].부채총계[entity] || 0) : 0;
+      const equity = (entityBSData && entityBSData[entityBSPeriod] && entityBSData[entityBSPeriod].자본총계) 
+        ? (entityBSData[entityBSPeriod].자본총계[entity] || 0) : 0;
+      const retainedEarnings = (entityBSData && entityBSData[entityBSPeriod] && entityBSData[entityBSPeriod].이익잉여금) 
+        ? (entityBSData[entityBSPeriod].이익잉여금[entity] || 0) : 0;
+      const borrowings = (entityBSData && entityBSData[entityBSPeriod] && entityBSData[entityBSPeriod].차입금) 
+        ? (entityBSData[entityBSPeriod].차입금[entity] || 0) : 0;
+      const debtRatio = equity > 0 ? (debt / equity * 100) : 0;
+      return { entity, assets, debt, equity, retainedEarnings, borrowings, debtRatio };
+    });
+    
+    // ST미국 누적적자 분석
+    const stUSData = entityFinancialHealth.find(e => e.entity === 'ST미국');
+    if (stUSData && stUSData.retainedEarnings < 0) {
+      risks.push({
+        title: 'ST미국 누적적자 지속',
+        desc: `이익잉여금 ${Math.round(stUSData.retainedEarnings/100)}억원 적자. 지속적인 손실로 자본잠식 리스크 모니터링 필요`
+      });
+      actions.push({
+        title: 'ST미국 턴어라운드',
+        desc: `사업구조 재검토, 비용 구조조정, 또는 전략적 철수 검토 필요`
+      });
+    }
+    
+    // 중국 부채비율 분석
+    const chinaData = entityFinancialHealth.find(e => e.entity === '중국');
+    if (chinaData && chinaData.debtRatio > 200) {
+      risks.push({
+        title: '중국 법인 부채비율 주의',
+        desc: `부채비율 ${chinaData.debtRatio.toFixed(0)}%, 차입금 ${Math.round(chinaData.borrowings/100)}억원. 고성장 기반 레버리지이나 리스크 관리 필요`
+      });
+    }
+    
+    // 국내 법인 자본 효율성
+    const domesticData = entityFinancialHealth.find(e => e.entity === 'OC(국내)');
+    if (domesticData && domesticData.assets > 1500000) {
+      const domesticROA = domesticData.assets > 0 ? ((entityProfitability.find(e => e.entity === 'OC(국내)')?.netIncome || 0) / domesticData.assets * 100) : 0;
+      if (domesticROA > 8) {
+        insights.push({
+          title: '국내 법인 자산 효율성 우수',
+          desc: `자산 ${Math.round(domesticData.assets/100)}억원, ROA ${domesticROA.toFixed(1)}%. 안정적 수익 기반 유지`
+        });
+      }
     }
     
     // 부채비율 분석
@@ -1617,6 +1655,48 @@ export default function FnFQ4Dashboard() {
         title: '매출 고성장',
         desc: `전년대비 ${salesGrowth.toFixed(1)}% 증가. 시장 점유율 확대 및 브랜드 경쟁력 강화`
       });
+    }
+    
+    // 연결 자산총계 성장 분석
+    const assetGrowth = totalAssetsPrev > 0 ? ((totalAssetsCurr - totalAssetsPrev) / totalAssetsPrev * 100) : 0;
+    if (assetGrowth > 15 && totalAssetsCurr > 2000000) {
+      insights.push({
+        title: '연결 자산 규모 확대',
+        desc: `자산총계 ${(totalAssetsCurr/10000).toFixed(1)}조원 (전년대비 +${assetGrowth.toFixed(1)}%). 사업 규모 및 시장 지배력 강화`
+      });
+    } else if (assetGrowth < -5) {
+      risks.push({
+        title: '자산 규모 축소',
+        desc: `자산총계 ${Math.round(totalAssetsCurr/100)}억원 (전년대비 ${assetGrowth.toFixed(1)}%). 사업 축소 또는 구조조정 진행 중`
+      });
+    }
+    
+    // 자본총계 성장 분석
+    const equityGrowth = totalEquityPrev > 0 ? ((totalEquityCurr - totalEquityPrev) / totalEquityPrev * 100) : 0;
+    if (equityGrowth > 10) {
+      insights.push({
+        title: '자기자본 확충',
+        desc: `자본총계 ${(totalEquityCurr/10000).toFixed(2)}조원 (전년대비 +${equityGrowth.toFixed(1)}%). 이익 누적으로 재무 안정성 강화`
+      });
+    }
+    
+    // 법인별 성장 기여도 분석
+    const entityAssetContribution = entityFinancialHealth
+      .filter(e => e.assets > 0)
+      .map(e => ({
+        ...e,
+        contribution: totalAssetsCurr > 0 ? (e.assets / totalAssetsCurr * 100) : 0
+      }))
+      .sort((a, b) => b.contribution - a.contribution);
+    
+    if (entityAssetContribution.length > 0) {
+      const topAssetEntity = entityAssetContribution[0];
+      if (topAssetEntity.contribution > 70) {
+        insights.push({
+          title: `${topAssetEntity.entity} 자산 집중도`,
+          desc: `연결 자산의 ${topAssetEntity.contribution.toFixed(0)}% 차지 (${Math.round(topAssetEntity.assets/100)}억원). 핵심 수익 기반`
+        });
+      }
     }
     
     // 9) 연결관점 개선 타겟 분석
@@ -3043,9 +3123,18 @@ export default function FnFQ4Dashboard() {
     };
 
     // ROE 계산 (당기순이익 / 자본총계 * 100)
+    // period에 해당하는 연도의 당기순이익을 사용해야 함
     const calcROE = (period) => {
-      const selectedQuarter = selectedPeriod.split('_')[1];
-      const yearKey = getPeriodKey(selectedPeriod, 'year');
+      // period에서 연도 추출 (예: '2024_4Q' -> '2024', '2025_4Q' -> '2025')
+      const periodYear = period.split('_')[0];
+      const periodQuarter = period.split('_')[1].replace('Q', '');
+      
+      // 해당 연도의 연간 당기순이익 키 생성
+      // 4Q면 'YYYY_Year', 그 외는 'YYYY_XQ_Year' 형식
+      const yearKey = periodQuarter === '4' 
+        ? `${periodYear}_Year` 
+        : `${periodYear}_${periodQuarter}Q_Year`;
+      
       const netIncome = incomeStatementData[yearKey]?.당기순이익 || 0;
       const equity = balanceSheetData[period]?.자본총계 || 0;
       if (!equity || equity === 0) return 0;
