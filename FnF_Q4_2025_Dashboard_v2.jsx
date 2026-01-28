@@ -2771,7 +2771,7 @@ export default function FnFQ4Dashboard() {
                       
                       return (
                         <tr key={idx} className="border-b border-zinc-100 bg-zinc-50/50">
-                          <td className="px-3 py-2 text-blue-600 italic border-r border-zinc-200 text-xs">{item.label}</td>
+                          <td className="px-3 py-2 text-blue-600 italic border-r border-zinc-200">{item.label}</td>
                           <td className="text-center px-3 py-2 text-blue-600 border-r border-zinc-200">{ratePrev}</td>
                           <td className="text-center px-3 py-2 font-medium text-blue-600 border-r border-zinc-200 bg-zinc-50">{rateCurr}</td>
                           <td colSpan="2" className={`text-center px-3 py-2 font-medium ${rateDiff.includes('+') ? 'text-emerald-600' : rateDiff.includes('-') ? 'text-rose-600' : 'text-blue-600'}`}>
@@ -3975,13 +3975,7 @@ export default function FnFQ4Dashboard() {
             </div>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
-              <p className="text-sm text-zinc-500">
-                {(() => {
-                  const [yearStr, qStr] = selectedPeriod.split('_');
-                  const quarterNum = (qStr || 'Q4').replace('Q', '');
-                  return `${yearStr} ${quarterNum}Q`;
-                })()} 연결 재무제표
-              </p>
+              <p className="text-sm text-zinc-500">2025 4Q 연결 재무제표</p>
             </div>
           </div>
         </div>
