@@ -65,8 +65,11 @@ export default function FnFQ4Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('2025_Q4'); // 선택된 조회기간 ('2025_Q1' ~ '2025_Q4')
   const [incomeEditMode, setIncomeEditMode] = useState(false); // 손익계산서 증감 분석 편집 모드
   const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
-  const [incomeEditData, setIncomeEditData] = useState({}); // 손익계산서 편집 데이터 {entity: {amount, rate, contribution}}
-  const [bsEditData, setBsEditData] = useState({}); // 재무상태표 편집 데이터
+  const [incomeEditData, setIncomeEditData] = useState({}); // 손익계산서 문장 편집 데이터 {account_entity: [text, text, ...]}
+  const [bsEditData, setBsEditData] = useState({}); // 재무상태표 문장 편집 데이터
+  
+  // 법인 표시 순서 고정
+  const ENTITY_ORDER = ['OC(국내)', '중국', '홍콩', 'ST미국', '기타(연결조정)'];
   const [bsCompareMode, setBsCompareMode] = useState('prevYearEnd'); // 'sameQuarter' (동분기) | 'prevYearEnd' (전기말)
 
   // ============================================
@@ -557,6 +560,392 @@ export default function FnFQ4Dashboard() {
       법인세비용: 139335,    // 법인세비용
       당기순이익: 402711,    // 연결 당기순이익
     },
+  };
+
+  // ============================================
+  // 손익계산서 세부 계정 데이터 (증감 분석용) - financial_detail_data.json 기반
+  // ============================================
+  const incomeDetailData = {
+    '2024_1Q_Year': { 매출액: 507029, 제품매출: 165016, 상품매출: 5934, 수수료매출: 360, 임대매출: 68, 기타매출: 3595, 매출원가: 174545, 매출총이익: 332484, 판매비와관리비: 202273, 급여: 18472, 퇴직급여: 1186, 복리후생비: 3796, 광고선전비: 24097, 운반비: 6120, 지급수수료: 112650, 감가상각비: 18718, 무형자산상각비: 1847, 영업이익: 130211 },
+    '2024_1Q': { 매출액: 507029, 제품매출: 165016, 상품매출: 5934, 수수료매출: 360, 임대매출: 68, 기타매출: 3595, 매출원가: 174545, 매출총이익: 332484, 판매비와관리비: 202273, 급여: 18472, 퇴직급여: 1186, 복리후생비: 3796, 광고선전비: 24097, 운반비: 6120, 지급수수료: 112650, 감가상각비: 18718, 무형자산상각비: 1847, 영업이익: 130211 },
+    '2024_2Q_Year': { 매출액: 898502, 제품매출: 278476, 상품매출: 8382, 수수료매출: 716, 임대매출: 138, 기타매출: 7862, 매출원가: 294719, 매출총이익: 603782, 판매비와관리비: 381770, 급여: 39262, 퇴직급여: 2398, 복리후생비: 7263, 광고선전비: 41052, 운반비: 9961, 지급수수료: 211146, 감가상각비: 38092, 무형자산상각비: 4011, 영업이익: 222012 },
+    '2024_2Q': { 매출액: 391473, 제품매출: 113459, 상품매출: 2448, 수수료매출: 356, 임대매출: 70, 기타매출: 4267, 매출원가: 120174, 매출총이익: 271299, 판매비와관리비: 179497, 급여: 20790, 퇴직급여: 1212, 복리후생비: 3467, 광고선전비: 16955, 운반비: 3840, 지급수수료: 98496, 감가상각비: 19373, 무형자산상각비: 2164, 영업이익: 91801 },
+    '2024_3Q_Year': { 매출액: 1349465, 제품매출: 427107, 상품매출: 10931, 수수료매출: 1018, 임대매출: 208, 기타매출: 22723, 매출원가: 460761, 매출총이익: 888704, 판매비와관리비: 558387, 급여: 58004, 퇴직급여: 3581, 복리후생비: 11135, 광고선전비: 60954, 운반비: 15655, 지급수수료: 301915, 감가상각비: 57437, 무형자산상각비: 7933, 영업이익: 330317 },
+    '2024_3Q': { 매출액: 450963, 제품매출: 148632, 상품매출: 2549, 수수료매출: 302, 임대매출: 70, 기타매출: 14861, 매출원가: 166042, 매출총이익: 284921, 판매비와관리비: 176616, 급여: 18742, 퇴직급여: 1184, 복리후생비: 3872, 광고선전비: 19902, 운반비: 5695, 지급수수료: 90769, 감가상각비: 19346, 무형자산상각비: 3921, 영업이익: 108305 },
+    '2024_4Q_Year': { 매출액: 1896010, 제품매출: 602266, 상품매출: 15361, 수수료매출: 1475, 임대매출: 278, 기타매출: 31390, 매출원가: 649017, 매출총이익: 1246993, 판매비와관리비: 796255, 급여: 79511, 퇴직급여: 4759, 복리후생비: 15120, 광고선전비: 93133, 운반비: 22114, 지급수수료: 431368, 감가상각비: 77149, 무형자산상각비: 11660, 영업이익: 450737 },
+    '2024_4Q': { 매출액: 546544, 제품매출: 175158, 상품매출: 4430, 수수료매출: 458, 임대매출: 70, 기타매출: 8667, 매출원가: 188256, 매출총이익: 358289, 판매비와관리비: 237868, 급여: 21507, 퇴직급여: 1178, 복리후생비: 3985, 광고선전비: 32179, 운반비: 6459, 지급수수료: 129453, 감가상각비: 19712, 무형자산상각비: 3728, 영업이익: 120420 },
+    '2024_Year': { 매출액: 1896010, 제품매출: 602266, 상품매출: 15361, 수수료매출: 1475, 임대매출: 278, 기타매출: 31390, 매출원가: 649017, 매출총이익: 1246993, 판매비와관리비: 796255, 급여: 79511, 퇴직급여: 4759, 복리후생비: 15120, 광고선전비: 93133, 운반비: 22114, 지급수수료: 431368, 감가상각비: 77149, 무형자산상각비: 11660, 영업이익: 450737 },
+    '2025_1Q_Year': { 매출액: 505616, 제품매출: 170204, 상품매출: 3836, 수수료매출: 324, 임대매출: 71, 기타매출: 1842, 매출원가: 175883, 매출총이익: 329733, 판매비와관리비: 206117, 급여: 20176, 퇴직급여: 1462, 복리후생비: 4424, 광고선전비: 24609, 운반비: 5928, 지급수수료: 108860, 감가상각비: 20870, 무형자산상각비: 3638, 영업이익: 123616 },
+    '2025_1Q': { 매출액: 505616, 제품매출: 170204, 상품매출: 3836, 수수료매출: 324, 임대매출: 71, 기타매출: 1842, 매출원가: 175883, 매출총이익: 329733, 판매비와관리비: 206117, 급여: 20176, 퇴직급여: 1462, 복리후생비: 4424, 광고선전비: 24609, 운반비: 5928, 지급수수료: 108860, 감가상각비: 20870, 무형자산상각비: 3638, 영업이익: 123616 },
+    '2025_2Q_Year': { 매출액: 884487, 제품매출: 284912, 상품매출: 6144, 수수료매출: 593, 임대매출: 449, 기타매출: 4560, 매출원가: 295847, 매출총이익: 588640, 판매비와관리비: 380993, 급여: 39940, 퇴직급여: 2575, 복리후생비: 8368, 광고선전비: 44148, 운반비: 10444, 지급수수료: 199507, 감가상각비: 39444, 무형자산상각비: 7179, 영업이익: 207646 },
+    '2025_2Q': { 매출액: 378871, 제품매출: 114708, 상품매출: 2308, 수수료매출: 268, 임대매출: 378, 기타매출: 2717, 매출원가: 119964, 매출총이익: 258906, 판매비와관리비: 174877, 급여: 19763, 퇴직급여: 1112, 복리후생비: 3944, 광고선전비: 19539, 운반비: 4516, 지급수수료: 90646, 감가상각비: 18574, 무형자산상각비: 3542, 영업이익: 84030 },
+    '2025_3Q_Year': { 매출액: 1358744, 제품매출: 441007, 상품매출: 9784, 수수료매출: 811, 임대매출: 1013, 기타매출: 9948, 매출원가: 461150, 매출총이익: 897594, 판매비와관리비: 561928, 급여: 59251, 퇴직급여: 3529, 복리후생비: 12092, 광고선전비: 69180, 운반비: 16761, 지급수수료: 287096, 감가상각비: 58133, 무형자산상각비: 10753, 영업이익: 335666 },
+    '2025_3Q': { 매출액: 474257, 제품매출: 156095, 상품매출: 3640, 수수료매출: 218, 임대매출: 564, 기타매출: 5389, 매출원가: 165303, 매출총이익: 308955, 판매비와관리비: 180935, 급여: 19311, 퇴직급여: 955, 복리후생비: 3725, 광고선전비: 25032, 운반비: 6317, 지급수수료: 87590, 감가상각비: 18689, 무형자산상각비: 3573, 영업이익: 128020 },
+    '2025_4Q_Year': { 매출액: 1933996, 제품매출: 610308, 상품매출: 15937, 수수료매출: 1160, 임대매출: 1731, 기타매출: 15333, 매출원가: 642187, 매출총이익: 1291809, 판매비와관리비: 823266, 급여: 80199, 퇴직급여: 4612, 복리후생비: 16516, 광고선전비: 109084, 운반비: 24855, 지급수수료: 434024, 감가상각비: 77445, 무형자산상각비: 14402, 영업이익: 468543 },
+    '2025_4Q': { 매출액: 575252, 제품매출: 169301, 상품매출: 6153, 수수료매출: 349, 임대매출: 718, 기타매출: 5385, 매출원가: 181038, 매출총이익: 394214, 판매비와관리비: 261337, 급여: 20948, 퇴직급여: 1083, 복리후생비: 4423, 광고선전비: 39905, 운반비: 8094, 지급수수료: 146928, 감가상각비: 19312, 무형자산상각비: 3650, 영업이익: 132877 },
+    '2025_Year': { 매출액: 1933996, 제품매출: 610308, 상품매출: 15937, 수수료매출: 1160, 임대매출: 1731, 기타매출: 15333, 매출원가: 642187, 매출총이익: 1291809, 판매비와관리비: 823266, 급여: 80199, 퇴직급여: 4612, 복리후생비: 16516, 광고선전비: 109084, 운반비: 24855, 지급수수료: 434024, 감가상각비: 77445, 무형자산상각비: 14402, 영업이익: 468543 },
+  };
+
+  // ============================================
+  // 법인별 세부 계정 데이터 (증감 분석용) - financial_detail_data.json 기반
+  // ============================================
+  const entityDetailData = {
+    '매출액': {
+      '2024_1Q': { 'OC(국내)': 388852, '중국': 238976, '홍콩': 22211, '베트남': 66, '빅텐츠': 212, '엔터테인먼트': 416, 'ST미국': 9208 },
+      '2024_1Q_Year': { 'OC(국내)': 388852, '중국': 238976, '홍콩': 22211, '베트남': 66, '빅텐츠': 212, '엔터테인먼트': 416, 'ST미국': 9208 },
+      '2024_2Q': { 'OC(국내)': 664484, '중국': 393520, '홍콩': 39176, '베트남': 150, '빅텐츠': 900, '엔터테인먼트': 1424, 'ST미국': 18600 },
+      '2024_2Q_Year': { 'OC(국내)': 664484, '중국': 393520, '홍콩': 39176, '베트남': 150, '빅텐츠': 900, '엔터테인먼트': 1424, 'ST미국': 18600 },
+      '2024_3Q': { 'OC(국내)': 1081765, '중국': 643675, '홍콩': 54736, '베트남': 259, '빅텐츠': 9175, '엔터테인먼트': 2203, 'ST미국': 26856 },
+      '2024_3Q_Year': { 'OC(국내)': 1081765, '중국': 643675, '홍콩': 54736, '베트남': 259, '빅텐츠': 9175, '엔터테인먼트': 2203, 'ST미국': 26856 },
+      '2024_4Q': { 'OC(국내)': 1517994, '중국': 857840, '홍콩': 75035, '베트남': 413, '빅텐츠': 9175, '엔터테인먼트': 3030, 'ST미국': 37069 },
+      '2024_4Q_Year': { 'OC(국내)': 1517994, '중국': 857840, '홍콩': 75035, '베트남': 413, '빅텐츠': 9175, '엔터테인먼트': 3030, 'ST미국': 37069 },
+      '2024_Year': { 'OC(국내)': 1517994, '중국': 857840, '홍콩': 75035, '베트남': 413, '빅텐츠': 9175, '엔터테인먼트': 3030, 'ST미국': 37069 },
+      '2025_1Q': { 'OC(국내)': 396770, '중국': 258540, '홍콩': 20663, '베트남': 134, '빅텐츠': 0, '엔터테인먼트': 761, 'ST미국': 8505 },
+      '2025_1Q_Year': { 'OC(국내)': 396770, '중국': 258540, '홍콩': 20663, '베트남': 134, '빅텐츠': 0, '엔터테인먼트': 761, 'ST미국': 8505 },
+      '2025_2Q': { 'OC(국내)': 704163, '중국': 429243, '홍콩': 36405, '베트남': 287, '빅텐츠': 0, '엔터테인먼트': 1894, 'ST미국': 17474 },
+      '2025_2Q_Year': { 'OC(국내)': 704163, '중국': 429243, '홍콩': 36405, '베트남': 287, '빅텐츠': 0, '엔터테인먼트': 1894, 'ST미국': 17474 },
+      '2025_3Q': { 'OC(국내)': 1214834, '중국': 713162, '홍콩': 53313, '베트남': 425, '빅텐츠': 0, '엔터테인먼트': 4630, 'ST미국': 33406 },
+      '2025_3Q_Year': { 'OC(국내)': 1214834, '중국': 713162, '홍콩': 53313, '베트남': 425, '빅텐츠': 0, '엔터테인먼트': 4630, 'ST미국': 33406 },
+      '2025_4Q': { 'OC(국내)': 1694696, '중국': 960334, '홍콩': 76275, '베트남': 656, '빅텐츠': 0, '엔터테인먼트': 7161, 'ST미국': 48561 },
+      '2025_4Q_Year': { 'OC(국내)': 1694696, '중국': 960334, '홍콩': 76275, '베트남': 656, '빅텐츠': 0, '엔터테인먼트': 7161, 'ST미국': 48561 },
+      '2025_Year': { 'OC(국내)': 1694696, '중국': 960334, '홍콩': 76275, '베트남': 656, '빅텐츠': 0, '엔터테인먼트': 7161, 'ST미국': 48561 },
+    },
+    '제품매출': {
+      '2024_1Q': { 'OC(국내)': 142846, '중국': 0, '홍콩': 0, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 0 },
+      '2024_Year': { 'OC(국내)': 533273, '중국': 0, '홍콩': 0, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 0 },
+      '2025_1Q': { 'OC(국내)': 142911, '중국': 0, '홍콩': 0, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 0 },
+      '2025_Year': { 'OC(국내)': 613289, '중국': 0, '홍콩': 0, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 0 },
+    },
+    '상품매출': {
+      '2024_1Q': { 'OC(국내)': 4011, '중국': 173679, '홍콩': 9231, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 1923 },
+      '2024_Year': { 'OC(국내)': 6887, '중국': 664166, '홍콩': 32067, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 8474 },
+      '2025_1Q': { 'OC(국내)': 1593, '중국': 203778, '홍콩': 9671, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 2243 },
+      '2025_Year': { 'OC(국내)': 3210, '중국': 731265, '홍콩': 34810, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 12727 },
+    },
+    '급여': {
+      '2024_1Q': { 'OC(국내)': 8781, '중국': 6513, '홍콩': 1928, '베트남': 0, '빅텐츠': 181, '엔터테인먼트': 312, 'ST미국': 706 },
+      '2024_Year': { 'OC(국내)': 39082, '중국': 26130, '홍콩': 7811, '베트남': 0, '빅텐츠': 587, '엔터테인먼트': 1419, 'ST미국': 4165 },
+      '2025_1Q': { 'OC(국내)': 8629, '중국': 7851, '홍콩': 2109, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 391, 'ST미국': 1089 },
+      '2025_Year': { 'OC(국내)': 36167, '중국': 28888, '홍콩': 8945, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 1684, 'ST미국': 3961 },
+    },
+    '퇴직급여': {
+      '2024_1Q': { 'OC(국내)': 1156, '중국': 0, '홍콩': 0, '베트남': 0, '빅텐츠': 14, '엔터테인먼트': 16, 'ST미국': 0 },
+      '2024_Year': { 'OC(국내)': 4610, '중국': 0, '홍콩': 0, '베트남': 0, '빅텐츠': 52, '엔터테인먼트': 97, 'ST미국': 0 },
+      '2025_1Q': { 'OC(국내)': 1127, '중국': 0, '홍콩': 301, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 35, 'ST미국': 0 },
+      '2025_Year': { 'OC(국내)': 4360, '중국': 0, '홍콩': 0, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 252, 'ST미국': 0 },
+    },
+    '광고선전비': {
+      '2024_1Q': { 'OC(국내)': 10689, '중국': 12045, '홍콩': 422, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 3, 'ST미국': 937 },
+      '2024_Year': { 'OC(국내)': 40355, '중국': 45269, '홍콩': 2014, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 7, 'ST미국': 5489 },
+      '2025_1Q': { 'OC(국내)': 8143, '중국': 14554, '홍콩': 534, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 1379 },
+      '2025_Year': { 'OC(국내)': 36492, '중국': 60570, '홍콩': 2817, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 0, 'ST미국': 9277 },
+    },
+    '지급수수료': {
+      '2024_1Q': { 'OC(국내)': 103398, '중국': 6675, '홍콩': 3518, '베트남': 1, '빅텐츠': 106, '엔터테인먼트': 43, 'ST미국': 1537 },
+      '2024_Year': { 'OC(국내)': 396902, '중국': 26100, '홍콩': 4302, '베트남': 19, '빅텐츠': 355, '엔터테인먼트': 155, 'ST미국': 4518 },
+      '2025_1Q': { 'OC(국내)': 98102, '중국': 8799, '홍콩': 1124, '베트남': 5, '빅텐츠': 0, '엔터테인먼트': 32, 'ST미국': 1129 },
+      '2025_Year': { 'OC(국내)': 379344, '중국': 34725, '홍콩': 2569, '베트남': 31, '빅텐츠': 0, '엔터테인먼트': 160, 'ST미국': 16606 },
+    },
+    '감가상각비': {
+      '2024_1Q': { 'OC(국내)': 9393, '중국': 5228, '홍콩': 3786, '베트남': 0, '빅텐츠': 41, '엔터테인먼트': 129, 'ST미국': 142 },
+      '2024_Year': { 'OC(국내)': 37807, '중국': 23909, '홍콩': 14320, '베트남': 0, '빅텐츠': 117, '엔터테인먼트': 562, 'ST미국': 434 },
+      '2025_1Q': { 'OC(국내)': 9949, '중국': 7530, '홍콩': 3123, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 157, 'ST미국': 110 },
+      '2025_Year': { 'OC(국내)': 40274, '중국': 24619, '홍콩': 11457, '베트남': 0, '빅텐츠': 0, '엔터테인먼트': 644, 'ST미국': 450 },
+    },
+    '영업이익': {
+      '2024_1Q': { 'OC(국내)': 95454, '중국': 24682, '홍콩': 650, '베트남': -3, '빅텐츠': -191, '엔터테인먼트': -2980, 'ST미국': 2591 },
+      '2024_Year': { 'OC(국내)': 402407, '중국': 36099, '홍콩': 3357, '베트남': 45, '빅텐츠': -4678, '엔터테인먼트': -14173, 'ST미국': 6903 },
+      '2025_1Q': { 'OC(국내)': 111978, '중국': 6110, '홍콩': 3, '베트남': 12, '빅텐츠': 0, '엔터테인먼트': -1538, 'ST미국': 996 },
+      '2025_Year': { 'OC(국내)': 524452, '중국': 40209, '홍콩': 1617, '베트남': 18, '빅텐츠': 0, '엔터테인먼트': -8707, 'ST미국': -1368 },
+    },
+  };
+
+  // ============================================
+  // 문장형 증감 분석 생성 함수
+  // ============================================
+  const generateIncomeAnalysisText = (accountKey, entity, currPeriod, prevPeriod) => {
+    // 연결 기준 데이터 가져오기
+    const currData = incomeStatementData[currPeriod] || {};
+    const prevData = incomeStatementData[prevPeriod] || {};
+    const currDetail = incomeDetailData[currPeriod] || {};
+    const prevDetail = incomeDetailData[prevPeriod] || {};
+    
+    // 법인별 데이터 가져오기
+    const entityCurr = entityData[accountKey]?.[currPeriod] || {};
+    const entityPrev = entityData[accountKey]?.[prevPeriod] || {};
+    
+    const formatRate = (val) => val >= 0 ? `+${val.toFixed(1)}%` : `${val.toFixed(1)}%`;
+    const calcChange = (curr, prev) => prev !== 0 ? ((curr - prev) / Math.abs(prev) * 100) : 0;
+    
+    let analysis = [];
+    
+    if (accountKey === '매출액') {
+      // 매출액: 제품매출, 상품매출 구성 분석
+      const prodCurr = currDetail.제품매출 || 0;
+      const prodPrev = prevDetail.제품매출 || 0;
+      const merchCurr = currDetail.상품매출 || 0;
+      const merchPrev = prevDetail.상품매출 || 0;
+      const totalCurr = currData.매출액 || 0;
+      const totalPrev = prevData.매출액 || 0;
+      
+      const prodChange = calcChange(prodCurr, prodPrev);
+      const merchChange = calcChange(merchCurr, merchPrev);
+      
+      const prodRatioCurr = totalCurr > 0 ? (prodCurr / totalCurr * 100).toFixed(1) : 0;
+      const merchRatioCurr = totalCurr > 0 ? (merchCurr / totalCurr * 100).toFixed(1) : 0;
+      const prodRatioPrev = totalPrev > 0 ? (prodPrev / totalPrev * 100).toFixed(1) : 0;
+      const merchRatioPrev = totalPrev > 0 ? (merchPrev / totalPrev * 100).toFixed(1) : 0;
+      
+      analysis.push(`제품매출 ${formatRate(prodChange)} (비중 ${prodRatioPrev}%→${prodRatioCurr}%)`);
+      analysis.push(`상품매출 ${formatRate(merchChange)} (비중 ${merchRatioPrev}%→${merchRatioCurr}%)`);
+      
+      // 법인별 특이사항
+      const entityChange = calcChange(entityCurr[entity] || 0, entityPrev[entity] || 0);
+      if (entity === 'OC(국내)') {
+        analysis.push(`국내 제품매출 중심 ${entityChange >= 0 ? '성장' : '감소'}`);
+      } else if (entity === '중국') {
+        analysis.push(`중국 상품매출 ${entityChange >= 0 ? '확대' : '축소'}`);
+      }
+    }
+    
+    else if (accountKey === '매출원가') {
+      // 매출원가: 매출원가율 분석
+      const salesCurr = currData.매출액 || 1;
+      const salesPrev = prevData.매출액 || 1;
+      const cogsCurr = currData.매출원가 || 0;
+      const cogsPrev = prevData.매출원가 || 0;
+      
+      const cogsRatioCurr = (cogsCurr / salesCurr * 100).toFixed(1);
+      const cogsRatioPrev = (cogsPrev / salesPrev * 100).toFixed(1);
+      const ratioChange = (parseFloat(cogsRatioCurr) - parseFloat(cogsRatioPrev)).toFixed(1);
+      
+      analysis.push(`매출원가율 ${cogsRatioPrev}%→${cogsRatioCurr}% (${ratioChange >= 0 ? '+' : ''}${ratioChange}%p)`);
+      
+      // 법인별 원가율 분석
+      const entitySalesCurr = entityData['매출액']?.[currPeriod]?.[entity] || 1;
+      const entitySalesPrev = entityData['매출액']?.[prevPeriod]?.[entity] || 1;
+      const entityCogsCurr = entityCurr[entity] || 0;
+      const entityCogsPrev = entityPrev[entity] || 0;
+      const entityRatioCurr = (entityCogsCurr / entitySalesCurr * 100).toFixed(1);
+      const entityRatioPrev = (entityCogsPrev / entitySalesPrev * 100).toFixed(1);
+      
+      if (entity === 'OC(국내)') {
+        analysis.push(`국내 원가율 ${entityRatioPrev}%→${entityRatioCurr}%`);
+      } else if (entity === '중국') {
+        analysis.push(`중국 매입원가 기반 변동`);
+      }
+    }
+    
+    else if (accountKey === '매출총이익') {
+      // 매출총이익: 매출과 원가 변동 종합
+      const salesChange = calcChange(currData.매출액 || 0, prevData.매출액 || 0);
+      const cogsChange = calcChange(currData.매출원가 || 0, prevData.매출원가 || 0);
+      const grossMarginCurr = currData.매출액 > 0 ? (currData.매출총이익 / currData.매출액 * 100).toFixed(1) : 0;
+      const grossMarginPrev = prevData.매출액 > 0 ? (prevData.매출총이익 / prevData.매출액 * 100).toFixed(1) : 0;
+      
+      analysis.push(`매출총이익률 ${grossMarginPrev}%→${grossMarginCurr}%`);
+      analysis.push(`매출 ${formatRate(salesChange)}, 원가 ${formatRate(cogsChange)}`);
+      
+      if (salesChange > cogsChange) {
+        analysis.push('매출 증가율이 원가 증가율 상회');
+      } else if (salesChange < cogsChange) {
+        analysis.push('원가 증가율이 매출 증가율 상회');
+      }
+    }
+    
+    else if (accountKey === '인건비') {
+      // 인건비: 급여, 퇴직급여 구성 분석
+      const salaryCurr = currDetail.급여 || 0;
+      const salaryPrev = prevDetail.급여 || 0;
+      const severanceCurr = currDetail.퇴직급여 || 0;
+      const severancePrev = prevDetail.퇴직급여 || 0;
+      const totalCurr = currData.인건비 || 0;
+      const totalPrev = prevData.인건비 || 0;
+      
+      const salaryChange = calcChange(salaryCurr, salaryPrev);
+      const severanceChange = calcChange(severanceCurr, severancePrev);
+      const salaryRatio = totalCurr > 0 ? (salaryCurr / totalCurr * 100).toFixed(0) : 0;
+      const severanceRatio = totalCurr > 0 ? (severanceCurr / totalCurr * 100).toFixed(0) : 0;
+      
+      analysis.push(`급여 ${formatRate(salaryChange)} (구성비 ${salaryRatio}%)`);
+      analysis.push(`퇴직급여 ${formatRate(severanceChange)} (구성비 ${severanceRatio}%)`);
+    }
+    
+    else if (accountKey === '영업이익') {
+      // 영업이익: 주요 비용 항목별 기여도 분석
+      const opIncomeCurr = currData.영업이익 || 0;
+      const opIncomePrev = prevData.영업이익 || 0;
+      const opIncomeChange = opIncomeCurr - opIncomePrev;
+      
+      // 주요 비용 항목별 증감
+      const expenseItems = ['인건비', '광고선전비', '수수료', '감가상각비', '기타판관비'];
+      const contributions = expenseItems.map(item => {
+        const curr = currData[item] || 0;
+        const prev = prevData[item] || 0;
+        const diff = curr - prev;
+        const contribution = opIncomeChange !== 0 ? ((-diff / Math.abs(opIncomeChange)) * 100).toFixed(0) : 0;
+        return { item, diff, contribution, changeRate: calcChange(curr, prev) };
+      }).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+      
+      // 가장 영향이 큰 2개 항목
+      const top2 = contributions.slice(0, 2);
+      top2.forEach(c => {
+        const direction = c.diff > 0 ? '증가' : '감소';
+        analysis.push(`${c.item} ${direction} (기여도 ${c.contribution}%)`);
+      });
+      
+      // 영업이익률 변동
+      const opMarginCurr = currData.매출액 > 0 ? (opIncomeCurr / currData.매출액 * 100).toFixed(1) : 0;
+      const opMarginPrev = prevData.매출액 > 0 ? (opIncomePrev / prevData.매출액 * 100).toFixed(1) : 0;
+      analysis.push(`영업이익률 ${opMarginPrev}%→${opMarginCurr}%`);
+    }
+    
+    else if (accountKey === '광고선전비' || accountKey === '수수료' || accountKey === '감가상각비' || accountKey === '기타판관비') {
+      // 판관비 세부 항목: 매출 대비 비율 분석
+      const itemCurr = currData[accountKey] || 0;
+      const itemPrev = prevData[accountKey] || 0;
+      const salesCurr = currData.매출액 || 1;
+      const salesPrev = prevData.매출액 || 1;
+      
+      const ratioCurr = (itemCurr / salesCurr * 100).toFixed(1);
+      const ratioPrev = (itemPrev / salesPrev * 100).toFixed(1);
+      const ratioChange = (parseFloat(ratioCurr) - parseFloat(ratioPrev)).toFixed(1);
+      
+      analysis.push(`매출대비 ${ratioPrev}%→${ratioCurr}% (${ratioChange >= 0 ? '+' : ''}${ratioChange}%p)`);
+    }
+    
+    else if (accountKey === '당기순이익') {
+      // 당기순이익: 영업이익과 영업외손익 기여도
+      const netIncomeCurr = currData.당기순이익 || 0;
+      const netIncomePrev = prevData.당기순이익 || 0;
+      const opIncomeCurr = currData.영업이익 || 0;
+      const opIncomePrev = prevData.영업이익 || 0;
+      const nonOpCurr = currData.영업외손익 || 0;
+      const nonOpPrev = prevData.영업외손익 || 0;
+      
+      const opChange = opIncomeCurr - opIncomePrev;
+      const nonOpChange = nonOpCurr - nonOpPrev;
+      const netChange = netIncomeCurr - netIncomePrev;
+      
+      const opContrib = netChange !== 0 ? ((opChange / Math.abs(netChange)) * 100).toFixed(0) : 0;
+      const nonOpContrib = netChange !== 0 ? ((nonOpChange / Math.abs(netChange)) * 100).toFixed(0) : 0;
+      
+      analysis.push(`영업이익 변동 기여도 ${opContrib}%`);
+      analysis.push(`영업외손익 변동 기여도 ${nonOpContrib}%`);
+    }
+    
+    return analysis;
+  };
+
+  // 재무상태표 문장형 분석 생성 함수
+  const generateBSAnalysisText = (accountKey, entity, currPeriod, prevPeriod) => {
+    const currData = balanceSheetData[currPeriod] || {};
+    const prevData = balanceSheetData[prevPeriod] || {};
+    
+    const formatRate = (val) => val >= 0 ? `+${val.toFixed(1)}%` : `${val.toFixed(1)}%`;
+    const calcChange = (curr, prev) => prev !== 0 ? ((curr - prev) / Math.abs(prev) * 100) : 0;
+    
+    let analysis = [];
+    
+    if (accountKey === '자산총계') {
+      // 주요 자산 항목별 기여도
+      const majorItems = ['현금성자산', '매출채권', '재고자산', '관계기업투자', '유무형자산'];
+      const totalChange = (currData.자산총계 || 0) - (prevData.자산총계 || 0);
+      
+      const contributions = majorItems.map(item => {
+        const curr = currData[item] || 0;
+        const prev = prevData[item] || 0;
+        const diff = curr - prev;
+        const contrib = totalChange !== 0 ? ((diff / Math.abs(totalChange)) * 100).toFixed(0) : 0;
+        return { item, diff, contrib, rate: calcChange(curr, prev) };
+      }).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+      
+      const top2 = contributions.slice(0, 2);
+      top2.forEach(c => {
+        const direction = c.diff > 0 ? '증가' : '감소';
+        analysis.push(`${c.item} ${direction} (기여도 ${c.contrib}%)`);
+      });
+    }
+    
+    else if (accountKey === '현금성자산' || accountKey === '금융상품') {
+      // 현금 및 금융자산: 총자산 대비 비율
+      const itemCurr = currData[accountKey] || 0;
+      const itemPrev = prevData[accountKey] || 0;
+      const totalCurr = currData.자산총계 || 1;
+      const totalPrev = prevData.자산총계 || 1;
+      
+      const ratioCurr = (itemCurr / totalCurr * 100).toFixed(1);
+      const ratioPrev = (itemPrev / totalPrev * 100).toFixed(1);
+      
+      analysis.push(`자산대비 ${ratioPrev}%→${ratioCurr}%`);
+    }
+    
+    else if (accountKey === '재고자산') {
+      // 재고자산: 회전율 관련
+      const invCurr = currData.재고자산 || 0;
+      const invPrev = prevData.재고자산 || 0;
+      const change = calcChange(invCurr, invPrev);
+      
+      analysis.push(`재고 ${formatRate(change)}`);
+      analysis.push(invCurr > invPrev ? '재고 수준 상승' : '재고 수준 하락');
+    }
+    
+    else if (accountKey === '매출채권') {
+      // 매출채권: 회수 관련
+      const arCurr = currData.매출채권 || 0;
+      const arPrev = prevData.매출채권 || 0;
+      const change = calcChange(arCurr, arPrev);
+      
+      analysis.push(`매출채권 ${formatRate(change)}`);
+    }
+    
+    else if (accountKey === '부채총계') {
+      // 부채: 주요 항목별 기여도
+      const majorItems = ['차입금', '매입채무', '미지급금', '리스부채', '기타부채'];
+      const totalChange = (currData.부채총계 || 0) - (prevData.부채총계 || 0);
+      
+      const contributions = majorItems.map(item => {
+        const curr = currData[item] || 0;
+        const prev = prevData[item] || 0;
+        const diff = curr - prev;
+        const contrib = totalChange !== 0 ? ((diff / Math.abs(totalChange)) * 100).toFixed(0) : 0;
+        return { item, diff, contrib, rate: calcChange(curr, prev) };
+      }).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+      
+      const top2 = contributions.slice(0, 2);
+      top2.forEach(c => {
+        const direction = c.diff > 0 ? '증가' : '감소';
+        analysis.push(`${c.item} ${direction} (기여도 ${c.contrib}%)`);
+      });
+    }
+    
+    else if (accountKey === '자본총계') {
+      // 자본: 이익잉여금 변동 중심
+      const retainedCurr = currData.이익잉여금 || 0;
+      const retainedPrev = prevData.이익잉여금 || 0;
+      const change = calcChange(retainedCurr, retainedPrev);
+      
+      analysis.push(`이익잉여금 ${formatRate(change)}`);
+      
+      const equityRatio = currData.자산총계 > 0 ? 
+        ((currData.자본총계 / currData.자산총계) * 100).toFixed(1) : 0;
+      analysis.push(`자기자본비율 ${equityRatio}%`);
+    }
+    
+    else if (accountKey === '차입금') {
+      // 차입금: 부채비율 관련
+      const debtCurr = currData.차입금 || 0;
+      const debtPrev = prevData.차입금 || 0;
+      const change = calcChange(debtCurr, debtPrev);
+      
+      const debtRatio = currData.자본총계 > 0 ? 
+        ((currData.부채총계 / currData.자본총계) * 100).toFixed(1) : 0;
+      
+      analysis.push(`차입금 ${formatRate(change)}`);
+      analysis.push(`부채비율 ${debtRatio}%`);
+    }
+    
+    return analysis;
   };
 
   // ============================================
@@ -2973,13 +3362,14 @@ export default function FnFQ4Dashboard() {
               </h3>
               <button
                 onClick={() => setIncomeEditMode(!incomeEditMode)}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
+                className={`text-xs px-1.5 py-1 rounded transition-colors ${
                   incomeEditMode 
                     ? 'bg-blue-500 text-white' 
                     : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                 }`}
+                title={incomeEditMode ? '편집 완료' : '분석 문장 편집'}
               >
-                {incomeEditMode ? '✓ 완료' : '✏️ 편집'}
+                {incomeEditMode ? '✓' : '✏️'}
               </button>
             </div>
             <div className="space-y-2 text-xs">
@@ -2989,76 +3379,79 @@ export default function FnFQ4Dashboard() {
                 const totalPrev = tableData.reduce((sum, r) => sum + r.prevVal, 0);
                 const totalDiff = totalCurr - totalPrev;
                 
-                return tableData
-                  .sort((a, b) => Math.abs(b.currVal - b.prevVal) - Math.abs(a.currVal - a.prevVal))
-                  .map((row, idx) => {
+                // 법인 순서 고정: OC(국내), 중국, 홍콩, ST미국, 기타(연결조정)
+                const sortedData = [...tableData].sort((a, b) => {
+                  const orderA = ENTITY_ORDER.indexOf(a.entity);
+                  const orderB = ENTITY_ORDER.indexOf(b.entity);
+                  return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+                });
+                
+                return sortedData.map((row, idx) => {
                     const diff = row.currVal - row.prevVal;
                     const isPositive = diff >= 0;
                     const contribution = totalDiff !== 0 ? ((diff / Math.abs(totalDiff)) * 100).toFixed(0) : 0;
                     const diffBil = Math.round(diff / 100); // 억원 단위
                     
-                    // 편집된 데이터가 있으면 사용, 없으면 계산된 값 사용
-                    const editKey = `${selectedAccount}_${row.entity}`;
-                    const editedData = incomeEditData[editKey] || {};
-                    const displayAmount = editedData.amount !== undefined ? editedData.amount : `${isPositive ? '+' : ''}${formatNumber(diffBil)}`;
-                    const displayRate = editedData.rate !== undefined ? editedData.rate : row.change;
-                    const displayContribution = editedData.contribution !== undefined ? editedData.contribution : contribution;
+                    const displayAmount = `${isPositive ? '+' : ''}${formatNumber(diffBil)}`;
+                    const displayRate = row.change;
+                    const displayContribution = contribution;
                     
                     const colorMap = {
                       'OC(국내)': { bg: 'bg-blue-50/50', border: 'border-blue-400' },
                       '중국': { bg: 'bg-amber-50/50', border: 'border-amber-400' },
                       '홍콩': { bg: 'bg-violet-50/50', border: 'border-violet-400' },
+                      'ST미국': { bg: 'bg-emerald-50/50', border: 'border-emerald-400' },
                     };
                     const colors = colorMap[row.entity] || { bg: 'bg-zinc-50', border: 'border-zinc-300' };
+                    
+                    // 문장형 분석 생성 (기본값) 또는 편집된 값 사용
+                    const editKey = `${selectedAccount}_${row.entity}`;
+                    const defaultTexts = generateIncomeAnalysisText(selectedAccount, row.entity, currPeriod, prevPeriod);
+                    const analysisTexts = incomeEditData[editKey] || defaultTexts;
                     
                     return (
                       <div key={idx} className={`p-2.5 ${colors.bg} rounded-lg border-l-2 ${colors.border}`}>
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-zinc-800">{row.entity}</span>
-                          {incomeEditMode ? (
-                            <input
-                              type="text"
-                              value={displayRate}
-                              onChange={(e) => setIncomeEditData(prev => ({
-                                ...prev,
-                                [editKey]: { ...prev[editKey], rate: e.target.value }
-                              }))}
-                              className="w-16 text-right text-xs font-bold px-1.5 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                            />
-                          ) : (
-                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${parseFloat(displayRate) >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                              {parseFloat(displayRate) >= 0 ? '▲' : '▼'} {displayRate}%
-                            </span>
-                          )}
+                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${parseFloat(displayRate) >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            {parseFloat(displayRate) >= 0 ? '▲' : '▼'} {displayRate}%
+                          </span>
                         </div>
                         <div className="mt-1.5 flex items-center justify-between text-[11px]">
-                          {incomeEditMode ? (
-                            <input
-                              type="text"
-                              value={displayAmount}
-                              onChange={(e) => setIncomeEditData(prev => ({
-                                ...prev,
-                                [editKey]: { ...prev[editKey], amount: e.target.value }
-                              }))}
-                              className="w-[100px] text-xs px-2 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                            />
-                          ) : (
-                            <span className="text-zinc-500">{displayAmount}억원</span>
-                          )}
-                          {incomeEditMode ? (
-                            <input
-                              type="text"
-                              value={displayContribution}
-                              onChange={(e) => setIncomeEditData(prev => ({
-                                ...prev,
-                                [editKey]: { ...prev[editKey], contribution: e.target.value }
-                              }))}
-                              className="w-12 text-right text-xs px-1 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                            />
-                          ) : (
-                            <span className="text-zinc-400">기여도 {displayContribution}%</span>
-                          )}
+                          <span className="text-zinc-500">{displayAmount}억원</span>
+                          <span className="text-zinc-400">기여도 {displayContribution}%</span>
                         </div>
+                        {/* 문장형 증감 분석 - 편집 가능 */}
+                        {analysisTexts.length > 0 && (
+                          <div className="mt-2 pt-2 border-t border-zinc-200/50">
+                            <div className="space-y-1">
+                              {analysisTexts.map((text, i) => (
+                                incomeEditMode ? (
+                                  <div key={i} className="flex items-start gap-1">
+                                    <span className="text-[11px] text-zinc-500 mt-0.5">•</span>
+                                    <textarea
+                                      value={text}
+                                      onChange={(e) => {
+                                        const newTexts = [...analysisTexts];
+                                        newTexts[i] = e.target.value;
+                                        setIncomeEditData(prev => ({
+                                          ...prev,
+                                          [editKey]: newTexts
+                                        }));
+                                      }}
+                                      className="flex-1 text-[11px] text-zinc-600 leading-relaxed px-1.5 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+                                      rows={2}
+                                    />
+                                  </div>
+                                ) : (
+                                  <p key={i} className="text-[11px] text-zinc-600 leading-relaxed">
+                                    • {text}
+                                  </p>
+                                )
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   });
@@ -3801,13 +4194,14 @@ export default function FnFQ4Dashboard() {
                 </h3>
                 <button
                   onClick={() => setBsEditMode(!bsEditMode)}
-                  className={`text-xs px-2 py-1 rounded transition-colors ${
+                  className={`text-xs px-1.5 py-1 rounded transition-colors ${
                     bsEditMode 
                       ? 'bg-blue-500 text-white' 
                       : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                   }`}
+                  title={bsEditMode ? '편집 완료' : '분석 문장 편집'}
                 >
-                  {bsEditMode ? '✓ 완료' : '✏️ 편집'}
+                  {bsEditMode ? '✓' : '✏️'}
                 </button>
               </div>
               <div className="space-y-2 text-xs">
@@ -3824,7 +4218,14 @@ export default function FnFQ4Dashboard() {
                       prevVal: curr2024[entity] || 0,
                       diff: (curr2025[entity] || 0) - (curr2024[entity] || 0),
                       rate: curr2024[entity] !== 0 ? ((curr2025[entity] - curr2024[entity]) / Math.abs(curr2024[entity]) * 100).toFixed(1) : 0
-                    })).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+                    }));
+                  
+                  // 법인 순서 고정: OC(국내), 중국, 홍콩, ST미국, 기타(연결조정)
+                  const sortedChanges = [...changes].sort((a, b) => {
+                    const orderA = ENTITY_ORDER.indexOf(a.name);
+                    const orderB = ENTITY_ORDER.indexOf(b.name);
+                    return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+                  });
                   
                   const total2025 = getBSConsolidatedTotal(selectedBSAccount, bsCurrentPeriod);
                   const total2024 = getBSConsolidatedTotal(selectedBSAccount, bsPrevPeriod);
@@ -3834,69 +4235,67 @@ export default function FnFQ4Dashboard() {
                     'OC(국내)': { bg: 'bg-blue-50/50', border: 'border-blue-400' },
                     '중국': { bg: 'bg-amber-50/50', border: 'border-amber-400' },
                     '홍콩': { bg: 'bg-violet-50/50', border: 'border-violet-400' },
+                    'ST미국': { bg: 'bg-emerald-50/50', border: 'border-emerald-400' },
                   };
                   
-                  return changes.map((row, idx) => {
+                  return sortedChanges.map((row, idx) => {
                     const isPositive = row.diff >= 0;
                     const contribution = totalDiff !== 0 ? ((row.diff / Math.abs(totalDiff)) * 100).toFixed(0) : 0;
                     const diffBil = Math.round(row.diff / 100); // 억원 단위
                     const colors = colorMap[row.name] || { bg: 'bg-zinc-50', border: 'border-zinc-300' };
                     
-                    // 편집된 데이터가 있으면 사용, 없으면 계산된 값 사용
+                    const displayAmount = `${isPositive ? '+' : ''}${formatNumber(diffBil)}`;
+                    const displayRate = row.rate;
+                    const displayContribution = contribution;
+                    
+                    // 문장형 분석 생성 (기본값) 또는 편집된 값 사용
                     const editKey = `${selectedBSAccount}_${row.name}`;
-                    const editedData = bsEditData[editKey] || {};
-                    const displayAmount = editedData.amount !== undefined ? editedData.amount : `${isPositive ? '+' : ''}${formatNumber(diffBil)}`;
-                    const displayRate = editedData.rate !== undefined ? editedData.rate : row.rate;
-                    const displayContribution = editedData.contribution !== undefined ? editedData.contribution : contribution;
+                    const defaultTexts = generateBSAnalysisText(selectedBSAccount, row.name, bsCurrentPeriod, bsPrevPeriod);
+                    const bsAnalysisTexts = bsEditData[editKey] || defaultTexts;
                     
                     return (
                       <div key={idx} className={`p-2.5 ${colors.bg} rounded-lg border-l-2 ${colors.border}`}>
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-zinc-800">{row.name}</span>
-                          {bsEditMode ? (
-                            <input
-                              type="text"
-                              value={displayRate}
-                              onChange={(e) => setBsEditData(prev => ({
-                                ...prev,
-                                [editKey]: { ...prev[editKey], rate: e.target.value }
-                              }))}
-                              className="w-16 text-right text-xs font-bold px-1.5 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                            />
-                          ) : (
-                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${parseFloat(displayRate) >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                              {parseFloat(displayRate) >= 0 ? '▲' : '▼'} {displayRate}%
-                            </span>
-                          )}
+                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${parseFloat(displayRate) >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            {parseFloat(displayRate) >= 0 ? '▲' : '▼'} {displayRate}%
+                          </span>
                         </div>
                         <div className="mt-1.5 flex items-center justify-between text-[11px]">
-                          {bsEditMode ? (
-                            <input
-                              type="text"
-                              value={displayAmount}
-                              onChange={(e) => setBsEditData(prev => ({
-                                ...prev,
-                                [editKey]: { ...prev[editKey], amount: e.target.value }
-                              }))}
-                              className="w-[100px] text-xs px-2 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                            />
-                          ) : (
-                            <span className="text-zinc-500">{displayAmount}억원</span>
-                          )}
-                          {bsEditMode ? (
-                            <input
-                              type="text"
-                              value={displayContribution}
-                              onChange={(e) => setBsEditData(prev => ({
-                                ...prev,
-                                [editKey]: { ...prev[editKey], contribution: e.target.value }
-                              }))}
-                              className="w-12 text-right text-xs px-1 py-0.5 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                            />
-                          ) : (
-                            <span className="text-zinc-400">기여도 {displayContribution}%</span>
-                          )}
+                          <span className="text-zinc-500">{displayAmount}억원</span>
+                          <span className="text-zinc-400">기여도 {displayContribution}%</span>
                         </div>
+                        {/* 문장형 증감 분석 - 편집 가능 */}
+                        {bsAnalysisTexts.length > 0 && (
+                          <div className="mt-2 pt-2 border-t border-zinc-200/50">
+                            <div className="space-y-1">
+                              {bsAnalysisTexts.map((text, i) => (
+                                bsEditMode ? (
+                                  <div key={i} className="flex items-start gap-1">
+                                    <span className="text-[11px] text-zinc-500 mt-0.5">•</span>
+                                    <textarea
+                                      value={text}
+                                      onChange={(e) => {
+                                        const newTexts = [...bsAnalysisTexts];
+                                        newTexts[i] = e.target.value;
+                                        setBsEditData(prev => ({
+                                          ...prev,
+                                          [editKey]: newTexts
+                                        }));
+                                      }}
+                                      className="flex-1 text-[11px] text-zinc-600 leading-relaxed px-1.5 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+                                      rows={2}
+                                    />
+                                  </div>
+                                ) : (
+                                  <p key={i} className="text-[11px] text-zinc-600 leading-relaxed">
+                                    • {text}
+                                  </p>
+                                )
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   });
