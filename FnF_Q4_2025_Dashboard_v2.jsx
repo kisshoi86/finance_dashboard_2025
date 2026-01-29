@@ -837,112 +837,274 @@ export default function FnFQ4Dashboard() {
     return analysis;
   };
 
-  // 재무상태표 문장형 분석 생성 함수
+  // ============================================
+  // 상세 계정 데이터 (bsDetailData) - 법인별 데이터 포함
+  // ============================================
+  const bsDetailData = {
+    // 현금성자산 하위 계정
+    '현금및현금성자산': { 
+      category: '현금성자산', 
+      '2024_4Q': { 'OC(국내)': 61500, '중국': 29229, '홍콩': 6073, 'ST미국': 22881, '기타': 150, 연결: 119833 },
+      '2025_4Q': { 'OC(국내)': 270871, '중국': 12231, '홍콩': 5369, 'ST미국': 36527, '기타': 386, 연결: 325384 }
+    },
+    // 금융자산 하위 계정
+    '기타유동금융자산': { 
+      category: '금융자산', 
+      '2024_4Q': { 'OC(국내)': 350, '중국': 6038, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 6388 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 16381, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 16381 }
+    },
+    '당기손익-공정가치금융자산': { 
+      category: '금융자산', 
+      '2024_4Q': { 'OC(국내)': 13091, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 13091 },
+      '2025_4Q': { 'OC(국내)': 9288, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 9288 }
+    },
+    // 재고자산 하위 계정
+    '상품': { 
+      category: '재고자산', 
+      '2024_4Q': { 'OC(국내)': 183245, '중국': 110876, '홍콩': 30215, 'ST미국': 8755, '기타': 0, 연결: 333091 },
+      '2025_4Q': { 'OC(국내)': 185123, '중국': 239654, '홍콩': 22876, 'ST미국': 8156, '기타': 0, 연결: 455809 }
+    },
+    '상품(충당금)': { 
+      category: '재고자산', 
+      '2024_4Q': { 'OC(국내)': -8234, '중국': -12345, '홍콩': -1500, 'ST미국': -600, '기타': 0, 연결: -22679 },
+      '2025_4Q': { 'OC(국내)': -12456, '중국': -35678, '홍콩': -3125, 'ST미국': -1700, '기타': 0, 연결: -52959 }
+    },
+    '제품': { 
+      category: '재고자산', 
+      '2024_4Q': { 'OC(국내)': 31036, '중국': 30347, '홍콩': 4990, 'ST미국': 776, '기타': 0, 연결: 67149 },
+      '2025_4Q': { 'OC(국내)': 34151, '중국': 66798, '홍콩': 1548, 'ST미국': 816, '기타': 0, 연결: 103313 }
+    },
+    '재공품': { 
+      category: '재고자산', 
+      '2024_4Q': { 'OC(국내)': 0, '중국': 6523, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 6523 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 11665, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 11665 }
+    },
+    '원재료': { 
+      category: '재고자산', 
+      '2024_4Q': { 'OC(국내)': 0, '중국': 18665, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 18665 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 34028, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 34028 }
+    },
+    '미착품': { 
+      category: '재고자산', 
+      '2024_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 21030, 연결: 21030 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 7000, '홍콩': 6759, 'ST미국': 0, '기타': 0, 연결: 13759 }
+    },
+    // 유무형자산 하위 계정
+    '토지': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 309000, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 309000 },
+      '2025_4Q': { 'OC(국내)': 309000, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 309000 }
+    },
+    '건물': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 130456, '중국': 3215, '홍콩': 1523, 'ST미국': 0, '기타': 1379, 연결: 136573 },
+      '2025_4Q': { 'OC(국내)': 126234, '중국': 3012, '홍콩': 1421, 'ST미국': 0, '기타': 1479, 연결: 132146 }
+    },
+    '임차시설물': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 42156, '중국': 3543, '홍콩': 956, 'ST미국': 71, '기타': 4663, 연결: 51389 },
+      '2025_4Q': { 'OC(국내)': 40123, '중국': 4125, '홍콩': 1844, 'ST미국': 50, '기타': 3088, 연결: 49230 }
+    },
+    '공기구비품': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 9876, '중국': 2234, '홍콩': 0, 'ST미국': 0, '기타': 3877, 연결: 15987 },
+      '2025_4Q': { 'OC(국내)': 8654, '중국': 2167, '홍콩': 0, 'ST미국': 0, '기타': 3852, 연결: 14673 }
+    },
+    '건설중인자산': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 16237, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 16237 },
+      '2025_4Q': { 'OC(국내)': 23104, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 23104 }
+    },
+    '투자부동산': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 75778, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 75778 },
+      '2025_4Q': { 'OC(국내)': 74674, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 74674 }
+    },
+    '라이선스': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 21786, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 21786 },
+      '2025_4Q': { 'OC(국내)': 20124, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 20124 }
+    },
+    '브랜드': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 32430, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 32430 },
+      '2025_4Q': { 'OC(국내)': 30872, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 30872 }
+    },
+    '소프트웨어': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 8756, '중국': 100, '홍콩': 0, 'ST미국': 0, '기타': 76, 연결: 8932 },
+      '2025_4Q': { 'OC(국내)': 7345, '중국': 123, '홍콩': 0, 'ST미국': 0, '기타': 75, 연결: 7543 }
+    },
+    '영업권': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 12318, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 12318 },
+      '2025_4Q': { 'OC(국내)': 12588, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 12588 }
+    },
+    // 사용권자산 하위 계정
+    '사용권자산': { 
+      category: '사용권자산', 
+      '2024_4Q': { 'OC(국내)': 183782, '중국': 93085, '홍콩': 15941, 'ST미국': 21827, '기타': 10810, 연결: 325445 },
+      '2025_4Q': { 'OC(국내)': 130687, '중국': 34218, '홍콩': 7963, 'ST미국': 10020, '기타': 2270, 연결: 185158 }
+    },
+    // 투자자산 하위 계정
+    '관계기업투자': { 
+      category: '투자자산', 
+      '2024_4Q': { 'OC(국내)': 665564, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 665564 },
+      '2025_4Q': { 'OC(국내)': 662420, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 662420 }
+    },
+    // 매입채무 하위 계정
+    '매입채무_상세': { 
+      category: '매입채무', 
+      '2024_4Q': { 'OC(국내)': 79795, '중국': 17885, '홍콩': 47089, 'ST미국': 6030, '기타': -48114, 연결: 102685 },
+      '2025_4Q': { 'OC(국내)': 90452, '중국': 82388, '홍콩': 46803, 'ST미국': 4686, '기타': -119328, 연결: 105001 }
+    },
+    // 차입금 하위 계정
+    '단기차입금': { 
+      category: '차입금', 
+      '2024_4Q': { 'OC(국내)': 45000, '중국': 100635, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 145635 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 186267, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 186267 }
+    },
+    '장기차입금': { 
+      category: '차입금', 
+      '2024_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 0 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, 'ST미국': 80970, '기타': 0, 연결: 80970 }
+    },
+    // 이익잉여금
+    '이익잉여금': { 
+      category: '자본', 
+      '2024_4Q': { 'OC(국내)': 1222495, '중국': 61851, '홍콩': 3146, 'ST미국': -11153, '기타': 7016, 연결: 1283355 },
+      '2025_4Q': { 'OC(국내)': 1558525, '중국': 88199, '홍콩': 4188, 'ST미국': -19074, '기타': -12023, 연결: 1619815 }
+    },
+  };
+
+  // 카테고리별 상세 계정 매핑
+  const categoryDetailAccounts = {
+    '현금성자산': ['현금및현금성자산'],
+    '금융자산': ['기타유동금융자산', '당기손익-공정가치금융자산'],
+    '재고자산': ['상품', '상품(충당금)', '제품', '재공품', '원재료', '미착품'],
+    '유무형자산': ['토지', '건물', '임차시설물', '공기구비품', '건설중인자산', '투자부동산', '라이선스', '브랜드', '소프트웨어', '영업권'],
+    '사용권자산': ['사용권자산'],
+    '투자자산': ['관계기업투자'],
+    '매입채무': ['매입채무_상세'],
+    '차입금': ['단기차입금', '장기차입금'],
+    '자본총계': ['이익잉여금'],
+  };
+
+  // 재무상태표 문장형 분석 생성 함수 - 법인별, 상세 계정 기반 분석
   const generateBSAnalysisText = (accountKey, entity, currPeriod, prevPeriod) => {
-    const currData = balanceSheetData[currPeriod] || {};
-    const prevData = balanceSheetData[prevPeriod] || {};
-    
+    const formatBil = (val) => Math.round(val / 100); // 백만원 → 억원
     const formatRate = (val) => val >= 0 ? `+${val.toFixed(1)}%` : `${val.toFixed(1)}%`;
-    const calcChange = (curr, prev) => prev !== 0 ? ((curr - prev) / Math.abs(prev) * 100) : 0;
+    const calcChange = (curr, prev) => prev !== 0 ? ((curr - prev) / Math.abs(prev) * 100) : (curr !== 0 ? 100 : 0);
+    
+    // 법인명 매핑 (기타(연결조정) -> 기타)
+    const entityKey = entity === '기타(연결조정)' ? '기타' : entity;
     
     let analysis = [];
     
-    if (accountKey === '자산총계') {
-      // 주요 자산 항목별 기여도
-      const majorItems = ['현금성자산', '매출채권', '재고자산', '투자자산', '유무형자산'];
-      const totalChange = (currData.자산총계 || 0) - (prevData.자산총계 || 0);
-      
-      const contributions = majorItems.map(item => {
-        const curr = currData[item] || 0;
-        const prev = prevData[item] || 0;
+    // 해당 카테고리의 상세 계정들 가져오기
+    const detailAccounts = categoryDetailAccounts[accountKey] || [];
+    
+    if (detailAccounts.length > 0) {
+      // 상세 계정별 증감 분석 - 법인별
+      const changes = detailAccounts.map(account => {
+        const data = bsDetailData[account];
+        if (!data) return null;
+        
+        const currData = data[currPeriod];
+        const prevData = data[prevPeriod];
+        if (!currData || !prevData) return null;
+        
+        // 법인별 데이터 가져오기
+        const curr = currData[entityKey] || 0;
+        const prev = prevData[entityKey] || 0;
         const diff = curr - prev;
-        const contrib = totalChange !== 0 ? ((diff / Math.abs(totalChange)) * 100).toFixed(0) : 0;
-        return { item, diff, contrib, rate: calcChange(curr, prev) };
-      }).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+        const rate = calcChange(curr, prev);
+        
+        // 계정명 정리
+        let displayName = account.replace('_상세', '').replace('(충당금)', ' 충당금');
+        return { account, displayName, curr, prev, diff, rate };
+      }).filter(c => c && Math.abs(c.diff) > 10).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
       
-      const top2 = contributions.slice(0, 2);
-      top2.forEach(c => {
-        const direction = c.diff > 0 ? '증가' : '감소';
-        analysis.push(`${c.item} ${direction} (기여도 ${c.contrib}%)`);
-      });
+      if (changes.length > 0) {
+        // 상위 2개 변동 항목 표시
+        const topChanges = changes.slice(0, 2);
+        topChanges.forEach(c => {
+          const diffBil = formatBil(c.diff);
+          const sign = diffBil >= 0 ? '+' : '';
+          analysis.push(`${c.displayName} ${sign}${formatNumber(diffBil)}억 (${formatRate(c.rate)})`);
+        });
+      }
     }
     
-    else if (accountKey === '현금성자산' || accountKey === '금융자산') {
-      // 현금 및 금융자산: 총자산 대비 비율
-      const itemCurr = currData[accountKey] || 0;
-      const itemPrev = prevData[accountKey] || 0;
-      const totalCurr = currData.자산총계 || 1;
-      const totalPrev = prevData.자산총계 || 1;
+    // 총계 계정인 경우 법인별 주요 항목 분석
+    if (accountKey === '자산총계') {
+      const currEntityData = entityBSData[currPeriod] || {};
+      const prevEntityData = entityBSData[prevPeriod] || {};
+      const majorItems = ['현금성자산', '재고자산', '유형자산', '투자자산'];
+      const itemChanges = majorItems.map(item => {
+        const curr = currEntityData[item]?.[entity] || 0;
+        const prev = prevEntityData[item]?.[entity] || 0;
+        return { item, diff: curr - prev, rate: calcChange(curr, prev) };
+      }).filter(c => Math.abs(c.diff) > 100).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
       
-      const ratioCurr = (itemCurr / totalCurr * 100).toFixed(1);
-      const ratioPrev = (itemPrev / totalPrev * 100).toFixed(1);
-      
-      analysis.push(`자산대비 ${ratioPrev}%→${ratioCurr}%`);
-    }
-    
-    else if (accountKey === '재고자산') {
-      // 재고자산: 회전율 관련
-      const invCurr = currData.재고자산 || 0;
-      const invPrev = prevData.재고자산 || 0;
-      const change = calcChange(invCurr, invPrev);
-      
-      analysis.push(`재고 ${formatRate(change)}`);
-      analysis.push(invCurr > invPrev ? '재고 수준 상승' : '재고 수준 하락');
-    }
-    
-    else if (accountKey === '매출채권') {
-      // 매출채권: 회수 관련
-      const arCurr = currData.매출채권 || 0;
-      const arPrev = prevData.매출채권 || 0;
-      const change = calcChange(arCurr, arPrev);
-      
-      analysis.push(`매출채권 ${formatRate(change)}`);
+      if (itemChanges.length > 0) {
+        analysis = [];
+        itemChanges.slice(0, 2).forEach(c => {
+          const diffBil = formatBil(c.diff);
+          const sign = diffBil >= 0 ? '+' : '';
+          analysis.push(`${c.item} ${sign}${formatNumber(diffBil)}억 (${formatRate(c.rate)})`);
+        });
+      }
     }
     
     else if (accountKey === '부채총계') {
-      // 부채: 주요 항목별 기여도
-      const majorItems = ['차입금', '매입채무', '미지급금', '리스부채', '기타부채'];
-      const totalChange = (currData.부채총계 || 0) - (prevData.부채총계 || 0);
+      const currEntityData = entityBSData[currPeriod] || {};
+      const prevEntityData = entityBSData[prevPeriod] || {};
+      const majorItems = ['차입금', '매입채무', '유동부채', '비유동부채'];
+      const itemChanges = majorItems.map(item => {
+        const curr = currEntityData[item]?.[entity] || 0;
+        const prev = prevEntityData[item]?.[entity] || 0;
+        return { item, diff: curr - prev, rate: calcChange(curr, prev) };
+      }).filter(c => Math.abs(c.diff) > 100).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
       
-      const contributions = majorItems.map(item => {
-        const curr = currData[item] || 0;
-        const prev = prevData[item] || 0;
-        const diff = curr - prev;
-        const contrib = totalChange !== 0 ? ((diff / Math.abs(totalChange)) * 100).toFixed(0) : 0;
-        return { item, diff, contrib, rate: calcChange(curr, prev) };
-      }).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
-      
-      const top2 = contributions.slice(0, 2);
-      top2.forEach(c => {
-        const direction = c.diff > 0 ? '증가' : '감소';
-        analysis.push(`${c.item} ${direction} (기여도 ${c.contrib}%)`);
-      });
+      if (itemChanges.length > 0) {
+        analysis = [];
+        itemChanges.slice(0, 2).forEach(c => {
+          const diffBil = formatBil(c.diff);
+          const sign = diffBil >= 0 ? '+' : '';
+          analysis.push(`${c.item} ${sign}${formatNumber(diffBil)}억 (${formatRate(c.rate)})`);
+        });
+      }
     }
     
     else if (accountKey === '자본총계') {
-      // 자본: 이익잉여금 변동 중심
-      const retainedCurr = currData.이익잉여금 || 0;
-      const retainedPrev = prevData.이익잉여금 || 0;
-      const change = calcChange(retainedCurr, retainedPrev);
+      // 이익잉여금 법인별 데이터
+      const retainedData = bsDetailData['이익잉여금'];
+      if (retainedData) {
+        const retainedCurr = retainedData[currPeriod]?.[entityKey] || 0;
+        const retainedPrev = retainedData[prevPeriod]?.[entityKey] || 0;
+        const retainedDiff = retainedCurr - retainedPrev;
+        
+        if (Math.abs(retainedDiff) > 100) {
+          const diffBil = formatBil(retainedDiff);
+          const sign = diffBil >= 0 ? '+' : '';
+          analysis = [`이익잉여금 ${sign}${formatNumber(diffBil)}억 (${formatRate(calcChange(retainedCurr, retainedPrev))})`];
+        }
+      }
       
-      analysis.push(`이익잉여금 ${formatRate(change)}`);
-      
-      const equityRatio = currData.자산총계 > 0 ? 
-        ((currData.자본총계 / currData.자산총계) * 100).toFixed(1) : 0;
-      analysis.push(`자기자본비율 ${equityRatio}%`);
+      // 자기자본비율 추가
+      const currEntityData = entityBSData[currPeriod] || {};
+      const assetCurr = currEntityData['자산총계']?.[entity] || 0;
+      const equityCurr = currEntityData['자본총계']?.[entity] || 0;
+      if (assetCurr > 0) {
+        const equityRatio = (equityCurr / assetCurr * 100).toFixed(1);
+        analysis.push(`자기자본비율 ${equityRatio}%`);
+      }
     }
     
-    else if (accountKey === '차입금') {
-      // 차입금: 부채비율 관련
-      const debtCurr = currData.차입금 || 0;
-      const debtPrev = prevData.차입금 || 0;
-      const change = calcChange(debtCurr, debtPrev);
-      
-      const debtRatio = currData.자본총계 > 0 ? 
-        ((currData.부채총계 / currData.자본총계) * 100).toFixed(1) : 0;
-      
-      analysis.push(`차입금 ${formatRate(change)}`);
-      analysis.push(`부채비율 ${debtRatio}%`);
+    // 분석 결과가 없는 경우 기본 메시지
+    if (analysis.length === 0) {
+      analysis.push('유의미한 변동 없음');
     }
     
     return analysis;
@@ -1544,7 +1706,7 @@ export default function FnFQ4Dashboard() {
       재고자산: { 'OC(국내)': 219274, 중국: 306452, 홍콩: 31190, ST미국: 9288, 기타: -163351 },
       유형자산: { 'OC(국내)': 412660, 중국: 4939, 홍콩: 3711, ST미국: 57, 기타: 305 },
       투자자산: { 'OC(국내)': 750934, 중국: 0, 홍콩: 0, ST미국: 0, 기타: -9022 },
-      차입금: { 'OC(국내)': 0, 중국: 186267, 홍콩: 0, ST미국: 0, 기타: 0 },
+      차입금: { 'OC(국내)': 0, 중국: 186267, 홍콩: 0, ST미국: 80970, 기타: 0 },
       매입채무: { 'OC(국내)': 90452, 중국: 82388, 홍콩: 44694, ST미국: 6790, 기타: -119323 },
       유동자산: { 'OC(국내)': 716037, 중국: 418720, 홍콩: 44607, ST미국: 50448, 기타: -286328 },
       비유동자산: { 'OC(국내)': 1499461, 중국: 69389, 홍콩: 27221, ST미국: 69713, 기타: 42658 },
@@ -4234,27 +4396,63 @@ export default function FnFQ4Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {donutData2025.map((entity, idx) => {
-                    const prev = donutData2024.find(e => e.name === entity.name)?.valueRaw ?? donutData2024.find(e => e.name === entity.name)?.value ?? 0;
-                    const curr = entity.valueRaw ?? entity.value;
-                    const yoy = prev !== 0 ? ((curr - prev) / prev * 100).toFixed(1) : '-';
-                    const isPositive = parseFloat(yoy) >= 0;
+                  {(() => {
+                    // 전기/당기 모든 법인 합치기 (중복 제거)
+                    const allEntities = new Map();
+                    const totalCurr = getBSConsolidatedTotal(selectedBSAccount, bsCurrentPeriod);
                     
-                    return (
-                      <tr key={idx} className="border-b border-zinc-100">
-                        <td className="px-3 py-2 text-zinc-700 whitespace-nowrap">
-                          <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: entity.color }}></span>
-                          {entity.name}
-                        </td>
-                        <td className="text-right px-2 py-2 text-zinc-500 tabular-nums">{formatNumber(prev)}</td>
-                        <td className="text-right px-2 py-2 font-medium text-zinc-900 tabular-nums">{formatNumber(curr)}</td>
-                        <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">{entity.ratio}%</td>
-                        <td className={`text-right px-3 py-2 font-medium tabular-nums whitespace-nowrap ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                          {yoy !== '-' ? `${isPositive ? '+' : ''}${yoy}%` : '-'}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                    // 전기 데이터 추가
+                    donutData2024.forEach(e => {
+                      if (!allEntities.has(e.name)) {
+                        allEntities.set(e.name, { name: e.name, color: e.color, prev: e.valueRaw ?? e.value, curr: 0 });
+                      } else {
+                        allEntities.get(e.name).prev = e.valueRaw ?? e.value;
+                      }
+                    });
+                    
+                    // 당기 데이터 추가/업데이트
+                    donutData2025.forEach(e => {
+                      if (!allEntities.has(e.name)) {
+                        allEntities.set(e.name, { name: e.name, color: e.color, prev: 0, curr: e.valueRaw ?? e.value });
+                      } else {
+                        allEntities.get(e.name).curr = e.valueRaw ?? e.value;
+                        allEntities.get(e.name).color = e.color;
+                      }
+                    });
+                    
+                    // 법인 순서 정렬
+                    const entityOrder = ['OC(국내)', '중국', '홍콩', 'ST미국', '기타(연결조정)'];
+                    const sortedEntities = Array.from(allEntities.values())
+                      .filter(e => e.prev !== 0 || e.curr !== 0) // 전기/당기 모두 0인 경우 제외
+                      .sort((a, b) => {
+                        const orderA = entityOrder.indexOf(a.name);
+                        const orderB = entityOrder.indexOf(b.name);
+                        return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+                      });
+                    
+                    return sortedEntities.map((entity, idx) => {
+                      const yoy = entity.prev !== 0 ? ((entity.curr - entity.prev) / Math.abs(entity.prev) * 100).toFixed(1) : (entity.curr !== 0 ? '신규' : '-');
+                      const isPositive = parseFloat(yoy) >= 0;
+                      const ratio = totalCurr !== 0 ? ((Math.abs(entity.curr) / Math.abs(totalCurr)) * 100).toFixed(1) : '0.0';
+                      
+                      return (
+                        <tr key={idx} className="border-b border-zinc-100">
+                          <td className="px-3 py-2 text-zinc-700 whitespace-nowrap">
+                            <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: entity.color }}></span>
+                            {entity.name}
+                          </td>
+                          <td className="text-right px-2 py-2 text-zinc-500 tabular-nums">{formatNumber(entity.prev)}</td>
+                          <td className="text-right px-2 py-2 font-medium text-zinc-900 tabular-nums">{formatNumber(entity.curr)}</td>
+                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">{ratio}%</td>
+                          <td className={`text-right px-3 py-2 font-medium tabular-nums whitespace-nowrap ${
+                            yoy === '신규' ? 'text-blue-600' : yoy === '-' ? 'text-zinc-400' : isPositive ? 'text-emerald-600' : 'text-rose-600'
+                          }`}>
+                            {yoy === '신규' ? '신규' : yoy === '-' ? '-' : `${isPositive ? '+' : ''}${yoy}%`}
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
                   {/* 합계 행 */}
                   {(() => {
                     const totalPrev = getBSConsolidatedTotal(selectedBSAccount, bsPrevPeriod);
