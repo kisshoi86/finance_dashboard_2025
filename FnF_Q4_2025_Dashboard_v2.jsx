@@ -3560,33 +3560,34 @@ export default function FnFQ4Dashboard() {
       return `${sign}${formatNumber(Math.round(absValue))}`;
     };
 
-    // 요약 카드 데이터 (억원 단위)
+    // 요약 카드 데이터 (억원 단위) - 항상 전기말(전년 연말)과 비교
+    const prevYearEnd = '2024_4Q'; // 전기말 고정
     const summaryCards = [
       { 
         title: '자산총계', 
         curr: (balanceSheetData[bsCurrentPeriod]?.자산총계 || 0) / 100,
-        prev: (balanceSheetData[bsPrevPeriod]?.자산총계 || 0) / 100,
+        prev: (balanceSheetData[prevYearEnd]?.자산총계 || 0) / 100,
         unit: '억원',
         useTril: true,
       },
       { 
         title: '운전자본', 
         curr: calcWorkingCapital(bsCurrentPeriod) / 100,
-        prev: calcWorkingCapital(bsPrevPeriod) / 100,
+        prev: calcWorkingCapital(prevYearEnd) / 100,
         unit: '억원',
         useTril: false,
       },
       { 
         title: '자본총계', 
         curr: (balanceSheetData[bsCurrentPeriod]?.자본총계 || 0) / 100,
-        prev: (balanceSheetData[bsPrevPeriod]?.자본총계 || 0) / 100,
+        prev: (balanceSheetData[prevYearEnd]?.자본총계 || 0) / 100,
         unit: '억원',
         useTril: true,
       },
       { 
         title: 'ROE', 
         curr: calcROE(bsCurrentPeriod),
-        prev: calcROE(bsPrevPeriod),
+        prev: calcROE(prevYearEnd),
         isRatio: true,
       },
     ];
@@ -3845,6 +3846,7 @@ export default function FnFQ4Dashboard() {
                 key={idx}
                 className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-all duration-200"
               >
+                {/* 헤더: 제목과 증감률 박스 */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{card.title}</span>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
@@ -3854,17 +3856,19 @@ export default function FnFQ4Dashboard() {
                   </span>
                 </div>
                 
-                <div className="text-2xl font-bold text-zinc-900 tracking-tight">
-                  {card.isRatio ? `${curr}%` : (card.useTril ? formatTrilBil(curr) : formatNumber(Math.round(curr)))}
-                  {card.unit && <span className="text-sm font-normal text-zinc-500 ml-1">{card.unit}</span>}
+                {/* 당기 수치 */}
+                <div className="flex items-baseline gap-1 mb-3">
+                  <span className="text-2xl font-bold text-zinc-900 tracking-tight">
+                    {card.isRatio ? `${curr}%` : (card.useTril ? formatTrilBil(curr) : formatNumber(Math.round(curr)))}
+                  </span>
+                  {card.unit && <span className="text-sm font-normal text-zinc-400">{card.unit}</span>}
                 </div>
                 
-                <div className="flex items-center gap-2 mt-1 text-xs">
-                  <span className="text-zinc-400">
-                    {getBsPeriodLabel(bsPrevPeriod)} {card.isRatio ? `${prev}%` : `${card.useTril ? formatTrilBil(prev) : formatNumber(Math.round(prev))}${card.unit || ''}`}
-                  </span>
-                  {!card.isRatio && (
-                    <span className={`font-semibold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {/* 전년 수치 및 차액 (한 줄) */}
+                <div className="text-xs text-zinc-600 mb-3">
+                  전년 {card.isRatio ? `${prev}%` : `${card.useTril ? formatTrilBil(prev) : formatNumber(Math.round(prev))}${card.unit || '억원'}`}
+                  {!card.isRatio && diff !== 0 && (
+                    <span className={`ml-1 font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {isPositive ? '+' : ''}{formatNumber(Math.round(diff))}{card.unit || '억원'}
                     </span>
                   )}
