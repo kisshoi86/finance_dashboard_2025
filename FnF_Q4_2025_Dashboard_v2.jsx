@@ -2765,10 +2765,19 @@ export default function FnFQ4Dashboard() {
     ];
 
     // 재무상태 요약 카드 데이터 (억원 단위, 선택된 분기 기말 기준)
+    // ROE 계산 (당기순이익 / 자본총계 * 100)
+    const totalEquityCurr = balanceSheetData[bsCurrentPeriod]?.자본총계 || 0;
+    const totalEquityPrev = balanceSheetData[bsPrevPeriod]?.자본총계 || 0;
+    const netIncomeCurrForROE = incomeStatementData[selectedYearKey]?.당기순이익 || 0;
+    const netIncomePrevForROE = incomeStatementData[prevYearKey]?.당기순이익 || 0;
+    const roeCurr = totalEquityCurr > 0 ? (netIncomeCurrForROE / totalEquityCurr * 100) : 0;
+    const roePrev = totalEquityPrev > 0 ? (netIncomePrevForROE / totalEquityPrev * 100) : 0;
+    
     const balanceCards = [
       { title: '자산총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.자산총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.자산총계 || 0) / 100), iconColor: 'bg-amber-500', hasRate: false },
       { title: '부채총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.부채총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.부채총계 || 0) / 100), iconColor: 'bg-rose-500', hasRate: false },
       { title: '자본총계', value: Math.round((balanceSheetData[bsCurrentPeriod]?.자본총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsPrevPeriod]?.자본총계 || 0) / 100), iconColor: 'bg-cyan-500', hasRate: false },
+      { title: 'ROE', value: roeCurr, prevValue: roePrev, iconColor: 'bg-violet-500', hasRate: false, isPercent: true },
     ];
 
     // 조단위 포맷 함수 (억원 단위 입력) - 숫자와 단위 분리 반환
@@ -2787,6 +2796,54 @@ export default function FnFQ4Dashboard() {
 
     // 카드 렌더링 함수
     const renderCard = (card, idx) => {
+      // 퍼센트 타입 카드 (ROE 등)
+      if (card.isPercent) {
+        const diff = card.value - card.prevValue;
+        const isPositive = diff >= 0;
+        return (
+          <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
+            {/* 헤더: 제목과 증감 박스 */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{card.title}</span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+              }`}>
+                {diff !== 0 ? `${isPositive ? '+' : ''}${diff.toFixed(1)}%p` : '-'}
+              </span>
+            </div>
+            
+            {/* 당년 수치 */}
+            <div className="flex items-baseline gap-1 mb-3">
+              <span className="text-2xl font-bold text-zinc-900">{card.value.toFixed(1)}</span>
+              <span className="text-sm font-normal text-zinc-400">%</span>
+            </div>
+            
+            {/* 전년 수치 */}
+            <div className="text-xs text-zinc-600 mb-3">
+              전년 {card.prevValue.toFixed(1)}%
+              {diff !== 0 && (
+                <span className={`ml-1 font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {isPositive ? '+' : ''}{diff.toFixed(1)}%p
+                </span>
+              )}
+            </div>
+            
+            {/* ROE 등급 표시 */}
+            <div className="pt-3 border-t border-zinc-100">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-400">수익성 등급</span>
+                <span className={`font-semibold ${
+                  card.value >= 15 ? 'text-emerald-600' : card.value >= 10 ? 'text-blue-600' : card.value >= 5 ? 'text-amber-600' : 'text-rose-600'
+                }`}>
+                  {card.value >= 15 ? '우수' : card.value >= 10 ? '양호' : card.value >= 5 ? '보통' : '개선필요'}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      
+      // 일반 금액 타입 카드
       const change = card.prevValue !== 0 
         ? ((card.value - card.prevValue) / Math.abs(card.prevValue) * 100).toFixed(1) 
         : 0;
@@ -2869,7 +2926,7 @@ export default function FnFQ4Dashboard() {
             <span className="w-1 h-4 bg-amber-500 rounded"></span>
             재무상태 요약
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {balanceCards.map((card, idx) => renderCard(card, idx))}
           </div>
         </div>
