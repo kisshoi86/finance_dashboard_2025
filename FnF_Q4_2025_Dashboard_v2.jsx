@@ -889,21 +889,31 @@ export default function FnFQ4Dashboard() {
       '2024_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 21030, 연결: 21030 },
       '2025_4Q': { 'OC(국내)': 0, '중국': 7000, '홍콩': 6759, 'ST미국': 0, '기타': 0, 연결: 13759 }
     },
-    // 유무형자산 하위 계정
+    // 유무형자산 하위 계정 (JSON 기준)
     '토지': { 
       category: '유무형자산', 
-      '2024_4Q': { 'OC(국내)': 309000, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 309000 },
-      '2025_4Q': { 'OC(국내)': 309000, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 309000 }
+      '2024_4Q': { 'OC(국내)': 345733, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 345733 },
+      '2025_4Q': { 'OC(국내)': 289435, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 289435 }
     },
     '건물': { 
       category: '유무형자산', 
-      '2024_4Q': { 'OC(국내)': 130456, '중국': 3215, '홍콩': 1523, 'ST미국': 0, '기타': 1379, 연결: 136573 },
-      '2025_4Q': { 'OC(국내)': 126234, '중국': 3012, '홍콩': 1421, 'ST미국': 0, '기타': 1479, 연결: 132146 }
+      '2024_4Q': { 'OC(국내)': 17059, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 17059 },
+      '2025_4Q': { 'OC(국내)': 93999, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 93999 }
+    },
+    '토지(투자부동산)': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 0 },
+      '2025_4Q': { 'OC(국내)': 57266, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 57266 }
+    },
+    '건물(투자부동산)': { 
+      category: '유무형자산', 
+      '2024_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 0 },
+      '2025_4Q': { 'OC(국내)': 22239, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 22239 }
     },
     '임차시설물': { 
       category: '유무형자산', 
-      '2024_4Q': { 'OC(국내)': 42156, '중국': 3543, '홍콩': 956, 'ST미국': 71, '기타': 4663, 연결: 51389 },
-      '2025_4Q': { 'OC(국내)': 40123, '중국': 4125, '홍콩': 1844, 'ST미국': 50, '기타': 3088, 연결: 49230 }
+      '2024_4Q': { 'OC(국내)': 32348, '중국': 16951, '홍콩': 10311, 'ST미국': 16, '기타': 280, 연결: 59906 },
+      '2025_4Q': { 'OC(국내)': 33354, '중국': 20118, '홍콩': 10947, 'ST미국': 0, '기타': 280, 연결: 64699 }
     },
     '공기구비품': { 
       category: '유무형자산', 
@@ -915,20 +925,15 @@ export default function FnFQ4Dashboard() {
       '2024_4Q': { 'OC(국내)': 16237, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 16237 },
       '2025_4Q': { 'OC(국내)': 23104, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 23104 }
     },
-    '투자부동산': { 
-      category: '유무형자산', 
-      '2024_4Q': { 'OC(국내)': 75778, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 75778 },
-      '2025_4Q': { 'OC(국내)': 74674, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 74674 }
-    },
     '라이선스': { 
       category: '유무형자산', 
-      '2024_4Q': { 'OC(국내)': 21786, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 21786 },
-      '2025_4Q': { 'OC(국내)': 20124, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 20124 }
+      '2024_4Q': { 'OC(국내)': 79662, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 17, 연결: 94380 },
+      '2025_4Q': { 'OC(국내)': 76168, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 79654 }
     },
     '브랜드': { 
       category: '유무형자산', 
-      '2024_4Q': { 'OC(국내)': 32430, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 32430 },
-      '2025_4Q': { 'OC(국내)': 30872, '중국': 0, '홍콩': 0, 'ST미국': 0, '기타': 0, 연결: 30872 }
+      '2024_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, 'ST미국': 70179, '기타': 0, 연결: 69882 },
+      '2025_4Q': { 'OC(국내)': 0, '중국': 0, '홍콩': 0, 'ST미국': 68503, '기타': 0, 연결: 68213 }
     },
     '소프트웨어': { 
       category: '유무형자산', 
@@ -982,7 +987,7 @@ export default function FnFQ4Dashboard() {
     '현금성자산': ['현금및현금성자산'],
     '금융자산': ['기타유동금융자산', '당기손익-공정가치금융자산'],
     '재고자산': ['상품', '상품(충당금)', '제품', '재공품', '원재료', '미착품'],
-    '유무형자산': ['토지', '건물', '임차시설물', '공기구비품', '건설중인자산', '투자부동산', '라이선스', '브랜드', '소프트웨어', '영업권'],
+    '유무형자산': ['토지', '건물', '토지(투자부동산)', '건물(투자부동산)', '임차시설물', '공기구비품', '건설중인자산', '라이선스', '브랜드', '소프트웨어', '영업권'],
     '사용권자산': ['사용권자산'],
     '투자자산': ['관계기업투자'],
     '매입채무': ['매입채무_상세'],
@@ -1025,8 +1030,56 @@ export default function FnFQ4Dashboard() {
         return { account, displayName, curr, prev, diff, rate };
       }).filter(c => c && Math.abs(c.diff) > 10).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
       
-      if (changes.length > 0) {
-        // 상위 2개 변동 항목 표시
+      // 유무형자산 특별 분석 - 계정 대체 감지
+      if (accountKey === '유무형자산' && entityKey === 'OC(국내)') {
+        const landChange = changes.find(c => c.account === '토지');
+        const investLandChange = changes.find(c => c.account === '토지(투자부동산)');
+        const buildingChange = changes.find(c => c.account === '건물');
+        const investBuildingChange = changes.find(c => c.account === '건물(투자부동산)');
+        
+        // 토지→투자부동산 대체 감지
+        if (landChange && landChange.diff < 0 && investLandChange && investLandChange.diff > 0) {
+          const transferAmt = Math.min(Math.abs(landChange.diff), investLandChange.diff);
+          const newAcquisition = investLandChange.diff - transferAmt + (investBuildingChange?.diff || 0);
+          analysis.push(`토지→투자부동산 대체 ${formatNumber(formatBil(transferAmt))}억`);
+          if (newAcquisition > 100) {
+            analysis.push(`투자부동산 신규취득 ${formatNumber(formatBil(newAcquisition))}억`);
+          }
+        }
+        // 건물 증가
+        if (buildingChange && buildingChange.diff > 1000) {
+          analysis.push(`건물 신규취득 +${formatNumber(formatBil(buildingChange.diff))}억`);
+        }
+      }
+      // 중국 법인 유무형자산 분석
+      else if (accountKey === '유무형자산' && entityKey === '중국') {
+        const facilityChange = changes.find(c => c.account === '임차시설물');
+        if (facilityChange && Math.abs(facilityChange.diff) > 100) {
+          const diffBil = formatBil(facilityChange.diff);
+          const sign = diffBil >= 0 ? '+' : '';
+          analysis.push(`임차시설물 ${sign}${formatNumber(diffBil)}억 (점포 확장)`);
+        }
+      }
+      // ST미국 법인 유무형자산 분석
+      else if (accountKey === '유무형자산' && entityKey === 'ST미국') {
+        const brandChange = changes.find(c => c.account === '브랜드');
+        if (brandChange) {
+          const diffBil = formatBil(brandChange.diff);
+          const sign = diffBil >= 0 ? '+' : '';
+          analysis.push(`브랜드 ${sign}${formatNumber(diffBil)}억 (상각/환율효과)`);
+        }
+      }
+      // 홍콩 법인 유무형자산 분석
+      else if (accountKey === '유무형자산' && entityKey === '홍콩') {
+        const facilityChange = changes.find(c => c.account === '임차시설물');
+        if (facilityChange && Math.abs(facilityChange.diff) > 10) {
+          const diffBil = formatBil(facilityChange.diff);
+          const sign = diffBil >= 0 ? '+' : '';
+          analysis.push(`임차시설물 ${sign}${formatNumber(diffBil)}억`);
+        }
+      }
+      // 일반적인 분석
+      else if (changes.length > 0) {
         const topChanges = changes.slice(0, 2);
         topChanges.forEach(c => {
           const diffBil = formatBil(c.diff);
@@ -3607,13 +3660,13 @@ export default function FnFQ4Dashboard() {
                           <span className="text-zinc-400">기여도 {displayContribution}%</span>
                         </div>
                         {/* 문장형 증감 분석 - 편집 가능 */}
-                        {analysisTexts.length > 0 && (
+                        {(analysisTexts.length > 0 || incomeEditMode) && (
                           <div className="mt-2 pt-2 border-t border-zinc-200/50">
                             <div className="space-y-1">
                               {analysisTexts.map((text, i) => (
                                 incomeEditMode ? (
                                   <div key={i} className="flex items-start gap-1">
-                                    <span className="text-[11px] text-zinc-500 mt-0.5">•</span>
+                                    <span className="text-[11px] text-zinc-500 mt-1.5">•</span>
                                     <textarea
                                       value={text}
                                       onChange={(e) => {
@@ -3627,13 +3680,44 @@ export default function FnFQ4Dashboard() {
                                       className="flex-1 text-[11px] text-zinc-600 leading-relaxed px-1.5 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
                                       rows={2}
                                     />
+                                    <button
+                                      onClick={() => {
+                                        const newTexts = analysisTexts.filter((_, idx) => idx !== i);
+                                        setIncomeEditData(prev => ({
+                                          ...prev,
+                                          [editKey]: newTexts.length > 0 ? newTexts : ['']
+                                        }));
+                                      }}
+                                      className="text-zinc-400 hover:text-rose-500 transition-colors p-0.5 mt-0.5"
+                                      title="삭제"
+                                    >
+                                      ✕
+                                    </button>
                                   </div>
                                 ) : (
-                                  <p key={i} className="text-[11px] text-zinc-600 leading-relaxed">
-                                    • {text}
-                                  </p>
+                                  text && (
+                                    <p key={i} className="text-[11px] text-zinc-600 leading-relaxed">
+                                      • {text}
+                                    </p>
+                                  )
                                 )
                               ))}
+                              {/* 추가 버튼 */}
+                              {incomeEditMode && (
+                                <button
+                                  onClick={() => {
+                                    const newTexts = [...analysisTexts, ''];
+                                    setIncomeEditData(prev => ({
+                                      ...prev,
+                                      [editKey]: newTexts
+                                    }));
+                                  }}
+                                  className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-blue-500 transition-colors mt-1"
+                                  title="항목 추가"
+                                >
+                                  <span className="text-sm">＋</span> 항목 추가
+                                </button>
+                              )}
                             </div>
                           </div>
                         )}
@@ -4556,13 +4640,13 @@ export default function FnFQ4Dashboard() {
                           <span className="text-zinc-400">기여도 {displayContribution}%</span>
                         </div>
                         {/* 문장형 증감 분석 - 편집 가능 */}
-                        {bsAnalysisTexts.length > 0 && (
+                        {(bsAnalysisTexts.length > 0 || bsEditMode) && (
                           <div className="mt-2 pt-2 border-t border-zinc-200/50">
                             <div className="space-y-1">
                               {bsAnalysisTexts.map((text, i) => (
                                 bsEditMode ? (
                                   <div key={i} className="flex items-start gap-1">
-                                    <span className="text-[11px] text-zinc-500 mt-0.5">•</span>
+                                    <span className="text-[11px] text-zinc-500 mt-1.5">•</span>
                                     <textarea
                                       value={text}
                                       onChange={(e) => {
@@ -4576,13 +4660,44 @@ export default function FnFQ4Dashboard() {
                                       className="flex-1 text-[11px] text-zinc-600 leading-relaxed px-1.5 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
                                       rows={2}
                                     />
+                                    <button
+                                      onClick={() => {
+                                        const newTexts = bsAnalysisTexts.filter((_, idx) => idx !== i);
+                                        setBsEditData(prev => ({
+                                          ...prev,
+                                          [editKey]: newTexts.length > 0 ? newTexts : ['']
+                                        }));
+                                      }}
+                                      className="text-zinc-400 hover:text-rose-500 transition-colors p-0.5 mt-0.5"
+                                      title="삭제"
+                                    >
+                                      ✕
+                                    </button>
                                   </div>
                                 ) : (
-                                  <p key={i} className="text-[11px] text-zinc-600 leading-relaxed">
-                                    • {text}
-                                  </p>
+                                  text && (
+                                    <p key={i} className="text-[11px] text-zinc-600 leading-relaxed">
+                                      • {text}
+                                    </p>
+                                  )
                                 )
                               ))}
+                              {/* 추가 버튼 */}
+                              {bsEditMode && (
+                                <button
+                                  onClick={() => {
+                                    const newTexts = [...bsAnalysisTexts, ''];
+                                    setBsEditData(prev => ({
+                                      ...prev,
+                                      [editKey]: newTexts
+                                    }));
+                                  }}
+                                  className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-blue-500 transition-colors mt-1"
+                                  title="항목 추가"
+                                >
+                                  <span className="text-sm">＋</span> 항목 추가
+                                </button>
+                              )}
                             </div>
                           </div>
                         )}
