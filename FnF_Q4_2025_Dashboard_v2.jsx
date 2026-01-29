@@ -56,6 +56,32 @@ const CustomChartTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+// localStorage 키 상수
+const STORAGE_KEYS = {
+  INCOME_EDIT: 'fnf_dashboard_income_edit',
+  BS_EDIT: 'fnf_dashboard_bs_edit',
+};
+
+// localStorage에서 안전하게 불러오기
+const loadFromStorage = (key) => {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : {};
+  } catch (e) {
+    console.warn('localStorage 로드 실패:', e);
+    return {};
+  }
+};
+
+// localStorage에 안전하게 저장
+const saveToStorage = (key, data) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.warn('localStorage 저장 실패:', e);
+  }
+};
+
 export default function FnFQ4Dashboard() {
   const [activeTab, setActiveTab] = useState('summary');
   const [selectedAccount, setSelectedAccount] = useState('매출액');
@@ -65,8 +91,85 @@ export default function FnFQ4Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('2025_Q4'); // 선택된 조회기간 ('2025_Q1' ~ '2025_Q4')
   const [incomeEditMode, setIncomeEditMode] = useState(false); // 손익계산서 증감 분석 편집 모드
   const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
-  const [incomeEditData, setIncomeEditData] = useState({}); // 손익계산서 문장 편집 데이터 {account_entity: [text, text, ...]}
-  const [bsEditData, setBsEditData] = useState({}); // 재무상태표 문장 편집 데이터
+  const [incomeEditData, setIncomeEditData] = useState(() => loadFromStorage(STORAGE_KEYS.INCOME_EDIT)); // localStorage에서 초기값 로드
+  const [bsEditData, setBsEditData] = useState(() => loadFromStorage(STORAGE_KEYS.BS_EDIT)); // localStorage에서 초기값 로드
+  const fileInputRef = React.useRef(null); // 파일 업로드용 ref
+
+  // incomeEditData 변경 시 localStorage에 자동 저장
+  React.useEffect(() => {
+    if (Object.keys(incomeEditData).length > 0) {
+      saveToStorage(STORAGE_KEYS.INCOME_EDIT, incomeEditData);
+    }
+  }, [incomeEditData]);
+
+  // bsEditData 변경 시 localStorage에 자동 저장
+  React.useEffect(() => {
+    if (Object.keys(bsEditData).length > 0) {
+      saveToStorage(STORAGE_KEYS.BS_EDIT, bsEditData);
+    }
+  }, [bsEditData]);
+
+  // JSON 내보내기 함수
+  const exportEditData = () => {
+    const exportData = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      incomeEditData,
+      bsEditData,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dashboard_analysis_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // JSON 가져오기 함수
+  const importEditData = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result);
+        if (data.incomeEditData) {
+          setIncomeEditData(data.incomeEditData);
+          saveToStorage(STORAGE_KEYS.INCOME_EDIT, data.incomeEditData);
+        }
+        if (data.bsEditData) {
+          setBsEditData(data.bsEditData);
+          saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
+        }
+        alert('분석 데이터를 성공적으로 불러왔습니다.');
+      } catch (err) {
+        alert('파일 형식이 올바르지 않습니다.');
+        console.error('Import error:', err);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // 같은 파일 다시 선택 가능하도록
+  };
+
+  // 편집 데이터 초기화 함수
+  const resetEditData = (type) => {
+    if (type === 'income') {
+      setIncomeEditData({});
+      localStorage.removeItem(STORAGE_KEYS.INCOME_EDIT);
+    } else if (type === 'bs') {
+      setBsEditData({});
+      localStorage.removeItem(STORAGE_KEYS.BS_EDIT);
+    } else {
+      setIncomeEditData({});
+      setBsEditData({});
+      localStorage.removeItem(STORAGE_KEYS.INCOME_EDIT);
+      localStorage.removeItem(STORAGE_KEYS.BS_EDIT);
+    }
+  };
   
   // 법인 표시 순서 고정
   const ENTITY_ORDER = ['OC(국내)', '중국', '홍콩', 'ST미국', '기타(연결조정)'];
@@ -2188,29 +2291,77 @@ export default function FnFQ4Dashboard() {
       return { entity, assets, debt, equity, retainedEarnings, borrowings, debtRatio };
     });
     
-    // ST미국 누적적자 분석
+    // ST미국 누적적자 및 장기차입금 분석
     const stUSData = entityFinancialHealth.find(e => e.entity === 'ST미국');
-    if (stUSData && stUSData.retainedEarnings < 0) {
-      risks.push({
-        title: 'ST미국 누적적자 지속',
-        desc: `이익잉여금 ${Math.round(stUSData.retainedEarnings/100)}억원 적자. 지속적인 손실로 자본잠식 리스크 모니터링 필요`
-      });
-      actions.push({
-        title: 'ST미국 턴어라운드',
-        desc: `사업구조 재검토, 비용 구조조정, 또는 전략적 철수 검토 필요`
-      });
+    if (stUSData) {
+      if (stUSData.retainedEarnings < 0) {
+        risks.push({
+          title: 'ST미국 누적적자 지속',
+          desc: `이익잉여금 ${Math.round(stUSData.retainedEarnings/100)}억원 적자. 지속적인 손실로 자본잠식 리스크 모니터링 필요`
+        });
+      }
+      // ST미국 장기차입금 신규 발생 여부 체크
+      const stUSBorrowingsPrev = (entityBSData && entityBSData[prevPeriod] && entityBSData[prevPeriod].차입금) 
+        ? (entityBSData[prevPeriod].차입금['ST미국'] || 0) : 0;
+      if (stUSData.borrowings > 50000 && stUSBorrowingsPrev === 0) {
+        risks.push({
+          title: 'ST미국 장기차입금 신규 발생',
+          desc: `${Math.round(stUSData.borrowings/100)}억원 신규 차입. 브랜드 투자 및 운영자금 조달로 판단되나 상환 계획 모니터링 필요`
+        });
+      }
+      if (stUSData.retainedEarnings < 0 || stUSData.borrowings > 50000) {
+        actions.push({
+          title: 'ST미국 턴어라운드',
+          desc: `사업구조 재검토, 비용 구조조정, 흑자 전환 로드맵 수립 필요`
+        });
+      }
     }
     
-    // 중국 부채비율 분석
+    // 중국 부채비율 및 재고/차입금 분석
     const chinaData = entityFinancialHealth.find(e => e.entity === '중국');
-    if (chinaData && chinaData.debtRatio > 200) {
-      risks.push({
-        title: '중국 법인 부채비율 주의',
-        desc: `부채비율 ${chinaData.debtRatio.toFixed(0)}%, 차입금 ${Math.round(chinaData.borrowings/100)}억원. 고성장 기반 레버리지이나 리스크 관리 필요`
-      });
+    if (chinaData) {
+      // 중국 재고자산 증가 분석
+      const chinaInventoryCurr = (entityBSData && entityBSData[currentPeriod] && entityBSData[currentPeriod].재고자산) 
+        ? (entityBSData[currentPeriod].재고자산['중국'] || 0) : 0;
+      const chinaInventoryPrev = (entityBSData && entityBSData[prevPeriod] && entityBSData[prevPeriod].재고자산) 
+        ? (entityBSData[prevPeriod].재고자산['중국'] || 0) : 0;
+      const chinaInventoryGrowth = chinaInventoryPrev > 0 ? ((chinaInventoryCurr - chinaInventoryPrev) / chinaInventoryPrev * 100) : 0;
+      
+      if (chinaInventoryGrowth > 80) {
+        risks.push({
+          title: '중국 재고자산 급증',
+          desc: `${Math.round(chinaInventoryCurr/100)}억원 (전년대비 +${chinaInventoryGrowth.toFixed(0)}%, +${Math.round((chinaInventoryCurr-chinaInventoryPrev)/100)}억원). 시장 확대 대응이나 재고 리스크 관리 필요`
+        });
+        improvementTargets.push({
+          area: '중국 재고자산 최적화',
+          current: `${Math.round(chinaInventoryCurr/100)}억원 (전년대비 +${chinaInventoryGrowth.toFixed(0)}%)`,
+          target: `${Math.round(chinaInventoryCurr*0.8/100)}억원 (20% 감축)`,
+          impact: `운전자본 ${Math.round(chinaInventoryCurr*0.2/100)}억원 절감, 이자비용 -${Math.round(chinaInventoryCurr*0.2*0.045/100)}억원/년, 재고평가손실 리스크 감소`,
+          method: `재고회전율 KPI 강화, 시즌별 프로모션 조기 집행, 슬로우 상품 처리 가속화, 발주 시스템 고도화`
+        });
+      }
+      
+      // 중국 차입금 증가 분석
+      const chinaBorrowingsPrev = (entityBSData && entityBSData[prevPeriod] && entityBSData[prevPeriod].차입금) 
+        ? (entityBSData[prevPeriod].차입금['중국'] || 0) : 0;
+      const chinaBorrowingsGrowth = chinaBorrowingsPrev > 0 ? ((chinaData.borrowings - chinaBorrowingsPrev) / chinaBorrowingsPrev * 100) : 0;
+      
+      if (chinaBorrowingsGrowth > 50 && chinaData.borrowings > 100000) {
+        risks.push({
+          title: '중국 차입금 증가',
+          desc: `${Math.round(chinaData.borrowings/100)}억원 (전년대비 +${chinaBorrowingsGrowth.toFixed(0)}%, +${Math.round((chinaData.borrowings-chinaBorrowingsPrev)/100)}억원). 고성장 투자이나 레버리지 관리 필요`
+        });
+      }
+      
+      if (chinaData.debtRatio > 200) {
+        risks.push({
+          title: '중국 법인 부채비율 주의',
+          desc: `부채비율 ${chinaData.debtRatio.toFixed(0)}%, 차입금 ${Math.round(chinaData.borrowings/100)}억원. 고성장 기반 레버리지이나 리스크 관리 필요`
+        });
+      }
     }
     
-    // 국내 법인 자본 효율성
+    // 국내 법인 상세 분석
     const domesticData = entityFinancialHealth.find(e => e.entity === 'OC(국내)');
     if (domesticData && domesticData.assets > 1500000) {
       const domesticROA = domesticData.assets > 0 ? ((entityProfitability.find(e => e.entity === 'OC(국내)')?.netIncome || 0) / domesticData.assets * 100) : 0;
@@ -2218,6 +2369,41 @@ export default function FnFQ4Dashboard() {
         insights.push({
           title: '국내 법인 자산 효율성 우수',
           desc: `자산 ${Math.round(domesticData.assets/100)}억원, ROA ${domesticROA.toFixed(1)}%. 안정적 수익 기반 유지`
+        });
+      }
+      
+      // OC(국내) 현금성자산 변동 분석
+      const domesticCashCurr = (entityBSData && entityBSData[currentPeriod] && entityBSData[currentPeriod].현금성자산) 
+        ? (entityBSData[currentPeriod].현금성자산['OC(국내)'] || 0) : 0;
+      const domesticCashPrev = (entityBSData && entityBSData[prevPeriod] && entityBSData[prevPeriod].현금성자산) 
+        ? (entityBSData[prevPeriod].현금성자산['OC(국내)'] || 0) : 0;
+      const domesticCashGrowth = domesticCashPrev > 0 ? ((domesticCashCurr - domesticCashPrev) / domesticCashPrev * 100) : 0;
+      
+      if (domesticCashGrowth > 200) {
+        insights.push({
+          title: '국내 현금성자산 대폭 증가',
+          desc: `${Math.round(domesticCashCurr/100)}억원 (전년대비 +${domesticCashGrowth.toFixed(0)}%, +${Math.round((domesticCashCurr-domesticCashPrev)/100)}억원). 영업활동 현금흐름 개선 및 투자 여력 확보`
+        });
+      }
+      
+      // OC(국내) 유무형자산 변동 분석 (토지→투자부동산 대체)
+      const domesticPPECurr = (entityBSData && entityBSData[currentPeriod] && entityBSData[currentPeriod].유무형자산) 
+        ? (entityBSData[currentPeriod].유무형자산['OC(국내)'] || 0) : 0;
+      const domesticPPEPrev = (entityBSData && entityBSData[prevPeriod] && entityBSData[prevPeriod].유무형자산) 
+        ? (entityBSData[prevPeriod].유무형자산['OC(국내)'] || 0) : 0;
+      
+      // 토지 감소 + 투자부동산 증가 = 계정 대체
+      const landCurr = bsDetailData['토지']?.[currentPeriod]?.['OC(국내)'] || 0;
+      const landPrev = bsDetailData['토지']?.[prevPeriod]?.['OC(국내)'] || 0;
+      const investLandCurr = bsDetailData['토지(투자부동산)']?.[currentPeriod]?.['OC(국내)'] || 0;
+      const investLandPrev = bsDetailData['토지(투자부동산)']?.[prevPeriod]?.['OC(국내)'] || 0;
+      
+      if (landCurr < landPrev && investLandCurr > investLandPrev) {
+        const landDecrease = landPrev - landCurr;
+        const investIncrease = investLandCurr - investLandPrev;
+        insights.push({
+          title: '국내 부동산 포트폴리오 재편',
+          desc: `토지 ${Math.round(landDecrease/100)}억원 감소, 투자부동산 ${Math.round(investIncrease/100)}억원 증가. 유휴 자산의 수익형 자산 전환으로 자산 효율성 제고`
         });
       }
     }
@@ -2279,7 +2465,7 @@ export default function FnFQ4Dashboard() {
       });
     }
     
-    // 매출 성장 인사이트
+    // 매출 성장 인사이트 (법인별 상세)
     if (salesGrowth < -10) {
       risks.push({
         title: '매출 역성장',
@@ -2289,11 +2475,32 @@ export default function FnFQ4Dashboard() {
         title: '매출 회복',
         desc: `신규 채널 확대, 온라인 강화, 해외시장 공략으로 연간 ${Math.abs(salesGrowth/2).toFixed(0)}% 성장률 회복 목표`
       });
-    } else if (salesGrowth > 15) {
-      insights.push({
-        title: '매출 고성장',
-        desc: `전년대비 ${salesGrowth.toFixed(1)}% 증가. 시장 점유율 확대 및 브랜드 경쟁력 강화`
-      });
+    } else if (salesGrowth > 10) {
+      // 법인별 매출 성장 기여도 분석
+      const entitySalesGrowth = ['OC(국내)', '중국', '홍콩', 'ST미국'].map(entity => {
+        const currSales = entityData.매출액?.[selectedYearKey]?.[entity] || 0;
+        const prevSales = entityData.매출액?.[prevYearKey]?.[entity] || 0;
+        const growth = prevSales > 0 ? ((currSales - prevSales) / prevSales * 100) : 0;
+        const contribution = salesPrev > 0 ? ((currSales - prevSales) / salesPrev * 100) : 0;
+        return { entity, currSales, prevSales, growth, contribution };
+      }).filter(e => e.currSales > 0).sort((a, b) => b.contribution - a.contribution);
+      
+      const topGrowthEntity = entitySalesGrowth[0];
+      if (topGrowthEntity && topGrowthEntity.growth > 5) {
+        insights.push({
+          title: '매출 성장',
+          desc: `전년대비 ${salesGrowth.toFixed(1)}% 증가 (${topGrowthEntity.entity} +${topGrowthEntity.growth.toFixed(1)}% 주도). 연결 매출 ${(salesCurr/10000).toFixed(2)}조원 달성`
+        });
+      }
+      
+      // 중국 매출 성장 상세
+      const chinaGrowth = entitySalesGrowth.find(e => e.entity === '중국');
+      if (chinaGrowth && chinaGrowth.growth > 10) {
+        insights.push({
+          title: '중국 시장 고성장',
+          desc: `매출 ${Math.round(chinaGrowth.currSales/100)}억원 (전년대비 +${chinaGrowth.growth.toFixed(1)}%, +${Math.round((chinaGrowth.currSales-chinaGrowth.prevSales)/100)}억원). MLB 브랜드 확장 및 온라인 채널 성장`
+        });
+      }
     }
     
     // 연결 자산총계 성장 분석
@@ -2466,6 +2673,13 @@ export default function FnFQ4Dashboard() {
     }
     
     // 우선순위 정렬 (영향도 큰 순)
+    // 중요 리스크 우선순위 조정 (법인별 주요 이슈 상단 배치)
+    const priorityRiskKeywords = ['ST미국', '중국 재고', '중국 차입'];
+    const sortedRisks = [
+      ...risks.filter(r => priorityRiskKeywords.some(k => r.title.includes(k))),
+      ...risks.filter(r => !priorityRiskKeywords.some(k => r.title.includes(k)))
+    ];
+    
     return {
       keyMetrics: {
         opMargin: { curr: opMarginCurr, prev: opMarginPrev, change: opMarginChange },
@@ -2473,9 +2687,9 @@ export default function FnFQ4Dashboard() {
         debtRatio: { curr: debtRatioCurr, prev: debtRatioPrev, status: debtRatioCurr < 100 ? '안정' : '주의' },
         roe: { curr: roeCurr, prev: roePrev, change: roeChange }
       },
-      insights: insights.slice(0, 3),
-      risks: risks.slice(0, 3),
-      actions: actions.slice(0, 3),
+      insights: insights.slice(0, 4),
+      risks: sortedRisks.slice(0, 4),
+      actions: actions.slice(0, 4),
       improvementTargets: improvementTargets.slice(0, 4) // 상위 4개 개선 타겟
     };
   };
@@ -3598,17 +3812,56 @@ export default function FnFQ4Dashboard() {
               <h3 className="text-sm font-semibold text-zinc-900">
                 {incomeItems.find(i => i.key === selectedAccount)?.label || selectedAccount} 증감 분석
               </h3>
-              <button
-                onClick={() => setIncomeEditMode(!incomeEditMode)}
-                className={`text-xs px-1.5 py-1 rounded transition-colors ${
-                  incomeEditMode 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                }`}
-                title={incomeEditMode ? '편집 완료' : '분석 문장 편집'}
-              >
-                {incomeEditMode ? '✓' : '✏️'}
-              </button>
+              <div className="flex items-center gap-1">
+                {incomeEditMode && (
+                  <>
+                    <button
+                      onClick={exportEditData}
+                      className="text-xs px-1.5 py-1 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors"
+                      title="JSON 내보내기"
+                    >
+                      📥
+                    </button>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs px-1.5 py-1 rounded bg-amber-100 text-amber-600 hover:bg-amber-200 transition-colors"
+                      title="JSON 가져오기"
+                    >
+                      📤
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm('손익계산서 분석 내용을 기본값으로 초기화하시겠습니까?')) {
+                          resetEditData('income');
+                        }
+                      }}
+                      className="text-xs px-1.5 py-1 rounded bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors"
+                      title="초기화"
+                    >
+                      ↺
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setIncomeEditMode(!incomeEditMode)}
+                  className={`text-xs px-1.5 py-1 rounded transition-colors ${
+                    incomeEditMode 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                  }`}
+                  title={incomeEditMode ? '편집 완료' : '분석 문장 편집'}
+                >
+                  {incomeEditMode ? '✓' : '✏️'}
+                </button>
+              </div>
+              {/* 숨겨진 파일 입력 */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={importEditData}
+                accept=".json"
+                className="hidden"
+              />
             </div>
             <div className="space-y-2 text-xs">
               {(() => {
@@ -4566,17 +4819,48 @@ export default function FnFQ4Dashboard() {
                 <h3 className="text-sm font-semibold text-zinc-900">
                   {balanceItems.find(i => i.key === selectedBSAccount)?.label || selectedBSAccount} 증감 분석
                 </h3>
-                <button
-                  onClick={() => setBsEditMode(!bsEditMode)}
-                  className={`text-xs px-1.5 py-1 rounded transition-colors ${
-                    bsEditMode 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                  }`}
-                  title={bsEditMode ? '편집 완료' : '분석 문장 편집'}
-                >
-                  {bsEditMode ? '✓' : '✏️'}
-                </button>
+                <div className="flex items-center gap-1">
+                  {bsEditMode && (
+                    <>
+                      <button
+                        onClick={exportEditData}
+                        className="text-xs px-1.5 py-1 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors"
+                        title="JSON 내보내기"
+                      >
+                        📥
+                      </button>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs px-1.5 py-1 rounded bg-amber-100 text-amber-600 hover:bg-amber-200 transition-colors"
+                        title="JSON 가져오기"
+                      >
+                        📤
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm('재무상태표 분석 내용을 기본값으로 초기화하시겠습니까?')) {
+                            resetEditData('bs');
+                          }
+                        }}
+                        className="text-xs px-1.5 py-1 rounded bg-rose-100 text-rose-600 hover:bg-rose-200 transition-colors"
+                        title="초기화"
+                      >
+                        ↺
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setBsEditMode(!bsEditMode)}
+                    className={`text-xs px-1.5 py-1 rounded transition-colors ${
+                      bsEditMode 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                    }`}
+                    title={bsEditMode ? '편집 완료' : '분석 문장 편집'}
+                  >
+                    {bsEditMode ? '✓' : '✏️'}
+                  </button>
+                </div>
               </div>
               <div className="space-y-2 text-xs">
                 {(() => {
